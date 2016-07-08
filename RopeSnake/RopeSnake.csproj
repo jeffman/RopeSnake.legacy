@@ -45,6 +45,7 @@
     <Compile Include="Core\BlockCollection.cs" />
     <Compile Include="Core\BlockStream.cs" />
     <Compile Include="Core\IFileManager.cs" />
+    <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\IAllocator.cs" />
     <Compile Include="Core\IModule.cs" />
     <Compile Include="Core\Range.cs" />

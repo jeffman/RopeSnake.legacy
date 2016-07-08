@@ -45,7 +45,10 @@
     <Compile Include="Core\BlockCollection.cs" />
     <Compile Include="Core\BlockStream.cs" />
     <Compile Include="Core\IFileManager.cs" />
+    <Compile Include="Core\IAllocator.cs" />
     <Compile Include="Core\IModule.cs" />
+    <Compile Include="Core\Range.cs" />
+    <Compile Include="Core\RangeAllocator.cs" />
     <Compile Include="Gba\StreamExtensions.cs" />
     <Compile Include="Mother3\Mother3Module.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

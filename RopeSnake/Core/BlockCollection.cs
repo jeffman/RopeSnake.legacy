@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace RopeSnake.Core
 {
-    public class BlockCollection
+    public class BlockCollection : IEnumerable<KeyValuePair<string, Block>>
     {
         private Dictionary<string, Block> _blocks;
 
@@ -24,5 +25,15 @@ namespace RopeSnake.Core
         public virtual IEnumerable<string> Keys => _blocks.Keys;
 
         public virtual IEnumerable<Block> Blocks => _blocks.Values;
+
+        public IEnumerator<KeyValuePair<string, Block>> GetEnumerator()
+        {
+            return ((IEnumerable<KeyValuePair<string, Block>>)_blocks).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return ((IEnumerable<KeyValuePair<string, Block>>)_blocks).GetEnumerator();
+        }
     }
 }

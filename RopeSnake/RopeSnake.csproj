@@ -50,7 +50,7 @@
     <Compile Include="Core\BlockCollection.cs" />
     <Compile Include="Core\IO\BlockStream.cs" />
     <Compile Include="Core\Compiler.cs" />
-    <Compile Include="Core\IO\DiskFileManager.cs" />
+    <Compile Include="Core\IO\DiskFilesystem.cs" />
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\IAllocator.cs" />
     <Compile Include="Core\IO\IBinarySerializable.cs" />

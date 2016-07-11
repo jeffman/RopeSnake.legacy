@@ -9,11 +9,11 @@ namespace RopeSnake.Core
 {
     public class BinaryFileManager
     {
-        private IFileManager _manager;
+        private IFilesystem _manager;
 
-        protected IFileManager Manager { get { return _manager; } }
+        protected IFilesystem Manager { get { return _manager; } }
 
-        public BinaryFileManager(IFileManager manager)
+        public BinaryFileManager(IFilesystem manager)
         {
             _manager = manager;
         }

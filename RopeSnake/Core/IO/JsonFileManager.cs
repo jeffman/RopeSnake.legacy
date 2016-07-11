@@ -10,11 +10,11 @@ namespace RopeSnake.Core
 {
     public class JsonFileManager
     {
-        private IFileManager _manager;
+        private IFilesystem _manager;
 
-        protected IFileManager Manager { get { return _manager; } }
+        protected IFilesystem Manager { get { return _manager; } }
 
-        public JsonFileManager(IFileManager manager)
+        public JsonFileManager(IFilesystem manager)
         {
             _manager = manager;
         }

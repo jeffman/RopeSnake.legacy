@@ -7,9 +7,8 @@ using System.IO;
 
 namespace RopeSnake.Core
 {
-    public interface IFileManager
+    public interface IFilesystem
     {
-        string BasePath { get; set; }
         Stream CreateFile(string path);
         Stream OpenFile(string path);
         int GetFileSize(string path);

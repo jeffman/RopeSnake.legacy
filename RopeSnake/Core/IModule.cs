@@ -12,8 +12,8 @@ namespace RopeSnake.Core
 
         void ReadFromRom(Block romData);
         void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
-        void ReadFromFiles(IFileManager manager);
-        void WriteToFiles(IFileManager manager);
+        void ReadFromFiles(IFilesystem manager);
+        void WriteToFiles(IFilesystem manager);
 
         BlockCollection Serialize();
         void UpdateReferences(AllocatedBlockCollection allocatedBlocks);

@@ -3,96 +3,67 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace RopeSnake.Core
 {
-    public class BlockStream
+    public sealed class BlockStream : Stream
     {
         private Block _block;
 
-        public virtual int Position { get; set; }
-        public virtual bool IsLittleEndian { get; }
+        public override bool CanRead => true;
 
-        private Func<ushort> ushortReader;
-        private Action<ushort> ushortWriter;
-        private Func<int> intReader;
-        private Action<int> intWriter;
+        public override bool CanSeek => true;
 
-        public BlockStream(Block block) : this(block, true) { }
+        public override bool CanWrite => true;
 
-        public BlockStream(Block block, bool littleEndian)
+        public override long Length => _block.Size;
+
+        public override long Position { get; set; }
+
+        public BlockStream(Block block)
         {
             _block = block;
-            IsLittleEndian = littleEndian;
-            SetUpEndianness();
         }
 
-        private void SetUpEndianness()
+        public override void Flush() { }
+
+        public override int ReadByte() => _block[(int)(Position++)];
+
+        public override int Read(byte[] buffer, int offset, int count)
         {
-            switch (IsLittleEndian)
+            _block.CopyTo(buffer, offset, (int)Position, count);
+            Position += count;
+            return count;
+        }
+
+        public override long Seek(long offset, SeekOrigin origin)
+        {
+            switch (origin)
             {
-                case true:
-                    ushortReader = ReadUShortLittleEndian;
-                    ushortWriter = WriteUShortLittleEndian;
-                    intReader = ReadIntLittleEndian;
-                    intWriter = WriteIntLittleEndian;
+                case SeekOrigin.Begin:
+                    Position = offset;
                     break;
 
-                case false:
-                    ushortReader = ReadUShortBigEndian;
-                    ushortWriter = WriteUShortBigEndian;
-                    intReader = ReadIntBigEndian;
-                    intWriter = WriteIntBigEndian;
+                case SeekOrigin.Current:
+                    Position += offset;
                     break;
+
+                case SeekOrigin.End:
+                    throw new NotSupportedException();
             }
+
+            return Position;
         }
 
-        public virtual byte ReadByte() => _block[Position++];
-        public virtual void WriteByte(byte value) => _block[Position++] = value;
-
-        public virtual sbyte ReadSByte() => (sbyte)ReadByte();
-        public virtual void WriteSByte(sbyte value) => WriteByte((byte)value);
-
-        public virtual ushort ReadUShort() => ushortReader();
-        public virtual void WriteUShort(ushort value) => ushortWriter(value);
-
-        public virtual short ReadShort() => (short)ReadUShort();
-        public virtual void WriteShort(short value) => WriteUShort((ushort)value);
-
-        public virtual uint ReadUInt() => (uint)ReadInt();
-        public virtual void WriteUInt(uint value) => WriteInt((int)value);
-
-        public virtual int ReadInt() => intReader();
-        public virtual void WriteInt(int value) => intWriter(value);
-
-        protected virtual ushort ReadUShortLittleEndian() => (ushort)(ReadByte() | (ReadByte() << 8));
-        protected virtual ushort ReadUShortBigEndian() => (ushort)((ReadByte() << 8) | ReadByte());
-
-        protected virtual void WriteUShortLittleEndian(ushort value)
+        public override void SetLength(long value)
         {
-            WriteByte((byte)(value & 0xFF));
-            WriteByte((byte)((value >> 8) & 0xFF));
+            throw new NotSupportedException();
         }
 
-        protected virtual void WriteUShortBigEndian(ushort value)
-        {
-            WriteByte((byte)((value >> 8) & 0xFF));
-            WriteByte((byte)(value & 0xFF));
-        }
+        public override void WriteByte(byte value) => _block[(int)(Position++)] = value;
 
-        protected virtual int ReadIntLittleEndian() => ReadUShortLittleEndian() | (ReadUShortLittleEndian() << 16);
-        protected virtual int ReadIntBigEndian() => (ReadUShortBigEndian() << 16) | ReadUShortBigEndian();
-
-        protected virtual void WriteIntLittleEndian(int value)
-        {
-            WriteUShortLittleEndian((ushort)(value & 0xFFFF));
-            WriteUShortLittleEndian((ushort)((value >> 16) & 0xFFFF));
-        }
-
-        protected virtual void WriteIntBigEndian(int value)
-        {
-            WriteUShortBigEndian((ushort)((value >> 16) & 0xFFFF));
-            WriteUShortBigEndian((ushort)(value & 0xFFFF));
-        }
+        public override void Write(byte[] buffer, int offset, int count)
+            => _block.CopyFrom(buffer, offset, (int)Position, count);
     }
 }

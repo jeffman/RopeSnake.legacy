@@ -32,7 +32,7 @@ namespace RopeSnake.Mother3
 
         protected void UpdateRomReferences(Block romData, string key, int value)
         {
-            var stream = new BlockStream(romData);
+            var stream = romData.ToBinaryStream();
 
             foreach (int reference in _references[key])
             {

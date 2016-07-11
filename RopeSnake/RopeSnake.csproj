@@ -48,8 +48,9 @@
     <Compile Include="Core\IO\BinaryFileManager.cs" />
     <Compile Include="Core\Block.cs" />
     <Compile Include="Core\BlockCollection.cs" />
-    <Compile Include="Core\IO\BlockStream.cs" />
+    <Compile Include="Core\IO\BinaryStream.cs" />
     <Compile Include="Core\Compiler.cs" />
+    <Compile Include="Core\IO\BlockStream.cs" />
     <Compile Include="Core\IO\DiskFilesystem.cs" />
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\IAllocator.cs" />

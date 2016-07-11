@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace RopeSnake.Core
 {
@@ -34,9 +35,24 @@ namespace RopeSnake.Core
                 throw new ArgumentNullException(nameof(copyFrom));
 
             _data = new byte[copyFrom.Length];
-            Array.Copy(copyFrom, _data, copyFrom.Length);    
+            Array.Copy(copyFrom, _data, copyFrom.Length);
         }
 
         public Block(Block copyFrom) : this(copyFrom._data) { }
+
+        public BinaryStream ToBinaryStream()
+        {
+            return new BinaryStream(new BlockStream(this));
+        }
+
+        internal virtual void CopyTo(byte[] destination, int destinationOffset, int sourceOffset, int length)
+        {
+            Array.Copy(_data, sourceOffset, destination, destinationOffset, length);
+        }
+
+        internal void CopyFrom(byte[] source, int sourceOffset, int destinationOffset, int length)
+        {
+            Array.Copy(source, sourceOffset, _data, destinationOffset, length);
+        }
     }
 }

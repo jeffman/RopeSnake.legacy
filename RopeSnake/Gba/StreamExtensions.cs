@@ -9,12 +9,12 @@ namespace RopeSnake.Gba
 {
     public static class StreamExtensions
     {
-        public static int ReadGbaPointer(this BlockStream stream)
+        public static int ReadGbaPointer(this BinaryStream stream)
         {
             return stream.ReadInt() & 0x1FFFFFF;
         }
 
-        public static void WriteGbaPointer(this BlockStream stream, int pointer)
+        public static void WriteGbaPointer(this BinaryStream stream, int pointer)
         {
             stream.WriteInt(pointer | 0x8000000);
         }

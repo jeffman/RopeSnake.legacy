@@ -17,7 +17,7 @@ namespace RopeSnake.Core
             set { _data[index] = value; }
         }
 
-        protected byte[] Data => _data;
+        internal byte[] Data => _data;
 
         public virtual int Size => Data.Length;
 

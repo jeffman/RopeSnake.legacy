@@ -10,6 +10,6 @@ namespace RopeSnake.Core
     public interface IBinarySerializable
     {
         void Serialize(Stream stream);
-        void Deserialize(Stream stream, int size);
+        void Deserialize(Stream stream, int fileSize);
     }
 }

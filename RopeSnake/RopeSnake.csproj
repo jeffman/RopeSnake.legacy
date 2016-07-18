@@ -61,6 +61,7 @@
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
     <Compile Include="Gba\GbaTile.cs" />
+    <Compile Include="Gba\GbaTileset.cs" />
     <Compile Include="Gba\StreamExtensions.cs" />
     <Compile Include="Graphics\Color.cs" />
     <Compile Include="Graphics\ITilemap.cs" />

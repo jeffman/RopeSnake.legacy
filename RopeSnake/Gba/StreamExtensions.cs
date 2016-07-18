@@ -204,86 +204,19 @@ namespace RopeSnake.Gba
 
         public static GbaTile ReadTile(this BinaryStream stream, int bitDepth)
         {
-            switch (bitDepth)
-            {
-                case 4:
-                    return ReadTile4Bpp(stream);
-                case 8:
-                    return ReadTile8Bpp(stream);
-                default:
-                    throw new NotSupportedException(nameof(bitDepth));
-            }
-        }
-
-        private static GbaTile ReadTile4Bpp(BinaryStream stream)
-        {
             var tile = new GbaTile();
-            for (int y = 0; y < 8; y++)
-            {
-                for (int x = 0; x < 8; x += 2)
-                {
-                    byte tmp = stream.ReadByte();
-                    tile[x, y] = (byte)(tmp & 0xF);
-                    tile[x + 1, y] = (byte)((tmp >> 4) & 0xF);
-                }
-            }
-            return tile;
-        }
-
-        private static GbaTile ReadTile8Bpp(BinaryStream stream)
-        {
-            var tile = new GbaTile();
-            for (int y = 0; y < 8; y++)
-            {
-                for (int x = 0; x < 8; x++)
-                {
-                    tile[x, y] = stream.ReadByte();
-                }
-            }
+            tile.Read(stream, bitDepth);
             return tile;
         }
 
         public static void WriteTile(this BinaryStream stream, GbaTile tile, int bitDepth)
         {
-            switch (bitDepth)
-            {
-                case 4:
-                    WriteTile4Bpp(stream, tile);
-                    break;
-                case 8:
-                    WriteTile8Bpp(stream, tile);
-                    break;
-                default:
-                    throw new NotSupportedException(nameof(bitDepth));
-            }
+            tile.Write(stream, bitDepth);
         }
 
-        private static void WriteTile4Bpp(BinaryStream stream, GbaTile tile)
+        public static GbaTileset ReadTileset(this BinaryStream stream, int count, int bitDepth)
         {
-            for (int y = 0; y < 8; y++)
-            {
-                for (int x = 0; x < 8; x += 2)
-                {
-                    byte tmp = (byte)((tile[x, y] & 0xF) | ((tile[x + 1, y] & 0xF) << 4));
-                    stream.WriteByte(tmp);
-                }
-            }
-        }
-
-        private static void WriteTile8Bpp(BinaryStream stream, GbaTile tile)
-        {
-            for (int y = 0; y < 8; y++)
-            {
-                for (int x = 0; x < 8; x++)
-                {
-                    stream.WriteByte(tile[x, y]);
-                }
-            }
-        }
-
-        public static Tileset<GbaTile> ReadTileset(this BinaryStream stream, int count, int bitDepth)
-        {
-            var tileset = new Tileset<GbaTile>(count);
+            var tileset = new GbaTileset(count, bitDepth);
             for (int i = 0; i < count; i++)
             {
                 tileset[i] = stream.ReadTile(bitDepth);
@@ -291,7 +224,7 @@ namespace RopeSnake.Gba
             return tileset;
         }
 
-        public static void WriteTileset(this BinaryStream stream, ITileset<GbaTile> tileset, int bitDepth)
+        public static void WriteTileset(this BinaryStream stream, GbaTileset tileset, int bitDepth)
         {
             for (int i = 0; i < tileset.Count; i++)
             {

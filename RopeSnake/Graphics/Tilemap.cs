@@ -10,11 +10,9 @@ namespace RopeSnake.Graphics
     public class Tilemap<T> : ITilemap<T> where T : TileInfo
     {
         private T[,] _tileInfo;
-        private int _width;
-        private int _height;
 
-        public virtual int Width => _width;
-        public virtual int Height => _height;
+        public virtual int Width => _tileInfo.GetLength(0);
+        public virtual int Height => _tileInfo.GetLength(1);
 
         public virtual T this[int x, int y]
         {
@@ -31,15 +29,13 @@ namespace RopeSnake.Graphics
                 throw new ArgumentException(nameof(height));
 
             _tileInfo = new T[width, height];
-            _width = width;
-            _height = height;
         }
 
         public virtual IEnumerator<T> GetEnumerator()
         {
-            for (int y = 0; y < _height; y++)
+            for (int y = 0; y < Height; y++)
             {
-                for (int x = 0; x < _width; x++)
+                for (int x = 0; x < Width; x++)
                 {
                     yield return _tileInfo[x, y];
                 }

@@ -8,9 +8,12 @@ using RopeSnake.Core;
 
 namespace RopeSnake.Graphics
 {
-    public abstract class Tile
+    public class Tile
     {
         private byte[,] _pixels;
+
+        public virtual int Width => _pixels.GetLength(0);
+        public virtual int Height => _pixels.GetLength(1);
 
         public virtual byte this[int x, int y]
         {
@@ -18,10 +21,7 @@ namespace RopeSnake.Graphics
             set { _pixels[x, y] = value; }
         }
 
-        public virtual int Width => _pixels.GetLength(0);
-        public virtual int Height => _pixels.GetLength(1);
-
-        protected Tile(int width, int height)
+        public Tile(int width, int height)
         {
             _pixels = new byte[width, height];
         }

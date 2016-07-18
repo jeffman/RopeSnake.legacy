@@ -20,6 +20,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -36,6 +37,7 @@
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Drawing" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -64,9 +66,11 @@
     <Compile Include="Gba\GbaTileset.cs" />
     <Compile Include="Gba\StreamExtensions.cs" />
     <Compile Include="Graphics\Color.cs" />
+    <Compile Include="Graphics\Extensions.cs" />
     <Compile Include="Graphics\ITilemap.cs" />
     <Compile Include="Graphics\ITileset.cs" />
     <Compile Include="Graphics\Palette.cs" />
+    <Compile Include="Graphics\Render.cs" />
     <Compile Include="Graphics\Tile.cs" />
     <Compile Include="Graphics\TileInfo.cs" />
     <Compile Include="Graphics\Tilemap.cs" />

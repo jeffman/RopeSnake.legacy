@@ -11,12 +11,14 @@ namespace RopeSnake.Graphics
         public readonly byte R;
         public readonly byte G;
         public readonly byte B;
-
+        public readonly uint Argb;
+        
         public Color(byte r, byte g, byte b)
         {
             R = r;
             G = g;
             B = b;
+            Argb = (uint)(r | (g << 8) | (b << 16)) | 0xFF000000;
         }
 
         public bool Equals(Color other)

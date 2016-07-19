@@ -10,6 +10,8 @@ namespace RopeSnake.Graphics
     {
         int Width { get; }
         int Height { get; }
+        int TileWidth { get; }
+        int TileHeight { get; }
         T this[int x, int y] { get; }
     }
 }

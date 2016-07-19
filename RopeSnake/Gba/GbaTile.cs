@@ -11,9 +11,6 @@ namespace RopeSnake.Gba
 {
     public sealed class GbaTile : Tile
     {
-        public override int Width => 8;
-        public override int Height => 8;
-
         public GbaTile() : base(8, 8) { }
 
         #region Serialization

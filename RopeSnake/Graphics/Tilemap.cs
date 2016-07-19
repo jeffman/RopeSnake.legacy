@@ -12,9 +12,13 @@ namespace RopeSnake.Graphics
     public class Tilemap<T> : ITilemap<T>, IBinarySerializable where T : TileInfo, new()
     {
         private T[,] _tileInfo;
+        private int _tileWidth;
+        private int _tileHeight;
 
         public virtual int Width => _tileInfo.GetLength(0);
         public virtual int Height => _tileInfo.GetLength(1);
+        public virtual int TileWidth => _tileWidth;
+        public virtual int TileHeight => _tileHeight;
 
         public virtual T this[int x, int y]
         {
@@ -22,9 +26,11 @@ namespace RopeSnake.Graphics
             set { _tileInfo[x, y] = value; }
         }
 
-        public Tilemap(int width, int height)
+        public Tilemap(int width, int height, int tileWidth, int tileHeight)
         {
             ResetTileInfo(width, height);
+            _tileWidth = tileWidth;
+            _tileHeight = tileHeight;
         }
 
         protected void ResetTileInfo(int newWidth, int newHeight)

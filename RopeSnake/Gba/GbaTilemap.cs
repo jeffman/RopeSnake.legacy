@@ -11,7 +11,7 @@ namespace RopeSnake.Gba
 {
     public sealed class GbaTilemap : Tilemap<TileInfo>
     {
-        public GbaTilemap(int width, int height) : base(width, height) { }
+        public GbaTilemap(int width, int height) : base(width, height, 8, 8) { }
 
         #region IBinarySerializable implementation
 

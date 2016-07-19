@@ -117,5 +117,8 @@ namespace RopeSnake.Core
             WriteUShortBigEndian((ushort)((value >> 16) & 0xFFFF));
             WriteUShortBigEndian((ushort)(value & 0xFFFF));
         }
+
+        public virtual bool ReadBool() => ReadByte() != 0;
+        public virtual void WriteBool(bool value) => WriteByte((byte)(value ? 1 : 0));
     }
 }

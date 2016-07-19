@@ -23,11 +23,17 @@ namespace RopeSnake.Graphics
 
         public Tile(int width, int height)
         {
-            _pixels = new byte[width, height];
+            ResetTile(width, height);
         }
 
         protected void ResetTile(int newWidth, int newHeight)
         {
+            if (newWidth < 0)
+                throw new ArgumentException(nameof(newWidth));
+
+            if (newHeight < 0)
+                throw new ArgumentException(nameof(newHeight));
+
             _pixels = new byte[newWidth, newHeight];
         }
 

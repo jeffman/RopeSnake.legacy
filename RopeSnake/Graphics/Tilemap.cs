@@ -1,13 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using RopeSnake.Core;
 
 namespace RopeSnake.Graphics
 {
-    public class Tilemap<T> : ITilemap<T> where T : TileInfo
+    public class Tilemap<T> : ITilemap<T>, IBinarySerializable where T : TileInfo, new()
     {
         private T[,] _tileInfo;
 
@@ -22,13 +24,18 @@ namespace RopeSnake.Graphics
 
         public Tilemap(int width, int height)
         {
-            if (width < 0)
-                throw new ArgumentException(nameof(width));
+            ResetTileInfo(width, height);
+        }
 
-            if (height < 0)
-                throw new ArgumentException(nameof(height));
+        protected void ResetTileInfo(int newWidth, int newHeight)
+        {
+            if (newWidth < 0)
+                throw new ArgumentException(nameof(newWidth));
 
-            _tileInfo = new T[width, height];
+            if (newHeight < 0)
+                throw new ArgumentException(nameof(newHeight));
+
+            _tileInfo = new T[newWidth, newHeight];
         }
 
         public virtual IEnumerator<T> GetEnumerator()
@@ -43,5 +50,44 @@ namespace RopeSnake.Graphics
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+        #region IBinarySerializable implementation
+
+        public virtual void Serialize(Stream stream)
+        {
+            var writer = new BinaryStream(stream);
+
+            writer.WriteInt(Width);
+            writer.WriteInt(Height);
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    this[x, y].Serialize(stream);
+                }
+            }
+        }
+
+        public virtual void Deserialize(Stream stream, int fileSize)
+        {
+            var reader = new BinaryStream(stream);
+
+            int width = reader.ReadInt();
+            int height = reader.ReadInt();
+
+            ResetTileInfo(width, height);
+
+            for (int y = 0; y < Height; y++)
+            {
+                for (int x = 0; x < Width; x++)
+                {
+                    this[x, y] = new T();
+                    this[x, y].Deserialize(stream, fileSize);
+                }
+            }
+        }
+
+        #endregion
     }
 }

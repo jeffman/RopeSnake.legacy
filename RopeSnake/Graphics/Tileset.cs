@@ -23,14 +23,14 @@ namespace RopeSnake.Graphics
 
         public Tileset(int count)
         {
-            if (count < 0)
-                throw new ArgumentException(nameof(count));
-
-            _tiles = new T[count];
+            ResetTiles(count);
         }
 
         protected void ResetTiles(int newCount)
         {
+            if (newCount < 0)
+                throw new ArgumentException(nameof(newCount));
+
             _tiles = new T[newCount];
         }
 

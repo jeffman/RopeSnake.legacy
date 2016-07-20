@@ -27,7 +27,7 @@ namespace RopeSnake.Graphics
             Bitmap bitmap, int x, int y, Rectangle clippingRegion, TransparencyMode transparency)
         {
             var canvas = bitmap.LockBits();
-            Tilemap(tilemap, tileset, palette, canvas, 0, 0, new Rectangle(0, 0, bitmap.Width, bitmap.Height), transparency);
+            Tilemap(tilemap, tileset, palette, canvas, x, y, clippingRegion, transparency);
             bitmap.UnlockBits(canvas);
         }
 

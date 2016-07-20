@@ -17,15 +17,18 @@ namespace RopeSnake.Graphics
             TransparencyMode transparency)
         {
             CheckConsistentTileSizes(tilemap, tileset);
-
             var bitmap = new Bitmap(tilemap.Width * tilemap.TileWidth, tilemap.Height * tilemap.TileHeight,
                 PixelFormat.Format32bppArgb);
-            var canvas = bitmap.LockBits();
-
-            Tilemap(tilemap, tileset, palette, canvas, 0, 0, new Rectangle(0, 0, bitmap.Width, bitmap.Height), transparency);
-
-            bitmap.UnlockBits(canvas);
+            Tilemap(tilemap, tileset, palette, bitmap, 0, 0, new Rectangle(0, 0, bitmap.Width, bitmap.Height), transparency);
             return bitmap;
+        }
+
+        public static void Tilemap(ITilemap<TileInfo> tilemap, ITileset<Tile> tileset, Palette palette,
+            Bitmap bitmap, int x, int y, Rectangle clippingRegion, TransparencyMode transparency)
+        {
+            var canvas = bitmap.LockBits();
+            Tilemap(tilemap, tileset, palette, canvas, 0, 0, new Rectangle(0, 0, bitmap.Width, bitmap.Height), transparency);
+            bitmap.UnlockBits(canvas);
         }
 
         public static void Tilemap(ITilemap<TileInfo> tilemap, ITileset<Tile> tileset, Palette palette,

@@ -295,9 +295,9 @@ namespace RopeSnake.Gba
             stream.WriteUShort(value);
         }
 
-        public static Tilemap<TileInfo> ReadTilemap(this BinaryStream stream, int width, int height)
+        public static GbaTilemap ReadTilemap(this BinaryStream stream, int width, int height)
         {
-            var tilemap = new Tilemap<TileInfo>(width, height);
+            var tilemap = new GbaTilemap(width, height);
             for (int y = 0; y < height; y++)
             {
                 for (int x = 0; x < width; x++)
@@ -308,7 +308,7 @@ namespace RopeSnake.Gba
             return tilemap;
         }
 
-        public static void WriteTilemap(this BinaryStream stream, ITilemap<TileInfo> tilemap)
+        public static void WriteTilemap(this BinaryStream stream, GbaTilemap tilemap)
         {
             for (int y = 0; y < tilemap.Height; y++)
             {

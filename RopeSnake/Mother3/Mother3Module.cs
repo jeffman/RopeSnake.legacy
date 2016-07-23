@@ -10,22 +10,34 @@ namespace RopeSnake.Mother3
 {
     public abstract class Mother3Module : IModule
     {
-        protected Mother3RomConfig RomConfiguration { get; }
+        protected Mother3RomConfig RomConfig { get; }
 
         protected Mother3Module(Mother3RomConfig romConfig)
         {
-            RomConfiguration = romConfig;
+            RomConfig = romConfig;
         }
 
         protected void UpdateRomReferences(Block romData, string key, int value)
         {
             var stream = romData.ToBinaryStream();
-            var references = RomConfiguration.GetReferences(key);
+            var references = RomConfig.GetReferences(key);
 
             foreach (int reference in references)
             {
                 stream.Position = reference;
                 stream.WriteGbaPointer(value);
+            }
+        }
+
+        protected void WriteAllocatedBlocksAndUpdateReferences(Block romData,
+            AllocatedBlockCollection allocatedBlocks, params string[] keys)
+        {
+            foreach (string key in keys)
+            {
+                int pointer = allocatedBlocks.GetAllocatedPointer(key);
+                var block = allocatedBlocks[key];
+                block.CopyTo(romData.Data, pointer, 0, block.Size);
+                UpdateRomReferences(romData, key, pointer);
             }
         }
 
@@ -37,7 +49,6 @@ namespace RopeSnake.Mother3
         public abstract void ReadFromFiles(IFileSystem fileSystem);
         public abstract void WriteToFiles(IFileSystem fileSystem);
         public abstract BlockCollection Serialize();
-        public abstract void UpdateReferences(AllocatedBlockCollection allocatedBlocks);
 
         #endregion
     }

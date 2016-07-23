@@ -120,5 +120,8 @@ namespace RopeSnake.Core
 
         public virtual bool ReadBool() => ReadByte() != 0;
         public virtual void WriteBool(bool value) => WriteByte((byte)(value ? 1 : 0));
+
+        public virtual void ReadBytes(byte[] dest, int destOffset, int count) => _stream.Read(dest, destOffset, count);
+        public virtual void WriteBytes(byte[] source, int sourceOffset, int count) => _stream.Write(source, sourceOffset, count);
     }
 }

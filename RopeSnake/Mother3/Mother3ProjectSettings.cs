@@ -17,5 +17,15 @@ namespace RopeSnake.Mother3
 
         [JsonProperty]
         public string RomConfigPath { get; private set; }
+
+        public static Mother3ProjectSettings CreateDefault()
+        {
+            return new Mother3ProjectSettings
+            {
+                BaseRomPath = "base.gba",
+                OutputRomPath = "test.gba",
+                RomConfigPath = "rom.config.json"
+            };
+        }
     }
 }

@@ -39,5 +39,11 @@
       412132,
       536896
     ]
+  },
+  "FreeRanges": [
+    "[0xE5108, 0xEBD07]"
+  ],
+  "Parameters": {
+    "Data.Items.Count": 256
   }
 }

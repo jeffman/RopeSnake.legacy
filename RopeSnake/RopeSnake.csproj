@@ -54,11 +54,11 @@
     <Compile Include="Core\IO\BinaryStream.cs" />
     <Compile Include="Core\Compiler.cs" />
     <Compile Include="Core\IO\BlockStream.cs" />
-    <Compile Include="Core\IO\DiskFilesystem.cs" />
+    <Compile Include="Core\IO\DiskFileSystem.cs" />
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\IAllocator.cs" />
     <Compile Include="Core\IO\IBinarySerializable.cs" />
-    <Compile Include="Core\IO\IFilesystem.cs" />
+    <Compile Include="Core\IO\IFileSystem.cs" />
     <Compile Include="Core\IModule.cs" />
     <Compile Include="Core\IO\JsonFileManager.cs" />
     <Compile Include="Core\Range.cs" />

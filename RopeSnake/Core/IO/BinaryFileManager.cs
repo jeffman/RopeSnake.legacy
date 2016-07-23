@@ -9,13 +9,13 @@ namespace RopeSnake.Core
 {
     public class BinaryFileManager
     {
-        private IFilesystem _manager;
+        private IFileSystem _fileSystem;
 
-        protected IFilesystem Manager { get { return _manager; } }
+        protected IFileSystem Manager { get { return _fileSystem; } }
 
-        public BinaryFileManager(IFilesystem manager)
+        public BinaryFileManager(IFileSystem fileSystem)
         {
-            _manager = manager;
+            _fileSystem = fileSystem;
         }
 
         public T ReadFile<T>(string path)
@@ -28,9 +28,9 @@ namespace RopeSnake.Core
 
         public void ReadFile(string path, IBinarySerializable value)
         {
-            int size = _manager.GetFileSize(path);
+            int size = _fileSystem.GetFileSize(path);
 
-            using (var stream = _manager.OpenFile(path))
+            using (var stream = _fileSystem.OpenFile(path))
             {
                 value.Deserialize(stream, size);
             }
@@ -38,7 +38,7 @@ namespace RopeSnake.Core
 
         public void WriteFile(string path, IBinarySerializable value)
         {
-            using (var stream = _manager.CreateFile(path))
+            using (var stream = _fileSystem.CreateFile(path))
             {
                 value.Serialize(stream);
             }

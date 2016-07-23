@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RopeSnake.Core
 {
-    public interface IFilesystem
+    public interface IFileSystem
     {
         Stream CreateFile(string path);
         Stream OpenFile(string path);

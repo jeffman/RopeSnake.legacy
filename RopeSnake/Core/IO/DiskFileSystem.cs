@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RopeSnake.Core
 {
-    public class DiskFilesystem : IFilesystem
+    public class DiskFileSystem : IFileSystem
     {
         public string BasePath { get; set; }
 

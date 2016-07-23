@@ -10,19 +10,19 @@ namespace RopeSnake.Core
 {
     public class JsonFileManager
     {
-        private IFilesystem _manager;
+        private IFileSystem _fileSystem;
 
-        protected IFilesystem Manager { get { return _manager; } }
+        protected IFileSystem FileSystem { get { return _fileSystem; } }
 
-        public JsonFileManager(IFilesystem manager)
+        public JsonFileManager(IFileSystem fileSystem)
         {
-            _manager = manager;
+            _fileSystem = fileSystem;
         }
 
         public virtual T ReadJson<T>(string path)
         {
             var serializer = new JsonSerializer();
-            using (var stream = _manager.OpenFile(path))
+            using (var stream = _fileSystem.OpenFile(path))
             {
                 using (var textReader = new StreamReader(stream))
                 {
@@ -39,7 +39,7 @@ namespace RopeSnake.Core
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
 
-            using (var stream = _manager.CreateFile(path))
+            using (var stream = _fileSystem.CreateFile(path))
             {
                 using (var textWriter = new StreamWriter(stream))
                 {

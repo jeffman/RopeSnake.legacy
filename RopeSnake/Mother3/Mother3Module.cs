@@ -34,8 +34,8 @@ namespace RopeSnake.Mother3
         public abstract string Name { get; }
         public abstract void ReadFromRom(Block romData);
         public abstract void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
-        public abstract void ReadFromFiles(IFileSystem manager);
-        public abstract void WriteToFiles(IFileSystem manager);
+        public abstract void ReadFromFiles(IFileSystem fileSystem);
+        public abstract void WriteToFiles(IFileSystem fileSystem);
         public abstract BlockCollection Serialize();
         public abstract void UpdateReferences(AllocatedBlockCollection allocatedBlocks);
 

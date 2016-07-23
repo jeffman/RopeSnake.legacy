@@ -78,12 +78,18 @@
     <Compile Include="Graphics\Tilemap.cs" />
     <Compile Include="Graphics\Tileset.cs" />
     <Compile Include="Mother3\Mother3Module.cs" />
+    <Compile Include="Mother3\Mother3Project.cs" />
+    <Compile Include="Mother3\Mother3ProjectSettings.cs" />
+    <Compile Include="Mother3\Mother3RomConfig.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Mother3\Data\" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Mother3\RomConfigurations\m3_jp.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

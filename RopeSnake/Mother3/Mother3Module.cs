@@ -10,31 +10,19 @@ namespace RopeSnake.Mother3
 {
     public abstract class Mother3Module : IModule
     {
-        private Dictionary<string, HashSet<int>> _references;
+        protected Mother3RomConfig RomConfiguration { get; }
 
-        protected Mother3Module()
+        protected Mother3Module(Mother3RomConfig romConfig)
         {
-            _references = new Dictionary<string, HashSet<int>>();
-        }
-
-        protected void AddReferences(string key, IEnumerable<int> references)
-        {
-            HashSet<int> referenceSet;
-            if (!_references.TryGetValue(key, out referenceSet))
-            {
-                referenceSet = new HashSet<int>();
-                _references.Add(key, referenceSet);
-            }
-
-            foreach (int reference in references)
-                referenceSet.Add(reference);
+            RomConfiguration = romConfig;
         }
 
         protected void UpdateRomReferences(Block romData, string key, int value)
         {
             var stream = romData.ToBinaryStream();
+            var references = RomConfiguration.GetReferences(key);
 
-            foreach (int reference in _references[key])
+            foreach (int reference in references)
             {
                 stream.Position = reference;
                 stream.WriteGbaPointer(value);

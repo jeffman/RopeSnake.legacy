@@ -7,7 +7,7 @@ using System.IO;
 
 namespace RopeSnake.Core
 {
-    public class Block
+    public class Block : IBinarySerializable
     {
         private byte[] _data;
 
@@ -20,6 +20,8 @@ namespace RopeSnake.Core
         internal byte[] Data => _data;
 
         public virtual int Size => Data.Length;
+
+        public Block() { }
 
         public Block(int blockSize)
         {
@@ -54,5 +56,20 @@ namespace RopeSnake.Core
         {
             Array.Copy(source, sourceOffset, _data, destinationOffset, length);
         }
+
+        #region IBinarySerializable implementation
+
+        public void Serialize(Stream stream)
+        {
+            stream.Write(_data, 0, _data.Length);
+        }
+
+        public void Deserialize(Stream stream, int fileSize)
+        {
+            _data = new byte[fileSize];
+            stream.Read(Data, 0, fileSize);
+        }
+
+        #endregion
     }
 }

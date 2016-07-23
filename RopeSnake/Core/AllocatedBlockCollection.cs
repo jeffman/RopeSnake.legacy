@@ -18,6 +18,7 @@ namespace RopeSnake.Core
             if (allocatedPointers == null)
                 throw new ArgumentNullException(nameof(allocatedPointers));
 
+            _allocatedPointers = new Dictionary<string, int>();
             foreach (string key in blocks.Keys)
             {
                 base.AddBlock(key, blocks[key]);

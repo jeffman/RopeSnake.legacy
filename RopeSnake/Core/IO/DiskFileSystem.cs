@@ -9,7 +9,7 @@ namespace RopeSnake.Core
 {
     public class DiskFileSystem : IFileSystem
     {
-        public string BasePath { get; set; }
+        public string BasePath { get; set; } = "";
 
         protected virtual string GetFullPath(string path)
         {
@@ -23,7 +23,9 @@ namespace RopeSnake.Core
 
         public Stream CreateFile(string path)
         {
-            return File.Create(GetFullPath(path));
+            var fileInfo = new FileInfo(GetFullPath(path));
+            fileInfo.Directory.Create();
+            return File.Create(fileInfo.FullName);
         }
 
         public Stream OpenFile(string path)

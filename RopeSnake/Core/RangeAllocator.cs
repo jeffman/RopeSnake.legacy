@@ -11,7 +11,7 @@ namespace RopeSnake.Core
     /// </summary>
     public sealed class RangeAllocator : IAllocator
     {
-        private object _lockObj;
+        private object _lockObj = new object();
 
         #region Private members
 

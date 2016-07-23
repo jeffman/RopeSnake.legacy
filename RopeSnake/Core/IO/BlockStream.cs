@@ -64,6 +64,9 @@ namespace RopeSnake.Core
         public override void WriteByte(byte value) => _block[(int)(Position++)] = value;
 
         public override void Write(byte[] buffer, int offset, int count)
-            => _block.CopyFrom(buffer, offset, (int)Position, count);
+        {
+            _block.CopyFrom(buffer, offset, (int)Position, count);
+            Position += count;
+        }
     }
 }

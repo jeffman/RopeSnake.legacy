@@ -41,6 +41,35 @@ namespace RopeSnake.Mother3
             }
         }
 
+        #region Helpers
+
+        protected List<T> ReadTable<T>(Block romData, string key, Func<BinaryStream, T> elementReader)
+        {
+            int offset = RomConfig.GetOffset(key, romData);
+            int count = RomConfig.GetParameter<int>(key + ".Count");
+            var stream = romData.ToBinaryStream();
+            stream.Position = offset;
+
+            var list = new List<T>();
+            for (int i = 0; i < count; i++)
+                list.Add(elementReader(stream));
+
+            return list;
+        }
+
+        protected Block SerializeTable<T>(List<T> list, int fieldSize, Action<BinaryStream, T> elementWriter)
+        {
+            var block = new Block(list.Count * fieldSize);
+            var stream = block.ToBinaryStream();
+
+            foreach (T element in list)
+                elementWriter(stream, element);
+
+            return block;
+        }
+
+        #endregion
+
         #region IModule implementation
 
         public abstract string Name { get; }

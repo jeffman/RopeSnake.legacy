@@ -35,7 +35,7 @@ namespace RopeSnake.Mother3.Data
 
         public override void ReadFromRom(Block romData)
         {
-            ReadItems(romData);
+            Items = ReadTable(romData, "Data.Items", s => s.ReadItem());
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
@@ -43,34 +43,11 @@ namespace RopeSnake.Mother3.Data
             WriteAllocatedBlocksAndUpdateReferences(romData, allocatedBlocks, "Data.Items");
         }
 
-        private void ReadItems(Block romData)
-        {
-            int offset = RomConfig.GetOffset("Data.Items", romData);
-            int count = RomConfig.GetParameter<int>("Data.Items.Count");
-            var stream = romData.ToBinaryStream();
-            stream.Position = offset;
-
-            Items = new List<Item>();
-            for (int i = 0; i < count; i++)
-                Items.Add(stream.ReadItem());
-        }
-
-        private Block SerializeItems()
-        {
-            var block = new Block(Items.Count * Item.FieldSize);
-            var stream = block.ToBinaryStream();
-
-            foreach (Item item in Items)
-                stream.WriteItem(item);
-
-            return block;
-        }
-
         public override BlockCollection Serialize()
         {
             var blocks = new BlockCollection();
 
-            blocks.AddBlock("Data.Items", SerializeItems());
+            blocks.AddBlock("Data.Items", SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
 
             return blocks;
         }

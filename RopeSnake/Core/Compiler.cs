@@ -36,7 +36,7 @@ namespace RopeSnake.Core
 
                 foreach (var blockPair in blocks)
                 {
-                    int pointer = _allocator.Allocate(blockPair.Value.Size, alignment);
+                    int pointer = _allocator.Allocate(blockPair.Value.Size, alignment, AllocationMode.Smallest);
                     allocatedPointers.Add(blockPair.Key, pointer);
                 }
 

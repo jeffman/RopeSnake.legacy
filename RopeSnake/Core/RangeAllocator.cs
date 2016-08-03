@@ -38,11 +38,6 @@ namespace RopeSnake.Core
         #endregion
 
         /// <summary>
-        /// Gets or sets the allocation mode.
-        /// </summary>
-        public AllocationMode AllocationMode { get; set; } = AllocationMode.Smallest;
-
-        /// <summary>
         /// Gets or sets a flag indicating whether unaligned chunks should be discarded during allocation.
         /// 
         /// If <c>true</c>, unaligned chunks will be discarded during allocation. This results in lower
@@ -87,13 +82,13 @@ namespace RopeSnake.Core
         { }
 
         /// <inheritdoc/>
-        public int Allocate(int size, int alignment)
+        public int Allocate(int size, int alignment, AllocationMode mode)
         {
             lock (_lockObj)
             {
                 var query = _rangeList.EnumerateNodes().Where(n => n.Value.Size >= size);
 
-                switch (AllocationMode)
+                switch (mode)
                 {
                     case AllocationMode.Earliest:
                         break;
@@ -115,8 +110,8 @@ namespace RopeSnake.Core
                 if (match == null)
                 {
                     throw new AllocationException(
-                        $"Could not allocate the requested block: size = {size}, alignment = {alignment}. Available ranges: {ToString()}",
-                        size, alignment);
+                        $"Could not allocate the requested block: size = {size}, alignment = {alignment}, mode = {mode}. Available ranges: {ToString()}",
+                        size, alignment, mode);
                 }
 
                 Range range = match.Value;
@@ -210,26 +205,5 @@ namespace RopeSnake.Core
         {
             return string.Join(", ", _rangeList);
         }
-    }
-
-    /// <summary>
-    /// Indicates how free ranges are prioritized during allocation.
-    /// </summary>
-    public enum AllocationMode
-    {
-        /// <summary>
-        /// The earliest (by start location) candidate range is prioritized.
-        /// </summary>
-        Earliest,
-
-        /// <summary>
-        /// The smallest candidate range is prioritized.
-        /// </summary>
-        Smallest,
-
-        /// <summary>
-        /// The largest candidate range is prioritized.
-        /// </summary>
-        Largest
     }
 }

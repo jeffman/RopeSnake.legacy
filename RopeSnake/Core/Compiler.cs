@@ -27,20 +27,28 @@ namespace RopeSnake.Core
 
         public void Compile()
         {
-            int alignment = AllocationAlignment;
-            var allocatedPointers = new Dictionary<string, int>();
+            var allocatedPointers = new Dictionary<IModule, Dictionary<string, int>>();
 
             foreach (var module in _modules)
             {
-                var blocks = module.Serialize();
+                allocatedPointers.Add(module, new Dictionary<string, int>());
+            }
 
-                foreach (var blockPair in blocks)
-                {
-                    int pointer = _allocator.Allocate(blockPair.Value.Size, alignment, AllocationMode.Smallest);
-                    allocatedPointers.Add(blockPair.Key, pointer);
-                }
+            var serializedBlocks = _modules.ToDictionary(m => m, m => m.Serialize());
+            var orderedBlocks = serializedBlocks
+                .SelectMany(kv => kv.Value, (kv, b) => new { Module = kv.Key, Key = b.Key, Block = b.Value })
+                .OrderByDescending(o => o.Block.Size)
+                .ToList();
 
-                var allocatedBlocks = new AllocatedBlockCollection(blocks, allocatedPointers);
+            foreach (var orderedBlock in orderedBlocks)
+            {
+                int pointer = _allocator.Allocate(orderedBlock.Block.Size, AllocationAlignment, AllocationMode.Smallest);
+                allocatedPointers[orderedBlock.Module].Add(orderedBlock.Key, pointer);
+            }
+
+            foreach (var module in _modules)
+            {
+                var allocatedBlocks = new AllocatedBlockCollection(serializedBlocks[module], allocatedPointers[module]);
                 module.WriteToRom(_romData, allocatedBlocks);
             }
         }

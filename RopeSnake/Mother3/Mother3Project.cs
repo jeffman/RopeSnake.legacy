@@ -24,10 +24,26 @@ namespace RopeSnake.Mother3
             Modules = new Mother3ModuleCollection(romConfig);
         }
 
-        public static Mother3Project CreateNew(Block romData, Mother3RomConfig romConfig,
-            Mother3ProjectSettings projectSettings)
+        public static Mother3Project CreateNew(IFileSystem fileSystem, string romDataPath,
+            string romConfigPath)
         {
+            var binaryManager = new BinaryFileManager(fileSystem);
+            var jsonManager = new JsonFileManager(fileSystem);
+
+            var romData = binaryManager.ReadFile<Block>(romDataPath);
+            var romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigPath);
+            var projectSettings = Mother3ProjectSettings.CreateDefault();
+
             var project = new Mother3Project(romData, romConfig, projectSettings);
+
+            // Do some ROM config prep before reading the modules
+            if (romConfig.IsJapanese)
+                romConfig.AddJapaneseCharsToLookup(romData);
+
+            if (romConfig.ScriptEncodingParameters != null)
+                romConfig.ReadEncodingPadData(romData);
+
+            romConfig.UpdateLookups();
 
             foreach (var module in project.Modules)
                 module.ReadFromRom(romData);

@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using RopeSnake.Core;
 using RopeSnake.Gba;
+using RopeSnake.Mother3.Text;
 
 namespace RopeSnake.Mother3
 {
@@ -16,6 +17,8 @@ namespace RopeSnake.Mother3
         {
             RomConfig = romConfig;
         }
+
+        #region Helpers
 
         protected void UpdateRomReferences(Block romData, string key, int value)
         {
@@ -41,14 +44,11 @@ namespace RopeSnake.Mother3
             }
         }
 
-        #region Helpers
-
         protected List<T> ReadTable<T>(Block romData, string key, Func<BinaryStream, T> elementReader)
         {
             int offset = RomConfig.GetOffset(key, romData);
             int count = RomConfig.GetParameter<int>(key + ".Count");
-            var stream = romData.ToBinaryStream();
-            stream.Position = offset;
+            var stream = romData.ToBinaryStream(offset);
 
             var list = new List<T>();
             for (int i = 0; i < count; i++)
@@ -67,6 +67,8 @@ namespace RopeSnake.Mother3
 
             return block;
         }
+
+        public override string ToString() => Name;
 
         #endregion
 

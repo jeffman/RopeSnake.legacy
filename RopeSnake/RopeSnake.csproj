@@ -80,17 +80,29 @@
     <Compile Include="Mother3\Data\DataModule.cs" />
     <Compile Include="Mother3\Data\DataStreamExtensions.cs" />
     <Compile Include="Mother3\Data\Item.cs" />
+    <Compile Include="Mother3\IO\OffsetTableReader.cs" />
+    <Compile Include="Mother3\IO\ShortOffsetTableReader.cs" />
+    <Compile Include="Mother3\IO\WideOffsetTableReader.cs" />
     <Compile Include="Mother3\Mother3Module.cs" />
     <Compile Include="Mother3\Mother3ModuleCollection.cs" />
     <Compile Include="Mother3\Mother3Project.cs" />
     <Compile Include="Mother3\Mother3ProjectSettings.cs" />
     <Compile Include="Mother3\Mother3RomConfig.cs" />
+    <Compile Include="Mother3\Text\ContextString.cs" />
+    <Compile Include="Mother3\Text\ControlCode.cs" />
+    <Compile Include="Mother3\Text\JapaneseStringCodec.cs" />
+    <Compile Include="Mother3\Text\StringCodec.cs" />
+    <Compile Include="Mother3\Text\ReverseLookup.cs" />
+    <Compile Include="Mother3\Text\ScriptEncodingParameters.cs" />
+    <Compile Include="Mother3\Text\StringTable.cs" />
+    <Compile Include="Mother3\Text\TextModule.cs" />
+    <Compile Include="Mother3\Text\TextStreamExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
     <None Include="Mother3\RomConfigurations\m3_jp.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Include="packages.config" />
   </ItemGroup>

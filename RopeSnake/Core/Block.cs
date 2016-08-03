@@ -42,9 +42,9 @@ namespace RopeSnake.Core
 
         public Block(Block copyFrom) : this(copyFrom._data) { }
 
-        public BinaryStream ToBinaryStream()
+        public BinaryStream ToBinaryStream(int initialPosition = 0)
         {
-            return new BinaryStream(new BlockStream(this));
+            return new BinaryStream(new BlockStream(this)) { Position = initialPosition };
         }
 
         internal virtual void CopyTo(byte[] destination, int destinationOffset, int sourceOffset, int length)

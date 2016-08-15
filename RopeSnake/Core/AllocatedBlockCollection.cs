@@ -28,7 +28,7 @@ namespace RopeSnake.Core
 
         public int GetAllocatedPointer(string key) => _allocatedPointers[key];
 
-        public override void AddBlock(string key, Block block)
+        public override bool AddBlock(string key, Block block)
         {
             throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
         }

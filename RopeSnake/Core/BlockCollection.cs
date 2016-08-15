@@ -20,10 +20,16 @@ namespace RopeSnake.Core
             _orderedKeys = new List<string>();
         }
 
-        public virtual void AddBlock(string key, Block block)
+        public virtual bool AddBlock(string key, Block block)
         {
-            _blocks.Add(key, block);
-            _orderedKeys.Add(key);
+            bool added = false;
+            if (!_blocks.ContainsKey(key))
+            {
+                _orderedKeys.Add(key);
+                added = true;
+            }
+            _blocks[key] = block;
+            return added;
         }
 
         public virtual bool RemoveBlock(string key)

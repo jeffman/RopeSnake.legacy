@@ -82,7 +82,9 @@
     <Compile Include="Mother3\Data\Item.cs" />
     <Compile Include="Mother3\IO\OffsetTableReader.cs" />
     <Compile Include="Mother3\IO\ShortOffsetTableReader.cs" />
+    <Compile Include="Mother3\IO\ShortOffsetTableWriter.cs" />
     <Compile Include="Mother3\IO\WideOffsetTableReader.cs" />
+    <Compile Include="Mother3\IO\WideOffsetTableWriter.cs" />
     <Compile Include="Mother3\Mother3Module.cs" />
     <Compile Include="Mother3\Mother3ModuleCollection.cs" />
     <Compile Include="Mother3\Mother3Project.cs" />

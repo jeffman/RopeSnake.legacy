@@ -26,6 +26,9 @@ namespace RopeSnake.Mother3.Text
         public List<string> SkillDescriptions { get; set; }
         public List<List<string>> MainScript { get; set; }
 
+        private string[] _textKeys;
+        private string[] _mainScriptKeys;
+
         public TextModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
             : base(romConfig, projectSettings)
         {
@@ -85,6 +88,29 @@ namespace RopeSnake.Mother3.Text
             SkillDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
         }
 
+        private BlockCollection SerializeTextBank(StringCodec codec)
+        {
+            var blockCollection = new BlockCollection();
+
+            blockCollection.AddStringOffsetTableBlocks("Text.RoomDescriptions", codec, RoomDescriptions, false, false);
+            blockCollection.AddBlock("Text.ItemNames", TextStreamExtensions.SerializeStringTable(codec, ItemNames));
+            blockCollection.AddStringOffsetTableBlocks("Text.ItemDescriptions", codec, ItemDescriptions, false, false);
+            blockCollection.AddBlock("Text.CharNames", TextStreamExtensions.SerializeStringTable(codec, CharNames));
+            blockCollection.AddBlock("Text.PartyCharNames", TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
+            blockCollection.AddBlock("Text.EnemyNames", TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
+            blockCollection.AddBlock("Text.PsiNames", TextStreamExtensions.SerializeStringTable(codec, PsiNames));
+            blockCollection.AddStringOffsetTableBlocks("Text.PsiDescriptions", codec, PsiDescriptions, false, false);
+            blockCollection.AddBlock("Text.Statuses", TextStreamExtensions.SerializeStringTable(codec, Statuses));
+            blockCollection.AddBlock("Text.DefaultCharNames", TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
+            blockCollection.AddBlock("Text.Skills", TextStreamExtensions.SerializeStringTable(codec, Skills));
+            blockCollection.AddStringOffsetTableBlocks("Text.SkillDescriptions", codec, SkillDescriptions, false, false);
+
+            _textKeys = blockCollection.Keys.ToArray();
+            blockCollection.AddBlock("Text.Bank", WideOffsetTableWriter.CreateOffsetTable(16));
+
+            return blockCollection;
+        }
+
         private void ReadMainScript(Block romData, StringCodec codec)
         {
             var stream = romData.ToBinaryStream(RomConfig.GetOffset("Text.MainScript", romData));
@@ -97,14 +123,42 @@ namespace RopeSnake.Mother3.Text
             }
         }
 
+        private BlockCollection SerializeMainScript(StringCodec codec)
+        {
+            var blockCollection = new BlockCollection();
+
+            for (int i = 0; i < MainScript.Count; i++)
+            {
+                blockCollection.AddStringOffsetTableBlocks($"Text.MainScript.{i}", codec, MainScript[i], true, false);
+            }
+
+            _mainScriptKeys = blockCollection.Keys.ToArray();
+            blockCollection.AddBlock("Text.MainScript", WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
+
+            return blockCollection;
+        }
+
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            throw new NotImplementedException();
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, "Text.Bank", _textKeys, 0);
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, "Text.MainScript", _mainScriptKeys, 0);
+
+            WriteAllocatedBlocks(romData, allocatedBlocks);
+            UpdateRomReferences(romData, allocatedBlocks, "Text.Bank", "Text.MainScript");
+
+            _textKeys = null;
+            _mainScriptKeys = null;
         }
 
         public override BlockCollection Serialize()
         {
-            throw new NotImplementedException();
+            var codec = StringCodec.Create(RomConfig);
+            var blockCollection = new BlockCollection();
+
+            blockCollection.AddBlockCollection(SerializeTextBank(codec));
+            blockCollection.AddBlockCollection(SerializeMainScript(codec));
+
+            return blockCollection;
         }
     }
 }

@@ -18,14 +18,24 @@ namespace RopeSnake.Mother3
         [JsonProperty]
         public string RomConfigPath { get; private set; }
 
+        [JsonProperty]
+        public OffsetTableMode OffsetTableMode { get; private set; }
+
         public static Mother3ProjectSettings CreateDefault()
         {
             return new Mother3ProjectSettings
             {
                 BaseRomPath = "base.gba",
                 OutputRomPath = "test.gba",
-                RomConfigPath = "rom.config.json"
+                RomConfigPath = "rom.config.json",
+                OffsetTableMode = OffsetTableMode.Fragmented
             };
         }
+    }
+
+    public enum OffsetTableMode
+    {
+        Fragmented,
+        Contiguous
     }
 }

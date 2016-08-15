@@ -10,29 +10,40 @@ namespace RopeSnake.Core
     public class BlockCollection : IEnumerable<KeyValuePair<string, Block>>
     {
         private Dictionary<string, Block> _blocks;
+        private List<string> _orderedKeys;
 
         public Block this[string key] => _blocks[key];
 
         public BlockCollection()
         {
             _blocks = new Dictionary<string, Block>();
+            _orderedKeys = new List<string>();
         }
 
-        public virtual void AddBlock(string key, Block block) => _blocks.Add(key, block);
+        public virtual void AddBlock(string key, Block block)
+        {
+            _blocks.Add(key, block);
+            _orderedKeys.Add(key);
+        }
 
-        public virtual bool RemoveBlock(string key) => _blocks.Remove(key);
+        public virtual bool RemoveBlock(string key)
+        {
+            bool result = _blocks.Remove(key);
+            _orderedKeys.Remove(key);
+            return result;
+        }
 
         public virtual void AddBlockCollection(BlockCollection collection)
         {
-            foreach (var blockPair in collection)
+            foreach (var key in collection.Keys)
             {
-                _blocks.Add(blockPair.Key, blockPair.Value);
+                AddBlock(key, collection[key]);
             }
         }
 
-        public virtual IEnumerable<string> Keys => _blocks.Keys;
+        public virtual IEnumerable<string> Keys => _orderedKeys;
 
-        public virtual IEnumerable<Block> Blocks => _blocks.Values;
+        public virtual IEnumerable<Block> Blocks => _orderedKeys.Select(k => _blocks[k]);
 
         public IEnumerator<KeyValuePair<string, Block>> GetEnumerator()
         {

@@ -10,6 +10,25 @@ namespace RopeSnake.Mother3.Text
 {
     public sealed class TextModule : Mother3Module
     {
+        #region Keys
+
+        private static readonly string TextBankKey = "Text.Bank";
+        private static readonly string RoomDescriptionsKey = "Text.RoomDescriptions";
+        private static readonly string ItemNamesKey = "Text.ItemNames";
+        private static readonly string ItemDescriptionsKey = "Text.ItemDescriptions";
+        private static readonly string CharNamesKey = "Text.CharNames";
+        private static readonly string PartyCharNamesKey = "Text.PartyCharNames";
+        private static readonly string EnemyNamesKey = "Text.EnemyNames";
+        private static readonly string PsiNamesKey = "Text.PsiNames";
+        private static readonly string PsiDescriptionsKey = "Text.PsiDescriptions";
+        private static readonly string StatusesKey = "Text.Statuses";
+        private static readonly string DefaultCharNamesKey = "Text.DefaultCharNames";
+        private static readonly string SkillsKey = "Text.Skills";
+        private static readonly string SkillDescriptionsKey = "Text.SkillDescriptions";
+        private static readonly string MainScriptKey = "Text.MainScript";
+
+        #endregion
+
         public override string Name => "Text";
 
         public List<string> RoomDescriptions { get; set; }
@@ -71,7 +90,7 @@ namespace RopeSnake.Mother3.Text
 
         private void ReadTextBank(Block romData, StringCodec codec)
         {
-            var stream = romData.ToBinaryStream(RomConfig.GetOffset("Text.Bank", romData));
+            var stream = romData.ToBinaryStream(RomConfig.GetOffset(TextBankKey, romData));
             var offsetTableReader = new WideOffsetTableReader(stream);
 
             RoomDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
@@ -92,28 +111,28 @@ namespace RopeSnake.Mother3.Text
         {
             var blockCollection = new BlockCollection();
 
-            blockCollection.AddStringOffsetTableBlocks("Text.RoomDescriptions", codec, RoomDescriptions, false, false);
-            blockCollection.AddBlock("Text.ItemNames", TextStreamExtensions.SerializeStringTable(codec, ItemNames));
-            blockCollection.AddStringOffsetTableBlocks("Text.ItemDescriptions", codec, ItemDescriptions, false, false);
-            blockCollection.AddBlock("Text.CharNames", TextStreamExtensions.SerializeStringTable(codec, CharNames));
-            blockCollection.AddBlock("Text.PartyCharNames", TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
-            blockCollection.AddBlock("Text.EnemyNames", TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
-            blockCollection.AddBlock("Text.PsiNames", TextStreamExtensions.SerializeStringTable(codec, PsiNames));
-            blockCollection.AddStringOffsetTableBlocks("Text.PsiDescriptions", codec, PsiDescriptions, false, false);
-            blockCollection.AddBlock("Text.Statuses", TextStreamExtensions.SerializeStringTable(codec, Statuses));
-            blockCollection.AddBlock("Text.DefaultCharNames", TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
-            blockCollection.AddBlock("Text.Skills", TextStreamExtensions.SerializeStringTable(codec, Skills));
-            blockCollection.AddStringOffsetTableBlocks("Text.SkillDescriptions", codec, SkillDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(RoomDescriptionsKey, codec, RoomDescriptions, false, false);
+            blockCollection.AddBlock(ItemNamesKey, TextStreamExtensions.SerializeStringTable(codec, ItemNames));
+            blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsKey, codec, ItemDescriptions, false, false);
+            blockCollection.AddBlock(CharNamesKey, TextStreamExtensions.SerializeStringTable(codec, CharNames));
+            blockCollection.AddBlock(PartyCharNamesKey, TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
+            blockCollection.AddBlock(EnemyNamesKey, TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
+            blockCollection.AddBlock(PsiNamesKey, TextStreamExtensions.SerializeStringTable(codec, PsiNames));
+            blockCollection.AddStringOffsetTableBlocks(PsiDescriptionsKey, codec, PsiDescriptions, false, false);
+            blockCollection.AddBlock(StatusesKey, TextStreamExtensions.SerializeStringTable(codec, Statuses));
+            blockCollection.AddBlock(DefaultCharNamesKey, TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
+            blockCollection.AddBlock(SkillsKey, TextStreamExtensions.SerializeStringTable(codec, Skills));
+            blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
 
             _textKeys = blockCollection.Keys.ToArray();
-            blockCollection.AddBlock("Text.Bank", WideOffsetTableWriter.CreateOffsetTable(16));
+            blockCollection.AddBlock(TextBankKey, WideOffsetTableWriter.CreateOffsetTable(16));
 
             return blockCollection;
         }
 
         private void ReadMainScript(Block romData, StringCodec codec)
         {
-            var stream = romData.ToBinaryStream(RomConfig.GetOffset("Text.MainScript", romData));
+            var stream = romData.ToBinaryStream(RomConfig.GetOffset(MainScriptKey, romData));
             MainScript = new List<List<string>>();
 
             var offsetTableReader = new WideOffsetTableReader(stream);
@@ -129,22 +148,22 @@ namespace RopeSnake.Mother3.Text
 
             for (int i = 0; i < MainScript.Count; i++)
             {
-                blockCollection.AddStringOffsetTableBlocks($"Text.MainScript.{i}", codec, MainScript[i], true, false);
+                blockCollection.AddStringOffsetTableBlocks($"{MainScriptKey}.{i}", codec, MainScript[i], true, false);
             }
 
             _mainScriptKeys = blockCollection.Keys.ToArray();
-            blockCollection.AddBlock("Text.MainScript", WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
+            blockCollection.AddBlock(MainScriptKey, WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
 
             return blockCollection;
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, "Text.Bank", _textKeys, 0);
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, "Text.MainScript", _mainScriptKeys, 0);
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys, 0);
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys, 0);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
-            UpdateRomReferences(romData, allocatedBlocks, "Text.Bank", "Text.MainScript");
+            UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);
 
             _textKeys = null;
             _mainScriptKeys = null;

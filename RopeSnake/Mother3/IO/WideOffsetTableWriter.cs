@@ -44,5 +44,52 @@ namespace RopeSnake.Mother3.IO
                 stream.WriteInt(endPointer - basePointer);
             }
         }
+
+        public static Block ToContiguous(BlockCollection blockCollection, string offsetTableKey,
+            IEnumerable<string> dataKeys, int alignment = 1)
+        {
+            var tempCollection = new BlockCollection();
+            tempCollection.AddBlockCollection(blockCollection);
+
+            var allocatedPointers = new Dictionary<string, int>();
+            var table = tempCollection[offsetTableKey];
+
+            allocatedPointers.Add(offsetTableKey, 0);
+
+            int currentPointer = table.Size;
+            foreach (string key in dataKeys)
+            {
+                currentPointer = currentPointer.Align(alignment);
+                var dataBlock = tempCollection[key];
+                if (dataBlock == null)
+                {
+                    allocatedPointers.Add(key, 0);
+                }
+                else
+                {
+                    allocatedPointers.Add(key, currentPointer);
+                }
+                currentPointer += dataBlock.Size;
+            }
+
+            var contiguousBlock = new Block(currentPointer);
+            var contiguousStream = contiguousBlock.ToBinaryStream(table.Size);
+
+            foreach (string key in dataKeys)
+            {
+                var dataBlock = tempCollection[key];
+                if (dataBlock != null)
+                {
+                    contiguousStream.Position = allocatedPointers[key];
+                    contiguousStream.WriteBytes(dataBlock.Data, 0, dataBlock.Size);
+                }
+            }
+
+            tempCollection.RemoveBlock(offsetTableKey);
+            tempCollection.AddBlock(offsetTableKey, contiguousBlock);
+
+            UpdateOffsetTable(new AllocatedBlockCollection(tempCollection, allocatedPointers), offsetTableKey, dataKeys, currentPointer);
+            return contiguousBlock;
+        }
     }
 }

@@ -37,12 +37,20 @@ namespace RopeSnake.Core
             var serializedBlocks = _modules.ToDictionary(m => m, m => m.Serialize());
             var orderedBlocks = serializedBlocks
                 .SelectMany(kv => kv.Value, (kv, b) => new { Module = kv.Key, Key = b.Key, Block = b.Value })
-                .OrderByDescending(o => o.Block.Size)
+                .OrderByDescending(o => o.Block?.Size ?? 0)
                 .ToList();
 
             foreach (var orderedBlock in orderedBlocks)
             {
-                int pointer = _allocator.Allocate(orderedBlock.Block.Size, AllocationAlignment, AllocationMode.Smallest);
+                int pointer;
+                if (orderedBlock.Block == null)
+                {
+                    pointer = 0;
+                }
+                else
+                {
+                    pointer = _allocator.Allocate(orderedBlock.Block.Size, AllocationAlignment, AllocationMode.Smallest);
+                }
                 allocatedPointers[orderedBlock.Module].Add(orderedBlock.Key, pointer);
             }
 

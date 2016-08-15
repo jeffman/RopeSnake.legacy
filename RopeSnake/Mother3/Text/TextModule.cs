@@ -132,7 +132,7 @@ namespace RopeSnake.Mother3.Text
                 var contiguousBlock = WideOffsetTableWriter.ToContiguous(blockCollection, TextBankKey, _textKeys, 4);
                 blockCollection = new BlockCollection();
                 blockCollection.AddBlock(TextBankKey, contiguousBlock);
-                _textKeys = new string[] { TextBankKey };
+                _textKeys = null;
             }
 
             return blockCollection;
@@ -162,13 +162,24 @@ namespace RopeSnake.Mother3.Text
             _mainScriptKeys = blockCollection.Keys.ToArray();
             blockCollection.AddBlock(MainScriptKey, WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
 
+            if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
+            {
+                var contiguousBlock = WideOffsetTableWriter.ToContiguous(blockCollection, MainScriptKey, _mainScriptKeys, 4);
+                blockCollection = new BlockCollection();
+                blockCollection.AddBlock(MainScriptKey, contiguousBlock);
+                _mainScriptKeys = null;
+            }
+
             return blockCollection;
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys, 0);
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys, 0);
+            if (ProjectSettings.OffsetTableMode == OffsetTableMode.Fragmented)
+            {
+                WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys, 0);
+                WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys, 0);
+            }
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);

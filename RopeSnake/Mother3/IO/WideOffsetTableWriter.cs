@@ -68,8 +68,8 @@ namespace RopeSnake.Mother3.IO
                 else
                 {
                     allocatedPointers.Add(key, currentPointer);
+                    currentPointer += dataBlock.Size;
                 }
-                currentPointer += dataBlock.Size;
             }
 
             var contiguousBlock = new Block(currentPointer);

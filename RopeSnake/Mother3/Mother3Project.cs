@@ -21,7 +21,7 @@ namespace RopeSnake.Mother3
             RomData = romData;
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
-            Modules = new Mother3ModuleCollection(romConfig);
+            Modules = new Mother3ModuleCollection(romConfig, projectSettings);
         }
 
         public static Mother3Project CreateNew(IFileSystem fileSystem, string romDataPath,

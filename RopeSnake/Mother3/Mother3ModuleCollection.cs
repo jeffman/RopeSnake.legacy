@@ -15,10 +15,10 @@ namespace RopeSnake.Mother3
         public DataModule Data { get; }
         public TextModule Text { get; }
 
-        public Mother3ModuleCollection(Mother3RomConfig romConfig)
+        public Mother3ModuleCollection(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
-            Data = new DataModule(romConfig);
-            Text = new TextModule(romConfig);
+            Data = new DataModule(romConfig, projectSettings);
+            Text = new TextModule(romConfig, projectSettings);
         }
 
         public IEnumerator<Mother3Module> GetEnumerator()

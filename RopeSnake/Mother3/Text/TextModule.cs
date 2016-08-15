@@ -26,8 +26,8 @@ namespace RopeSnake.Mother3.Text
         public List<string> SkillDescriptions { get; set; }
         public List<List<string>> MainScript { get; set; }
 
-        public TextModule(Mother3RomConfig romConfig)
-            : base(romConfig)
+        public TextModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
+            : base(romConfig, projectSettings)
         {
 
         }

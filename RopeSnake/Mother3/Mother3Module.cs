@@ -12,10 +12,12 @@ namespace RopeSnake.Mother3
     public abstract class Mother3Module : IModule
     {
         protected Mother3RomConfig RomConfig { get; }
+        protected Mother3ProjectSettings ProjectSettings { get; }
 
-        protected Mother3Module(Mother3RomConfig romConfig)
+        protected Mother3Module(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
             RomConfig = romConfig;
+            ProjectSettings = projectSettings;
         }
 
         #region Helpers

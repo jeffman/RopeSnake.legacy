@@ -13,8 +13,8 @@ namespace RopeSnake.Mother3.Data
 
         public List<Item> Items { get; set; }
 
-        public DataModule(Mother3RomConfig romConfig)
-            : base(romConfig)
+        public DataModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
+            : base(romConfig, projectSettings)
         {
 
         }

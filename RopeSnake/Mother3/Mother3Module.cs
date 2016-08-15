@@ -32,15 +32,26 @@ namespace RopeSnake.Mother3
             }
         }
 
-        protected void WriteAllocatedBlocksAndUpdateReferences(Block romData,
+        protected void UpdateRomReferences(Block romData,
             AllocatedBlockCollection allocatedBlocks, params string[] keys)
         {
             foreach (string key in keys)
             {
                 int pointer = allocatedBlocks.GetAllocatedPointer(key);
-                var block = allocatedBlocks[key];
-                block.CopyTo(romData.Data, pointer, 0, block.Size);
                 UpdateRomReferences(romData, key, pointer);
+            }
+        }
+
+        protected void WriteAllocatedBlocks(Block romData, AllocatedBlockCollection allocatedBlocks)
+        {
+            foreach (string key in allocatedBlocks.Keys)
+            {
+                var block = allocatedBlocks[key];
+                if (block == null)
+                    continue;
+
+                int pointer = allocatedBlocks.GetAllocatedPointer(key);
+                block.CopyTo(romData.Data, pointer, 0, block.Size);
             }
         }
 

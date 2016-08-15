@@ -40,7 +40,8 @@ namespace RopeSnake.Mother3.Data
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            WriteAllocatedBlocksAndUpdateReferences(romData, allocatedBlocks, "Data.Items");
+            WriteAllocatedBlocks(romData, allocatedBlocks);
+            UpdateRomReferences(romData, allocatedBlocks, "Data.Items");
         }
 
         public override BlockCollection Serialize()

@@ -57,6 +57,11 @@ namespace RopeSnake.Core
             Array.Copy(source, sourceOffset, _data, destinationOffset, length);
         }
 
+        public void Resize(int newSize)
+        {
+            Array.Resize(ref _data, newSize);
+        }
+
         #region IBinarySerializable implementation
 
         public void Serialize(Stream stream)

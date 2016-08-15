@@ -37,5 +37,10 @@ namespace RopeSnake.Core
         {
             throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
         }
+
+        public override void AddBlockCollection(BlockCollection collection)
+        {
+            throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
+        }
     }
 }

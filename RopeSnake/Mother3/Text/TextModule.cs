@@ -127,6 +127,14 @@ namespace RopeSnake.Mother3.Text
             _textKeys = blockCollection.Keys.ToArray();
             blockCollection.AddBlock(TextBankKey, WideOffsetTableWriter.CreateOffsetTable(16));
 
+            if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
+            {
+                var contiguousBlock = WideOffsetTableWriter.ToContiguous(blockCollection, TextBankKey, _textKeys, 4);
+                blockCollection = new BlockCollection();
+                blockCollection.AddBlock(TextBankKey, contiguousBlock);
+                _textKeys = new string[] { TextBankKey };
+            }
+
             return blockCollection;
         }
 

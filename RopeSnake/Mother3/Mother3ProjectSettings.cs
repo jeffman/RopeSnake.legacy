@@ -10,16 +10,16 @@ namespace RopeSnake.Mother3
     public sealed class Mother3ProjectSettings
     {
         [JsonProperty]
-        public string BaseRomPath { get; private set; }
+        public string BaseRomPath { get; set; }
 
         [JsonProperty]
-        public string OutputRomPath { get; private set; }
+        public string OutputRomPath { get; set; }
 
         [JsonProperty]
-        public string RomConfigPath { get; private set; }
+        public string RomConfigPath { get; set; }
 
         [JsonProperty]
-        public OffsetTableMode OffsetTableMode { get; private set; }
+        public OffsetTableMode OffsetTableMode { get; set; }
 
         public static Mother3ProjectSettings CreateDefault()
         {

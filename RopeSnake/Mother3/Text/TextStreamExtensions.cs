@@ -10,6 +10,8 @@ namespace RopeSnake.Mother3.Text
 {
     public static class TextStreamExtensions
     {
+        private static readonly int StringOffsetTableBufferSize = 256 * 1024;
+
         public static StringTable ReadStringTable(this BinaryStream stream, StringCodec codec)
         {
             ushort maxLength = stream.ReadUShort();
@@ -24,9 +26,32 @@ namespace RopeSnake.Mother3.Text
             return table;
         }
 
+        public static void WriteStringTable(this BinaryStream stream, StringCodec codec, StringTable table)
+        {
+            if (table.Strings.Count > 0xFFFF)
+                throw new InvalidOperationException($"Too many strings in table: {table.Strings.Count}");
+
+            stream.WriteUShort(table.MaxLength);
+            stream.WriteUShort((ushort)table.Strings.Count);
+
+            foreach (string str in table)
+            {
+                codec.WriteCodedString(stream, table.MaxLength, str == null ? "" : str);
+            }
+        }
+
+        public static Block SerializeStringTable(StringCodec codec, StringTable table)
+        {
+            var block = new Block(table.MaxLength * 2 * table.Count + 4);
+            block.ToBinaryStream().WriteStringTable(codec, table);
+            return block;
+        }
+
         public static StringTable ReadStringTable(this WideOffsetTableReader offsetTableReader, StringCodec codec)
         {
-            offsetTableReader.Next();
+            if (!offsetTableReader.Next())
+                return null;
+
             return offsetTableReader.Stream.ReadStringTable(codec);
         }
 
@@ -51,6 +76,61 @@ namespace RopeSnake.Mother3.Text
             return strings;
         }
 
+        public static Block WriteStringOffsetTable(this BinaryStream stream, StringCodec codec,
+            IEnumerable<string> strings, bool isScript, bool divideByTwo)
+        {
+            int count = strings.Count();
+            var offsetWriter = new ShortOffsetTableWriter(stream, count);
+            var offsetTable = ShortOffsetTableWriter.CreateOffsetTable(count);
+            var cache = new Dictionary<string, int>();
+
+            foreach (string str in strings)
+            {
+                if (string.IsNullOrEmpty(str))
+                {
+                    // There is already an 0xFFFF at position 0
+                    offsetWriter.AddOffset(0);
+                }
+                else
+                {
+                    if (cache.ContainsKey(str))
+                    {
+                        offsetWriter.AddPointer(cache[str]);
+                    }
+                    else
+                    {
+                        cache.Add(str, stream.Position);
+                        offsetWriter.AddCurrentOffset();
+
+                        if (isScript)
+                        {
+                            codec.WriteScriptString(stream, str);
+                        }
+                        else
+                        {
+                            codec.WriteCodedString(stream, str);
+                        }
+                    }
+                }
+            }
+
+            offsetWriter.UpdateOffsetTable(offsetTable, divideByTwo);
+            return offsetTable;
+        }
+
+        public static Block[] SerializeStringOffsetTable(StringCodec codec,
+            IEnumerable<string> strings, bool isScript, bool divideByTwo)
+        {
+            if (strings == null)
+                return new Block[] { null, null };
+
+            var dataBlock = new Block(StringOffsetTableBufferSize);
+            var dataStream = dataBlock.ToBinaryStream();
+            var offsetTable = dataStream.WriteStringOffsetTable(codec, strings, isScript, divideByTwo);
+            dataBlock.Resize(dataStream.Position);
+            return new Block[] { offsetTable, dataBlock };
+        }
+
         public static List<string> ReadStringOffsetTable(this WideOffsetTableReader offsetTableReader, StringCodec codec,
             bool isScript, bool multiplyByTwo)
         {
@@ -67,6 +147,15 @@ namespace RopeSnake.Mother3.Text
             {
                 return null;
             }
+        }
+
+        public static void AddStringOffsetTableBlocks(this BlockCollection blockCollection, string key,
+            StringCodec codec, IEnumerable<string> strings,
+            bool isScript, bool divideByTwo)
+        {
+            var blocks = SerializeStringOffsetTable(codec, strings, isScript, divideByTwo);
+            blockCollection.AddBlock($"{key}.OffsetTable", blocks[0]);
+            blockCollection.AddBlock($"{key}.Data", blocks[1]);
         }
     }
 }

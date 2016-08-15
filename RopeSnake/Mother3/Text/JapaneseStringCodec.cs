@@ -23,6 +23,15 @@ namespace RopeSnake.Mother3.Text
         public override string ReadScriptString(BinaryStream stream)
             => ReadCodedString(stream);
 
+        public override void WriteCodedString(BinaryStream stream, string str)
+            => WriteCodedStringInternal(stream, null, str);
+
+        public override void WriteCodedString(BinaryStream stream, int maxLength, string str)
+            => WriteCodedStringInternal(stream, maxLength, str);
+
+        public override void WriteScriptString(BinaryStream stream, string str)
+            => WriteCodedString(stream, str);
+
         private string ReadCodedStringInternal(BinaryStream stream, int? maxLength)
         {
             StringBuilder sb = new StringBuilder();
@@ -33,7 +42,7 @@ namespace RopeSnake.Mother3.Text
                 (maxLength.HasValue && count < maxLength);)
             {
                 ContextString contextString;
-                ControlCode code = ProcessChar(stream, sb, saturnMode, ref count, out contextString);
+                ControlCode code = ReadChar(stream, sb, saturnMode, ref count, out contextString);
 
                 if (code != null)
                 {
@@ -56,6 +65,51 @@ namespace RopeSnake.Mother3.Text
             }
 
             return sb.ToString();
+        }
+
+        private void WriteCodedStringInternal(BinaryStream stream, int? maxLength, string str)
+        {
+            int currentIndex = 0;
+            int currentWrittenLength = 0;
+            Dictionary<short, ContextString> currentLookup = CharLookup;
+            ReverseLookup currentReverseLookup = ReverseCharLookup;
+            bool saturnMode = false;
+
+            while (currentIndex < str.Length)
+            {
+                ControlCode code = WriteChar(stream, str, Context.None, ref currentWrittenLength, maxLength,
+                    ref currentIndex, currentReverseLookup);
+
+                if (code != null)
+                {
+                    if (code.Flags.HasFlag(ControlCodeFlags.Terminate))
+                    {
+                        break;
+                    }
+
+                    if (code.Flags.HasFlag(ControlCodeFlags.AlternateFont))
+                    {
+                        saturnMode = !saturnMode;
+
+                        currentLookup = saturnMode ? SaturnLookup : CharLookup;
+                        currentReverseLookup = saturnMode ? ReverseSaturnLookup : ReverseCharLookup;
+                    }
+                }
+            }
+
+            if (maxLength == null)
+            {
+                // Write terminating character
+                stream.WriteShort(-1);
+            }
+            else
+            {
+                // Fill the remaining characters will nullspace
+                for (int i = currentWrittenLength; i < maxLength.Value; i++)
+                {
+                    stream.WriteShort(-1);
+                }
+            }
         }
     }
 }

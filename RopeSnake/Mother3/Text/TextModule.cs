@@ -129,9 +129,7 @@ namespace RopeSnake.Mother3.Text
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                var contiguousBlock = WideOffsetTableWriter.ToContiguous(blockCollection, TextBankKey, _textKeys, 4);
-                blockCollection = new BlockCollection();
-                blockCollection.AddBlock(TextBankKey, contiguousBlock);
+                blockCollection = WideOffsetTableWriter.ToContiguous(blockCollection, TextBankKey, _textKeys, 4);
                 _textKeys = null;
             }
 
@@ -164,9 +162,7 @@ namespace RopeSnake.Mother3.Text
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                var contiguousBlock = WideOffsetTableWriter.ToContiguous(blockCollection, MainScriptKey, _mainScriptKeys, 4);
-                blockCollection = new BlockCollection();
-                blockCollection.AddBlock(MainScriptKey, contiguousBlock);
+                blockCollection = WideOffsetTableWriter.ToContiguous(blockCollection, MainScriptKey, _mainScriptKeys, 4);
                 _mainScriptKeys = null;
             }
 

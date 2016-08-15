@@ -45,7 +45,7 @@ namespace RopeSnake.Mother3.IO
             }
         }
 
-        public static Block ToContiguous(BlockCollection blockCollection, string offsetTableKey,
+        public static BlockCollection ToContiguous(BlockCollection blockCollection, string offsetTableKey,
             IEnumerable<string> dataKeys, int alignment = 1)
         {
             var tempCollection = new BlockCollection();
@@ -85,11 +85,11 @@ namespace RopeSnake.Mother3.IO
                 }
             }
 
-            tempCollection.RemoveBlock(offsetTableKey);
             tempCollection.AddBlock(offsetTableKey, contiguousBlock);
-
             UpdateOffsetTable(new AllocatedBlockCollection(tempCollection, allocatedPointers), offsetTableKey, dataKeys, currentPointer);
-            return contiguousBlock;
+            tempCollection = new BlockCollection();
+            tempCollection.AddBlock(offsetTableKey, contiguousBlock);
+            return tempCollection;
         }
     }
 }

@@ -83,6 +83,7 @@ namespace RopeSnake.Mother3
             var allocator = new RangeAllocator(RomConfig.FreeRanges);
             var outputRomData = new Block(RomData);
             var compiler = Compiler.Create(outputRomData, allocator, Modules);
+            compiler.AllocationAlignment = 4;
             compiler.Compile();
 
             var binaryManager = new BinaryFileManager(fileSystem);

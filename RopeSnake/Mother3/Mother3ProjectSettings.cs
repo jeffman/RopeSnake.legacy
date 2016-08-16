@@ -21,6 +21,9 @@ namespace RopeSnake.Mother3
         [JsonProperty]
         public OffsetTableMode OffsetTableMode { get; set; }
 
+        [JsonProperty]
+        public Dictionary<string, HashSet<string>> StaleCacheObjects { get; set; }
+
         public static Mother3ProjectSettings CreateDefault()
         {
             return new Mother3ProjectSettings
@@ -28,7 +31,8 @@ namespace RopeSnake.Mother3
                 BaseRomPath = "base.gba",
                 OutputRomPath = "test.gba",
                 RomConfigPath = "rom.config.json",
-                OffsetTableMode = OffsetTableMode.Fragmented
+                OffsetTableMode = OffsetTableMode.Fragmented,
+                StaleCacheObjects = new Dictionary<string, HashSet<string>>()
             };
         }
     }

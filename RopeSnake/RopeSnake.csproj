@@ -61,6 +61,7 @@
     <Compile Include="Core\IO\IFileSystem.cs" />
     <Compile Include="Core\IModule.cs" />
     <Compile Include="Core\IO\JsonFileManager.cs" />
+    <Compile Include="Core\OrderedDictionary.cs" />
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
     <Compile Include="Gba\GbaTile.cs" />

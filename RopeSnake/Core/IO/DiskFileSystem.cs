@@ -24,7 +24,7 @@ namespace RopeSnake.Core
         public Stream CreateFile(string path)
         {
             var fileInfo = new FileInfo(GetFullPath(path));
-            fileInfo.Directory.Create();
+            CreateDirectoryInternal(fileInfo.Directory.FullName);
             return File.Create(fileInfo.FullName);
         }
 
@@ -36,6 +36,37 @@ namespace RopeSnake.Core
         public int GetFileSize(string path)
         {
             return (int)(new FileInfo(GetFullPath(path))).Length;
+        }
+
+        public bool DirectoryExists(string path)
+            => Directory.Exists(GetFullPath(path));
+
+        public void CreateDirectory(string path)
+            => CreateDirectoryInternal(GetFullPath(path));
+
+        private void CreateDirectoryInternal(string fullPath)
+        {
+            var directoryInfo = new DirectoryInfo(fullPath);
+            if (!directoryInfo.Exists)
+            {
+                directoryInfo.Create();
+            }
+        }
+
+        public string[] GetDirectories(string path)
+        {
+            var di = new DirectoryInfo(GetFullPath(path));
+
+            if (!di.Exists)
+                return null;
+
+            return di.GetDirectories().Select(d => d.Name).ToArray();
+        }
+
+        public string[] GetFiles(string path)
+        {
+            var di = new DirectoryInfo(GetFullPath(path));
+            return di.GetFiles().Select(f => f.Name).ToArray();
         }
     }
 }

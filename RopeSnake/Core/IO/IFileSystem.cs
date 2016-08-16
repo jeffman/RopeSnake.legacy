@@ -13,5 +13,9 @@ namespace RopeSnake.Core
         Stream OpenFile(string path);
         int GetFileSize(string path);
         bool FileExists(string path);
+        void CreateDirectory(string path);
+        bool DirectoryExists(string path);
+        string[] GetDirectories(string path);
+        string[] GetFiles(string path);
     }
 }

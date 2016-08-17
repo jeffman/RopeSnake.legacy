@@ -14,6 +14,18 @@ namespace RopeSnake.Core
         void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
         void ReadFromFiles(IFileSystem fileSystem);
         void WriteToFiles(IFileSystem fileSystem);
-        BlockCollection Serialize();
+        ModuleSerializationResult Serialize();
+    }
+
+    public sealed class ModuleSerializationResult
+    {
+        public LazyBlockCollection Blocks { get; }
+        public IEnumerable<IList<string>> ContiguousKeys { get; }
+
+        public ModuleSerializationResult(LazyBlockCollection blocks, IEnumerable<IList<string>> contiguousKeys)
+        {
+            Blocks = blocks;
+            ContiguousKeys = contiguousKeys;
+        }
     }
 }

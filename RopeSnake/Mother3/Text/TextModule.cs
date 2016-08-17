@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -10,7 +11,7 @@ namespace RopeSnake.Mother3.Text
 {
     public sealed class TextModule : Mother3Module
     {
-        #region Keys
+        #region Static strings
 
         private static readonly string TextBankKey = "Text.Bank";
         private static readonly string RoomDescriptionsKey = "Text.RoomDescriptions";
@@ -26,6 +27,20 @@ namespace RopeSnake.Mother3.Text
         private static readonly string SkillsKey = "Text.Skills";
         private static readonly string SkillDescriptionsKey = "Text.SkillDescriptions";
         private static readonly string MainScriptKey = "Text.MainScript";
+
+        private static readonly string RoomDescriptionsFile = Path.Combine("text", "room-descriptions.json");
+        private static readonly string ItemNamesFile = Path.Combine("text", "item-names.json");
+        private static readonly string ItemDescriptionsFile = Path.Combine("text", "ttem-descriptions.json");
+        private static readonly string CharNamesFile = Path.Combine("text", "char-names.json");
+        private static readonly string PartyCharNamesFile = Path.Combine("text", "party-char-names.json");
+        private static readonly string EnemyNamesFile = Path.Combine("text", "enemy-names.json");
+        private static readonly string PsiNamesFile = Path.Combine("text", "psi-names.json");
+        private static readonly string PsiDescriptionsFile = Path.Combine("text", "psi-descriptions.json");
+        private static readonly string StatusesFile = Path.Combine("text", "statuses.json");
+        private static readonly string DefaultCharNamesFile = Path.Combine("text", "default-char-names.json");
+        private static readonly string SkillsFile = Path.Combine("text", "skills.json");
+        private static readonly string SkillDescriptionsFile = Path.Combine("text", "skill-descriptions.json");
+        private static readonly string MainScriptFile = Path.Combine("text", "main-script.json");
 
         #endregion
 
@@ -58,26 +73,38 @@ namespace RopeSnake.Mother3.Text
         {
             var jsonManager = new JsonFileManager(fileSystem);
 
-            MainScript = jsonManager.ReadJson<List<List<string>>>(@"text\main-script.json");
+            RoomDescriptions = jsonManager.ReadJson<List<string>>(RoomDescriptionsFile);
+            ItemNames = jsonManager.ReadJson<StringTable>(ItemNamesFile);
+            ItemDescriptions = jsonManager.ReadJson<List<string>>(ItemDescriptionsFile);
+            CharNames = jsonManager.ReadJson<StringTable>(CharNamesFile);
+            PartyCharNames = jsonManager.ReadJson<StringTable>(PartyCharNamesFile);
+            EnemyNames = jsonManager.ReadJson<StringTable>(EnemyNamesFile);
+            PsiNames = jsonManager.ReadJson<StringTable>(PsiNamesFile);
+            PsiDescriptions = jsonManager.ReadJson<List<string>>(PsiDescriptionsFile);
+            Statuses = jsonManager.ReadJson<StringTable>(StatusesFile);
+            DefaultCharNames = jsonManager.ReadJson<StringTable>(DefaultCharNamesFile);
+            Skills = jsonManager.ReadJson<StringTable>(SkillsFile);
+            SkillDescriptions = jsonManager.ReadJson<List<string>>(SkillDescriptionsFile);
+            MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptFile);
         }
 
         public override void WriteToFiles(IFileSystem fileSystem)
         {
             var jsonManager = new JsonFileManager(fileSystem);
 
-            jsonManager.WriteJson(@"text\room-descriptions.json", RoomDescriptions);
-            jsonManager.WriteJson(@"text\item-names.json", ItemNames);
-            jsonManager.WriteJson(@"text\item-descriptions.json", ItemDescriptions);
-            jsonManager.WriteJson(@"text\char-names.json", CharNames);
-            jsonManager.WriteJson(@"text\party-char-names.json", PartyCharNames);
-            jsonManager.WriteJson(@"text\enemy-names.json", EnemyNames);
-            jsonManager.WriteJson(@"text\psi-names.json", PsiNames);
-            jsonManager.WriteJson(@"text\psi-descriptions.json", PsiDescriptions);
-            jsonManager.WriteJson(@"text\statuses.json", Statuses);
-            jsonManager.WriteJson(@"text\default-char-names.json", DefaultCharNames);
-            jsonManager.WriteJson(@"text\skills.json", Skills);
-            jsonManager.WriteJson(@"text\skill-descriptions.json", SkillDescriptions);
-            jsonManager.WriteJson(@"text\main-script.json", MainScript);
+            jsonManager.WriteJson(RoomDescriptionsFile, RoomDescriptions);
+            jsonManager.WriteJson(ItemNamesFile, ItemNames);
+            jsonManager.WriteJson(ItemDescriptionsFile, ItemDescriptions);
+            jsonManager.WriteJson(CharNamesFile, CharNames);
+            jsonManager.WriteJson(PartyCharNamesFile, PartyCharNames);
+            jsonManager.WriteJson(EnemyNamesFile, EnemyNames);
+            jsonManager.WriteJson(PsiNamesFile, PsiNames);
+            jsonManager.WriteJson(PsiDescriptionsFile, PsiDescriptions);
+            jsonManager.WriteJson(StatusesFile, Statuses);
+            jsonManager.WriteJson(DefaultCharNamesFile, DefaultCharNames);
+            jsonManager.WriteJson(SkillsFile, Skills);
+            jsonManager.WriteJson(SkillDescriptionsFile, SkillDescriptions);
+            jsonManager.WriteJson(MainScriptFile, MainScript);
         }
 
         public override void ReadFromRom(Block romData)
@@ -107,31 +134,32 @@ namespace RopeSnake.Mother3.Text
             SkillDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
         }
 
-        private BlockCollection SerializeTextBank(StringCodec codec)
+        private LazyBlockCollection SerializeTextBank(StringCodec codec, List<List<string>> contiguousBlocks)
         {
-            var blockCollection = new BlockCollection();
+            var blockCollection = new LazyBlockCollection();
 
+            blockCollection.Add(TextBankKey, () => WideOffsetTableWriter.CreateOffsetTable(16));
             blockCollection.AddStringOffsetTableBlocks(RoomDescriptionsKey, codec, RoomDescriptions, false, false);
-            blockCollection.AddBlock(ItemNamesKey, TextStreamExtensions.SerializeStringTable(codec, ItemNames));
+            blockCollection.Add(ItemNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, ItemNames));
             blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsKey, codec, ItemDescriptions, false, false);
-            blockCollection.AddBlock(CharNamesKey, TextStreamExtensions.SerializeStringTable(codec, CharNames));
-            blockCollection.AddBlock(PartyCharNamesKey, TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
-            blockCollection.AddBlock(EnemyNamesKey, TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
-            blockCollection.AddBlock(PsiNamesKey, TextStreamExtensions.SerializeStringTable(codec, PsiNames));
+            blockCollection.Add(CharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, CharNames));
+            blockCollection.Add(PartyCharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
+            blockCollection.Add(EnemyNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
+            blockCollection.Add(PsiNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, PsiNames));
             blockCollection.AddStringOffsetTableBlocks(PsiDescriptionsKey, codec, PsiDescriptions, false, false);
-            blockCollection.AddBlock(StatusesKey, TextStreamExtensions.SerializeStringTable(codec, Statuses));
-            blockCollection.AddBlock(DefaultCharNamesKey, TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
-            blockCollection.AddBlock(SkillsKey, TextStreamExtensions.SerializeStringTable(codec, Skills));
+            blockCollection.Add(StatusesKey, () => TextStreamExtensions.SerializeStringTable(codec, Statuses));
+            blockCollection.Add(DefaultCharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
+            blockCollection.Add(SkillsKey, () => TextStreamExtensions.SerializeStringTable(codec, Skills));
             blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
 
             _textKeys = blockCollection.Keys.ToArray();
-            blockCollection.AddBlock(TextBankKey, WideOffsetTableWriter.CreateOffsetTable(16));
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                blockCollection = WideOffsetTableWriter.ToContiguous(blockCollection, TextBankKey, _textKeys, 4);
-                _textKeys = null;
+                contiguousBlocks.Add(new List<string>(_textKeys));
             }
+
+            blockCollection.Add("Text.Test", () => new Block(123));
 
             return blockCollection;
         }
@@ -148,22 +176,21 @@ namespace RopeSnake.Mother3.Text
             }
         }
 
-        private BlockCollection SerializeMainScript(StringCodec codec)
+        private LazyBlockCollection SerializeMainScript(StringCodec codec, List<List<string>> contiguousBlocks)
         {
-            var blockCollection = new BlockCollection();
+            var blockCollection = new LazyBlockCollection();
 
+            blockCollection.Add(MainScriptKey, () => WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
             for (int i = 0; i < MainScript.Count; i++)
             {
                 blockCollection.AddStringOffsetTableBlocks($"{MainScriptKey}.{i}", codec, MainScript[i], true, false);
             }
 
             _mainScriptKeys = blockCollection.Keys.ToArray();
-            blockCollection.AddBlock(MainScriptKey, WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
-
+    
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                blockCollection = WideOffsetTableWriter.ToContiguous(blockCollection, MainScriptKey, _mainScriptKeys, 4);
-                _mainScriptKeys = null;
+                contiguousBlocks.Add(new List<string>(_mainScriptKeys));
             }
 
             return blockCollection;
@@ -171,11 +198,8 @@ namespace RopeSnake.Mother3.Text
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            if (ProjectSettings.OffsetTableMode == OffsetTableMode.Fragmented)
-            {
-                WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys, 0);
-                WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys, 0);
-            }
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
+            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);
@@ -184,15 +208,16 @@ namespace RopeSnake.Mother3.Text
             _mainScriptKeys = null;
         }
 
-        public override BlockCollection Serialize()
+        public override ModuleSerializationResult Serialize()
         {
             var codec = StringCodec.Create(RomConfig);
-            var blockCollection = new BlockCollection();
+            var blocks = new LazyBlockCollection();
+            var contiguousKeys = new List<List<string>>();
 
-            blockCollection.AddBlockCollection(SerializeTextBank(codec));
-            blockCollection.AddBlockCollection(SerializeMainScript(codec));
+            blocks.AddRange(SerializeTextBank(codec, contiguousKeys));
+            blocks.AddRange(SerializeMainScript(codec, contiguousKeys));
 
-            return blockCollection;
+            return new ModuleSerializationResult(blocks, contiguousKeys);
         }
     }
 }

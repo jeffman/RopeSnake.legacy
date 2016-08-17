@@ -44,13 +44,13 @@ namespace RopeSnake.Mother3.Data
             UpdateRomReferences(romData, allocatedBlocks, "Data.Items");
         }
 
-        public override BlockCollection Serialize()
+        public override ModuleSerializationResult Serialize()
         {
-            var blocks = new BlockCollection();
+            var blocks = new LazyBlockCollection();
 
-            blocks.AddBlock("Data.Items", SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
+            blocks.Add("Data.Items", () => SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
 
-            return blocks;
+            return new ModuleSerializationResult(blocks, null);
         }
     }
 }

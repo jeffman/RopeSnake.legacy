@@ -13,15 +13,18 @@ namespace RopeSnake.Mother3.IO
             => new Block((count + 1) * 4 + 4);
 
         public static void UpdateOffsetTable(AllocatedBlockCollection allocatedBlocks,
-            string offsetTableKey, IEnumerable<string> dataKeys, int endPointer)
+            string offsetTableKey, IEnumerable<string> dataKeys)
         {
             var table = allocatedBlocks[offsetTableKey];
             int basePointer = allocatedBlocks.GetAllocatedPointer(offsetTableKey);
             var stream = table.ToBinaryStream();
 
+            dataKeys = dataKeys.Where(k => k != offsetTableKey);
+
             int count = dataKeys.Count();
             stream.WriteInt(count);
 
+            int endPointer = 0;
             foreach (string key in dataKeys)
             {
                 int pointer = allocatedBlocks.GetAllocatedPointer(key);
@@ -32,6 +35,7 @@ namespace RopeSnake.Mother3.IO
                 else
                 {
                     stream.WriteInt(pointer - basePointer);
+                    endPointer = pointer + allocatedBlocks[key].Size;
                 }
             }
 
@@ -43,53 +47,6 @@ namespace RopeSnake.Mother3.IO
             {
                 stream.WriteInt(endPointer - basePointer);
             }
-        }
-
-        public static BlockCollection ToContiguous(BlockCollection blockCollection, string offsetTableKey,
-            IEnumerable<string> dataKeys, int alignment = 1)
-        {
-            var tempCollection = new BlockCollection();
-            tempCollection.AddBlockCollection(blockCollection);
-
-            var allocatedPointers = new Dictionary<string, int>();
-            var table = tempCollection[offsetTableKey];
-
-            allocatedPointers.Add(offsetTableKey, 0);
-
-            int currentPointer = table.Size;
-            foreach (string key in dataKeys)
-            {
-                currentPointer = currentPointer.Align(alignment);
-                var dataBlock = tempCollection[key];
-                if (dataBlock == null)
-                {
-                    allocatedPointers.Add(key, 0);
-                }
-                else
-                {
-                    allocatedPointers.Add(key, currentPointer);
-                    currentPointer += dataBlock.Size;
-                }
-            }
-
-            var contiguousBlock = new Block(currentPointer);
-            var contiguousStream = contiguousBlock.ToBinaryStream(table.Size);
-
-            foreach (string key in dataKeys)
-            {
-                var dataBlock = tempCollection[key];
-                if (dataBlock != null)
-                {
-                    contiguousStream.Position = allocatedPointers[key];
-                    contiguousStream.WriteBytes(dataBlock.Data, 0, dataBlock.Size);
-                }
-            }
-
-            tempCollection.AddBlock(offsetTableKey, contiguousBlock);
-            UpdateOffsetTable(new AllocatedBlockCollection(tempCollection, allocatedPointers), offsetTableKey, dataKeys, currentPointer);
-            tempCollection = new BlockCollection();
-            tempCollection.AddBlock(offsetTableKey, contiguousBlock);
-            return tempCollection;
         }
     }
 }

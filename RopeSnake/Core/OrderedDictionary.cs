@@ -35,6 +35,13 @@ namespace RopeSnake.Core
 
         public virtual ICollection<TValue> Values => _orderedKeys.Select(k => _dict[k]).ToArray();
 
+        public OrderedDictionary() { }
+
+        public OrderedDictionary(IEnumerable<KeyValuePair<TKey, TValue>> copyFrom)
+        {
+            AddRange(copyFrom);
+        }
+
         public virtual void Add(TKey key, TValue value)
         {
             if (IsReadOnly)
@@ -52,9 +59,9 @@ namespace RopeSnake.Core
             _orderedKeys.Add(key);
         }
 
-        public virtual void AddDictionary(IDictionary<TKey, TValue> dictionary)
+        public virtual void AddRange(IEnumerable<KeyValuePair<TKey, TValue>> range)
         {
-            foreach (var kv in dictionary)
+            foreach (var kv in range)
             {
                 Add(kv.Key, kv.Value);
             }

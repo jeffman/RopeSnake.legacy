@@ -33,6 +33,17 @@ namespace RopeSnake.Core
             return File.Open(GetFullPath(path), FileMode.Open);
         }
 
+        public bool DeleteFile(string path)
+        {
+            var fileInfo = new FileInfo(GetFullPath(path));
+            if (fileInfo.Exists)
+            {
+                fileInfo.Delete();
+                return true;
+            }
+            return false;
+        }
+
         public int GetFileSize(string path)
         {
             return (int)(new FileInfo(GetFullPath(path))).Length;

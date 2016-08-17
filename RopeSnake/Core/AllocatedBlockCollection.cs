@@ -10,6 +10,8 @@ namespace RopeSnake.Core
     {
         private Dictionary<string, int> _allocatedPointers;
 
+        public override bool IsReadOnly => true;
+
         public AllocatedBlockCollection(BlockCollection blocks, Dictionary<string, int> allocatedPointers)
         {
             if (blocks == null)
@@ -18,29 +20,18 @@ namespace RopeSnake.Core
             if (allocatedPointers == null)
                 throw new ArgumentNullException(nameof(allocatedPointers));
 
+            // Verify that blocks and allocatedPointers contain the same keys
+            if (blocks.Keys.Any(k => !allocatedPointers.ContainsKey(k)) || allocatedPointers.Keys.Any(k => !blocks.ContainsKey(k)))
+                throw new Exception($"{nameof(blocks)} and {nameof(allocatedPointers)} must have matching keys");
+
             _allocatedPointers = new Dictionary<string, int>();
             foreach (string key in blocks.Keys)
             {
-                base.AddBlock(key, blocks[key]);
+                base.ForceAdd(key, blocks[key]);
                 _allocatedPointers.Add(key, allocatedPointers[key]);
             }
         }
 
-        public int GetAllocatedPointer(string key) => _allocatedPointers[key];
-
-        public override bool AddBlock(string key, Block block)
-        {
-            throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
-        }
-
-        public override bool RemoveBlock(string key)
-        {
-            throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
-        }
-
-        public override void AddBlockCollection(BlockCollection collection)
-        {
-            throw new InvalidOperationException("Cannot modify an AllocatedBlockCollection");
-        }
+        public virtual int GetAllocatedPointer(string key) => _allocatedPointers[key];
     }
 }

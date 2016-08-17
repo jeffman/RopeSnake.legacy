@@ -149,13 +149,12 @@ namespace RopeSnake.Mother3.Text
             }
         }
 
-        public static void AddStringOffsetTableBlocks(this BlockCollection blockCollection, string key,
+        public static void AddStringOffsetTableBlocks(this LazyBlockCollection blockCollection, string key,
             StringCodec codec, IEnumerable<string> strings,
             bool isScript, bool divideByTwo)
         {
-            var blocks = SerializeStringOffsetTable(codec, strings, isScript, divideByTwo);
-            blockCollection.AddBlock($"{key}.OffsetTable", blocks[0]);
-            blockCollection.AddBlock($"{key}.Data", blocks[1]);
+            string[] keys = { $"{key}.OffsetTable", $"{key}.Data" };
+            blockCollection.AddRange(keys, () => SerializeStringOffsetTable(codec, strings, isScript, divideByTwo));
         }
     }
 }

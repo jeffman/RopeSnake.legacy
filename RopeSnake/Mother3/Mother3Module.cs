@@ -44,7 +44,7 @@ namespace RopeSnake.Mother3
             }
         }
 
-        protected void WriteAllocatedBlocks(Block romData, AllocatedBlockCollection allocatedBlocks)
+        protected static void WriteAllocatedBlocks(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             foreach (string key in allocatedBlocks.Keys)
             {
@@ -70,7 +70,7 @@ namespace RopeSnake.Mother3
             return list;
         }
 
-        protected Block SerializeTable<T>(List<T> list, int fieldSize, Action<BinaryStream, T> elementWriter)
+        protected static Block SerializeTable<T>(List<T> list, int fieldSize, Action<BinaryStream, T> elementWriter)
         {
             var block = new Block(list.Count * fieldSize);
             var stream = block.ToBinaryStream();
@@ -81,9 +81,9 @@ namespace RopeSnake.Mother3
             return block;
         }
 
-        public override string ToString() => Name;
-
         #endregion
+
+        public override string ToString() => Name;
 
         #region IModule implementation
 
@@ -92,7 +92,7 @@ namespace RopeSnake.Mother3
         public abstract void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
         public abstract void ReadFromFiles(IFileSystem fileSystem);
         public abstract void WriteToFiles(IFileSystem fileSystem);
-        public abstract BlockCollection Serialize();
+        public abstract ModuleSerializationResult Serialize();
 
         #endregion
     }

@@ -15,6 +15,8 @@ namespace RopeSnake.Mother3
         public DataModule Data { get; }
         public TextModule Text { get; }
 
+        public Mother3Module this[string moduleName] => this.First(m => m.Name == moduleName);
+
         public Mother3ModuleCollection(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
             Data = new DataModule(romConfig, projectSettings);

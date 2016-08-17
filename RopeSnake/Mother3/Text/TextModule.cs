@@ -159,8 +159,6 @@ namespace RopeSnake.Mother3.Text
                 contiguousBlocks.Add(new List<string>(_textKeys));
             }
 
-            blockCollection.Add("Text.Test", () => new Block(123));
-
             return blockCollection;
         }
 

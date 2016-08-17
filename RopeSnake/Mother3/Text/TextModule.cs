@@ -30,7 +30,7 @@ namespace RopeSnake.Mother3.Text
 
         private static readonly string RoomDescriptionsFile = Path.Combine("text", "room-descriptions.json");
         private static readonly string ItemNamesFile = Path.Combine("text", "item-names.json");
-        private static readonly string ItemDescriptionsFile = Path.Combine("text", "ttem-descriptions.json");
+        private static readonly string ItemDescriptionsFile = Path.Combine("text", "item-descriptions.json");
         private static readonly string CharNamesFile = Path.Combine("text", "char-names.json");
         private static readonly string PartyCharNamesFile = Path.Combine("text", "party-char-names.json");
         private static readonly string EnemyNamesFile = Path.Combine("text", "enemy-names.json");

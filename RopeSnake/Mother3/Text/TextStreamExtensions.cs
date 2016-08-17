@@ -153,7 +153,7 @@ namespace RopeSnake.Mother3.Text
             StringCodec codec, IEnumerable<string> strings,
             bool isScript, bool divideByTwo)
         {
-            string[] keys = { $"{key}.OffsetTable", $"{key}.Data" };
+            string[] keys = Mother3Module.GetOffsetAndDataKeys(key);
             blockCollection.AddRange(keys, () => SerializeStringOffsetTable(codec, strings, isScript, divideByTwo));
         }
     }

@@ -81,6 +81,11 @@ namespace RopeSnake.Mother3
             return block;
         }
 
+        public static string[] GetOffsetAndDataKeys(string key)
+        {
+            return new string[] { $"{key}.OffsetTable", $"{key}.Data" };
+        }
+
         #endregion
 
         public override string ToString() => Name;

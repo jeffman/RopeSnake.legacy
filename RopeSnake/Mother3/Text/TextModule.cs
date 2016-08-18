@@ -86,6 +86,20 @@ namespace RopeSnake.Mother3.Text
             Skills = jsonManager.ReadJson<StringTable>(SkillsFile);
             SkillDescriptions = jsonManager.ReadJson<List<string>>(SkillDescriptionsFile);
             MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptFile);
+
+            AddBlockKeysForFile(RoomDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
+            AddBlockKeysForFile(ItemNamesFile, TextBankKey, ItemNamesKey);
+            AddBlockKeysForFile(ItemDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(ItemDescriptionsKey));
+            AddBlockKeysForFile(CharNamesFile, TextBankKey, CharNamesKey);
+            AddBlockKeysForFile(PartyCharNamesFile, TextBankKey, PartyCharNamesKey);
+            AddBlockKeysForFile(EnemyNamesFile, TextBankKey, EnemyNamesKey);
+            AddBlockKeysForFile(PsiNamesFile, TextBankKey, PsiNamesKey);
+            AddBlockKeysForFile(PsiDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(PsiDescriptionsKey));
+            AddBlockKeysForFile(StatusesFile, TextBankKey, StatusesKey);
+            AddBlockKeysForFile(DefaultCharNamesFile, TextBankKey, DefaultCharNamesKey);
+            AddBlockKeysForFile(SkillsFile, TextBankKey, SkillsKey);
+            AddBlockKeysForFile(SkillDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(SkillDescriptionsKey));
+            AddBlockKeysForFile(MainScriptFile, MainScriptKey, MainScript.SelectMany((s, i) => GetOffsetAndDataKeys($"{MainScriptKey}.{i}")));
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)

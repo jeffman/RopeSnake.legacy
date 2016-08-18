@@ -13,11 +13,13 @@ namespace RopeSnake.Mother3
     {
         protected Mother3RomConfig RomConfig { get; }
         protected Mother3ProjectSettings ProjectSettings { get; }
+        protected Dictionary<string, IEnumerable<string>> BlockKeysForFiles { get; }
 
         protected Mother3Module(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
+            BlockKeysForFiles = new Dictionary<string, IEnumerable<string>>();
         }
 
         #region Helpers
@@ -86,6 +88,32 @@ namespace RopeSnake.Mother3
             return new string[] { $"{key}.OffsetTable", $"{key}.Data" };
         }
 
+        protected void AddBlockKeysForFile(string path, params object[] keys)
+        {
+            var keySet = new HashSet<string>();
+
+            foreach (var key in keys)
+            {
+                var keyString = key as string;
+                if (keyString != null)
+                {
+                    keySet.Add(keyString);
+                    continue;
+                }
+
+                var keyEnumerable = key as IEnumerable<string>;
+                if (keyEnumerable != null)
+                {
+                    keySet.AddRange(keyEnumerable);
+                    continue;
+                }
+
+                throw new ArgumentException(nameof(keys));
+            }
+
+            BlockKeysForFiles.Add(path, keySet);
+        }
+
         #endregion
 
         public override string ToString() => Name;
@@ -98,6 +126,16 @@ namespace RopeSnake.Mother3
         public abstract void ReadFromFiles(IFileSystem fileSystem);
         public abstract void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         public abstract ModuleSerializationResult Serialize();
+
+        public virtual IEnumerable<string> GetBlockKeysForFile(string path)
+        {
+            IEnumerable<string> keys;
+            if (BlockKeysForFiles.TryGetValue(path, out keys))
+            {
+                return keys;
+            }
+            return Enumerable.Empty<string>();
+        }
 
         #endregion
     }

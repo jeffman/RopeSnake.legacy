@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace RopeSnake.Mother3
 {
@@ -19,10 +20,8 @@ namespace RopeSnake.Mother3
         public string RomConfigPath { get; set; }
 
         [JsonProperty]
+        [JsonConverter(typeof(StringEnumConverter))]
         public OffsetTableMode OffsetTableMode { get; set; }
-
-        [JsonProperty]
-        public HashSet<string> StaleCacheKeys { get; set; }
 
         public static Mother3ProjectSettings CreateDefault()
         {
@@ -31,8 +30,7 @@ namespace RopeSnake.Mother3
                 BaseRomPath = "base.gba",
                 OutputRomPath = "test.gba",
                 RomConfigPath = "rom.config.json",
-                OffsetTableMode = OffsetTableMode.Fragmented,
-                StaleCacheKeys = new HashSet<string>()
+                OffsetTableMode = OffsetTableMode.Fragmented
             };
         }
     }

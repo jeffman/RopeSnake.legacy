@@ -12,7 +12,7 @@ namespace RopeSnake.Core
         Stream CreateFile(string path);
         Stream OpenFile(string path);
         bool DeleteFile(string path);
-        int GetFileSize(string path);
+        FileSystemProperties GetFileProperties(string path);
         bool FileExists(string path);
         void CreateDirectory(string path);
         bool DirectoryExists(string path);

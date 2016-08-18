@@ -44,9 +44,10 @@ namespace RopeSnake.Core
             return false;
         }
 
-        public int GetFileSize(string path)
+        public FileSystemProperties GetFileProperties(string path)
         {
-            return (int)(new FileInfo(GetFullPath(path))).Length;
+            var fileInfo = new FileInfo(GetFullPath(path));
+            return new FileSystemProperties(path, (int)fileInfo.Length, fileInfo.LastWriteTimeUtc);
         }
 
         public bool DirectoryExists(string path)

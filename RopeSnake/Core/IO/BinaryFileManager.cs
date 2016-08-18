@@ -28,7 +28,7 @@ namespace RopeSnake.Core
 
         public void ReadFile(string path, IBinarySerializable value)
         {
-            int size = _fileSystem.GetFileSize(path);
+            int size = _fileSystem.GetFileProperties(path).Size;
 
             using (var stream = _fileSystem.OpenFile(path))
             {

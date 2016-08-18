@@ -18,5 +18,6 @@ namespace RopeSnake.Core
         bool DirectoryExists(string path);
         string[] GetDirectories(string path);
         string[] GetFiles(string path);
+        FileSystemState GetState(params string[] ignoreFilters);
     }
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.IO;
 
@@ -79,6 +80,43 @@ namespace RopeSnake.Core
         {
             var di = new DirectoryInfo(GetFullPath(path));
             return di.GetFiles().Select(f => f.Name).ToArray();
+        }
+
+        public FileSystemState GetState(params string[] ignoreFilters)
+        {
+            var properties = new List<FileSystemProperties>();
+            var regexes = ignoreFilters.Select(f => FilterToRegex(f)).ToArray();
+            AddAllFileProperties("", properties, regexes);
+            return new FileSystemState(properties);
+        }
+
+        private void AddAllFileProperties(string path, List<FileSystemProperties> properties, Regex[] ignoreFilters)
+        {
+            foreach (string file in GetFiles(path))
+            {
+                string filePath = Path.Combine(path, file);
+                if (ignoreFilters.Any(f => f.IsMatch(filePath)))
+                {
+                    continue;
+                }
+                properties.Add(GetFileProperties(filePath));
+            }
+
+            foreach (string directory in GetDirectories(path))
+            {
+                string directoryPath = Path.Combine(path, directory);
+                if (ignoreFilters.Any(f => f.IsMatch(directoryPath)))
+                {
+                    continue;
+                }
+                AddAllFileProperties(directoryPath, properties, ignoreFilters);
+            }
+        }
+
+        private static Regex FilterToRegex(string filter)
+        {
+            var regex = new Regex(filter, RegexOptions.Compiled | RegexOptions.IgnoreCase);
+            return regex;
         }
     }
 }

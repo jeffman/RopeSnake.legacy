@@ -88,9 +88,10 @@ namespace RopeSnake.Mother3.Text
             MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptFile);
         }
 
-        public override void WriteToFiles(IFileSystem fileSystem)
+        public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
         {
             var jsonManager = new JsonFileManager(fileSystem);
+            jsonManager.StaleObjects = staleObjects;
 
             jsonManager.WriteJson(RoomDescriptionsFile, RoomDescriptions);
             jsonManager.WriteJson(ItemNamesFile, ItemNames);

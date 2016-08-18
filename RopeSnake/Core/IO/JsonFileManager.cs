@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -13,6 +14,8 @@ namespace RopeSnake.Core
         private IFileSystem _fileSystem;
 
         protected IFileSystem FileSystem { get { return _fileSystem; } }
+
+        public ISet<object> StaleObjects { get; set; }
 
         public JsonFileManager(IFileSystem fileSystem)
         {
@@ -36,6 +39,9 @@ namespace RopeSnake.Core
 
         public virtual void WriteJson(string path, object value)
         {
+            if (!IsStale(value))
+                return;
+
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
 
@@ -49,6 +55,24 @@ namespace RopeSnake.Core
                     }
                 }
             }
+        }
+
+        protected virtual bool IsStale(object value)
+        {
+            if (StaleObjects == null)
+                return true;
+
+            if (StaleObjects.Contains(value))
+                return true;
+
+            var enumerable = value as IEnumerable;
+            foreach (var child in enumerable)
+            {
+                if (StaleObjects.Contains(child))
+                    return true;
+            }
+
+            return false;
         }
     }
 }

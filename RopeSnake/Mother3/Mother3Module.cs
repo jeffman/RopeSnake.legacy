@@ -96,7 +96,7 @@ namespace RopeSnake.Mother3
         public abstract void ReadFromRom(Block romData);
         public abstract void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
         public abstract void ReadFromFiles(IFileSystem fileSystem);
-        public abstract void WriteToFiles(IFileSystem fileSystem);
+        public abstract void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         public abstract ModuleSerializationResult Serialize();
 
         #endregion

@@ -13,7 +13,7 @@ namespace RopeSnake.Core
         void ReadFromRom(Block romData);
         void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);
         void ReadFromFiles(IFileSystem fileSystem);
-        void WriteToFiles(IFileSystem fileSystem);
+        void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         ModuleSerializationResult Serialize();
     }
 

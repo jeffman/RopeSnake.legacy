@@ -26,7 +26,7 @@ namespace RopeSnake.Mother3.Data
             Items = jsonManager.ReadJson<List<Item>>(@"data\items.json");
         }
 
-        public override void WriteToFiles(IFileSystem fileSystem)
+        public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
         {
             var jsonManager = new JsonFileManager(fileSystem);
 

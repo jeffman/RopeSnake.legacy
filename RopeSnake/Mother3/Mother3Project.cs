@@ -18,6 +18,7 @@ namespace RopeSnake.Mother3
         public Mother3RomConfig RomConfig { get; private set; }
         public Mother3ProjectSettings ProjectSettings { get; private set; }
         public Mother3ModuleCollection Modules { get; private set; }
+        public HashSet<object> StaleObjects { get; private set; }
 
         private Mother3Project(Block romData, Mother3RomConfig romConfig,
             Mother3ProjectSettings projectSettings)
@@ -26,6 +27,7 @@ namespace RopeSnake.Mother3
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
             Modules = new Mother3ModuleCollection(romConfig, projectSettings);
+            StaleObjects = new HashSet<object>();
         }
 
         private void UpdateRomConfig()
@@ -55,6 +57,7 @@ namespace RopeSnake.Mother3
             foreach (var module in project.Modules)
                 module.ReadFromRom(romData);
 
+            project.StaleObjects = null;
             return project;
         }
 
@@ -78,12 +81,12 @@ namespace RopeSnake.Mother3
 
         public void Save(IFileSystem fileSystem, string projectSettingsPath)
         {
+            foreach (var module in Modules)
+                module.WriteToFiles(fileSystem, StaleObjects);
+
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
             jsonManager.WriteJson(ProjectSettings.RomConfigPath, RomConfig);
-
-            foreach (var module in Modules)
-                module.WriteToFiles(fileSystem);
         }
 
         public void Compile(IFileSystem fileSystem)

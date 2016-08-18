@@ -20,7 +20,7 @@ namespace RopeSnake.Mother3.Text
             var table = new StringTable { MaxLength = maxLength };
             for (int i = 0; i < count; i++)
             {
-                table.Add(codec.ReadCodedString(stream, maxLength));
+                table.Strings.Add(codec.ReadCodedString(stream, maxLength));
             }
 
             return table;
@@ -34,7 +34,7 @@ namespace RopeSnake.Mother3.Text
             stream.WriteUShort(table.MaxLength);
             stream.WriteUShort((ushort)table.Strings.Count);
 
-            foreach (string str in table)
+            foreach (string str in table.Strings)
             {
                 codec.WriteCodedString(stream, table.MaxLength, str == null ? "" : str);
             }
@@ -42,7 +42,7 @@ namespace RopeSnake.Mother3.Text
 
         public static Block SerializeStringTable(StringCodec codec, StringTable table)
         {
-            var block = new Block(table.MaxLength * 2 * table.Count + 4);
+            var block = new Block(table.MaxLength * 2 * table.Strings.Count + 4);
             block.ToBinaryStream().WriteStringTable(codec, table);
             return block;
         }

@@ -13,6 +13,7 @@ namespace RopeSnake.Mother3
     {
         private static readonly string CacheFolder = ".cache";
         private static readonly string CacheKeysFile = "Cache.Keys.json";
+        private static readonly string FileSystemStatePath = "state.json";
 
         public Block RomData { get; private set; }
         public Mother3RomConfig RomConfig { get; private set; }
@@ -58,6 +59,7 @@ namespace RopeSnake.Mother3
                 module.ReadFromRom(romData);
 
             project.StaleObjects = null;
+
             return project;
         }
 
@@ -93,8 +95,9 @@ namespace RopeSnake.Mother3
         {
             var allocator = new RangeAllocator(RomConfig.FreeRanges);
             var outputRomData = new Block(RomData);
-            var cache = ReadCache(fileSystem);
-            RemoveStaleObjectsFromCache(cache);
+
+            var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
+            var cache = ReadCache(fileSystem, staleBlockKeys);
 
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
             compiler.AllocationAlignment = 4;
@@ -103,12 +106,14 @@ namespace RopeSnake.Mother3
             var binaryManager = new BinaryFileManager(fileSystem);
             binaryManager.WriteFile(ProjectSettings.OutputRomPath, outputRomData);
 
-            RemoveCacheFromStaleObjects(compilationResult.WrittenBlocks);
             WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
             CleanCache(fileSystem);
+
+            var jsonManager = new JsonFileManager(fileSystem);
+            jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState("^\\.cache"));
         }
 
-        public BlockCollection ReadCache(IFileSystem fileSystem)
+        public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
         {
             var cache = new BlockCollection();
             var binaryManager = new BinaryFileManager(fileSystem);
@@ -120,14 +125,19 @@ namespace RopeSnake.Mother3
                 if (fileSystem.FileExists(cacheKeysPath))
                 {
                     var cacheKeys = jsonManager.ReadJson<string[]>(cacheKeysPath);
-                    foreach (string cacheKey in cacheKeys)
+                    foreach (string cacheKey in cacheKeys.Except(staleBlockKeys))
                     {
                         string cacheFilePath = Path.Combine(CacheFolder, $"{cacheKey}.bin");
+                        Block block;
                         if (fileSystem.FileExists(cacheFilePath))
                         {
-                            var block = binaryManager.ReadFile<Block>(cacheFilePath);
-                            cache.Add(cacheKey, block);
+                            block = binaryManager.ReadFile<Block>(cacheFilePath);
                         }
+                        else
+                        {
+                            block = null;
+                        }
+                        cache.Add(cacheKey, block);
                     }
                 }
             }
@@ -178,26 +188,26 @@ namespace RopeSnake.Mother3
             }
         }
 
-        public void RemoveStaleObjectsFromCache(BlockCollection cache)
+        private IEnumerable<string> GetStaleBlockKeys(IEnumerable<string> paths)
         {
-            if (ProjectSettings.StaleCacheKeys == null)
-                return;
-
-            foreach (string key in ProjectSettings.StaleCacheKeys)
-            {
-                cache.Remove(key);
-            }
+            return Modules.SelectMany(m => paths.SelectMany(p => m.GetBlockKeysForFile(p)));
         }
 
-        public void RemoveCacheFromStaleObjects(BlockCollection cache)
+        private FileSystemState GetPreviousFileSystemState(IFileSystem fileSystem)
         {
-            if (ProjectSettings.StaleCacheKeys == null)
-                return;
+            if (!fileSystem.FileExists(FileSystemStatePath))
+                return new FileSystemState(Enumerable.Empty<FileSystemProperties>());
 
-            foreach (var key in cache.Keys)
-            {
-                ProjectSettings.StaleCacheKeys.Remove(key);
-            }
+            var jsonManager = new JsonFileManager(fileSystem);
+            return jsonManager.ReadJson<FileSystemState>(FileSystemStatePath);
+        }
+
+        private IEnumerable<string> GetChangedPaths(IFileSystem fileSystem)
+        {
+            var previousState = GetPreviousFileSystemState(fileSystem);
+            var currentState = fileSystem.GetState();
+            var differences = currentState.Compare(previousState);
+            return differences.Keys;
         }
     }
 }

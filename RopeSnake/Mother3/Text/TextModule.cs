@@ -211,6 +211,9 @@ namespace RopeSnake.Mother3.Text
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
+            if (allocatedBlocks[TextBankKey] == null || allocatedBlocks[MainScriptKey] == null)
+                throw new Exception("One or more offset tables were null.");
+
             WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
             WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
 

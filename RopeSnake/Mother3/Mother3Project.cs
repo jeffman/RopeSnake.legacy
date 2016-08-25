@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpFileSystem;
 using RopeSnake.Core;
 using RopeSnake.Mother3.Data;
 
@@ -93,10 +94,12 @@ namespace RopeSnake.Mother3
 
         public void Compile(IFileSystem fileSystem)
         {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
             var allocator = new RangeAllocator(RomConfig.FreeRanges);
             var outputRomData = new Block(RomData);
 
-            var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
+            var staleBlockKeys = new string[] { };// GetStaleBlockKeys(GetChangedPaths(fileSystem));
             var cache = ReadCache(fileSystem, staleBlockKeys);
 
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
@@ -110,7 +113,12 @@ namespace RopeSnake.Mother3
             CleanCache(fileSystem);
 
             var jsonManager = new JsonFileManager(fileSystem);
-            jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState("^\\.cache"));
+            //jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState("^\\.cache"));
+
+            sw.Stop();
+            var time = sw.Elapsed.TotalMilliseconds;
+            Console.WriteLine(time);
+            Console.ReadLine();
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
@@ -119,17 +127,17 @@ namespace RopeSnake.Mother3
             var binaryManager = new BinaryFileManager(fileSystem);
             var jsonManager = new JsonFileManager(fileSystem);
 
-            if (fileSystem.DirectoryExists(CacheFolder))
+            if (fileSystem.Exists(CacheFolder.ToPath()))
             {
                 string cacheKeysPath = Path.Combine(CacheFolder, CacheKeysFile);
-                if (fileSystem.FileExists(cacheKeysPath))
+                if (fileSystem.Exists(cacheKeysPath.ToPath()))
                 {
                     var cacheKeys = jsonManager.ReadJson<string[]>(cacheKeysPath);
                     foreach (string cacheKey in cacheKeys.Except(staleBlockKeys))
                     {
                         string cacheFilePath = Path.Combine(CacheFolder, $"{cacheKey}.bin");
                         Block block;
-                        if (fileSystem.FileExists(cacheFilePath))
+                        if (fileSystem.Exists(cacheFilePath.ToPath()))
                         {
                             block = binaryManager.ReadFile<Block>(cacheFilePath);
                         }
@@ -163,7 +171,7 @@ namespace RopeSnake.Mother3
                 }
                 else
                 {
-                    fileSystem.DeleteFile(cacheFilePath);
+                    fileSystem.Delete(cacheFilePath.ToPath());
                 }
             }
         }
@@ -173,17 +181,19 @@ namespace RopeSnake.Mother3
             string cacheKeysPath = Path.Combine(CacheFolder, CacheKeysFile);
             var jsonManager = new JsonFileManager(fileSystem);
 
-            if (fileSystem.FileExists(cacheKeysPath))
+            if (fileSystem.Exists(cacheKeysPath.ToPath()))
             {
                 var cachedFiles = new HashSet<string>(jsonManager.ReadJson<string[]>(cacheKeysPath).Select(f => $"{f}.bin"));
-                var existingFiles = fileSystem.GetFiles(CacheFolder);
 
-                foreach (string file in existingFiles)
+                var cacheFolderPath = CacheFolder.ToPath();
+                var existingFiles = fileSystem.GetEntities(cacheFolderPath);
+
+                foreach (var file in existingFiles)
                 {
-                    if (file == CacheKeysFile || cachedFiles.Contains(file))
+                    if (file == CacheKeysFile.ToPath() || cachedFiles.Contains(file.Path))
                         continue;
 
-                    fileSystem.DeleteFile(Path.Combine(CacheFolder, file));
+                    fileSystem.Delete(Path.Combine(CacheFolder, file.Path).ToPath());
                 }
             }
         }
@@ -195,19 +205,19 @@ namespace RopeSnake.Mother3
 
         private FileSystemState GetPreviousFileSystemState(IFileSystem fileSystem)
         {
-            if (!fileSystem.FileExists(FileSystemStatePath))
+            if (!fileSystem.Exists(FileSystemStatePath.ToPath()))
                 return new FileSystemState(Enumerable.Empty<FileSystemProperties>());
 
             var jsonManager = new JsonFileManager(fileSystem);
             return jsonManager.ReadJson<FileSystemState>(FileSystemStatePath);
         }
 
-        private IEnumerable<string> GetChangedPaths(IFileSystem fileSystem)
-        {
-            var previousState = GetPreviousFileSystemState(fileSystem);
-            var currentState = fileSystem.GetState();
-            var differences = currentState.Compare(previousState);
-            return differences.Keys;
-        }
+        //private IEnumerable<string> GetChangedPaths(IFileSystem fileSystem)
+        //{
+        //    var previousState = GetPreviousFileSystemState(fileSystem);
+        //    var currentState = fileSystem.GetState();
+        //    var differences = currentState.Compare(previousState);
+        //    return differences.Keys;
+        //}
     }
 }

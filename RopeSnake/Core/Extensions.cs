@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
@@ -74,6 +75,11 @@ namespace RopeSnake.Core
         {
             foreach (T value in values)
                 set.Add(value);
+        }
+
+        public static FileSystemPath ToPath(this string path)
+        {
+            return FileSystemPath.Parse(path);
         }
     }
 }

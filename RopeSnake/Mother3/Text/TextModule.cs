@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpFileSystem;
 using RopeSnake.Core;
 using RopeSnake.Mother3.IO;
 

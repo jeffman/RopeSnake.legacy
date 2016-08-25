@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.IO;
+using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
@@ -28,17 +29,20 @@ namespace RopeSnake.Core
 
         public void ReadFile(string path, IBinarySerializable value)
         {
-            int size = _fileSystem.GetFileProperties(path).Size;
+            var filePath = path.ToPath();
 
-            using (var stream = _fileSystem.OpenFile(path))
+            if (!_fileSystem.Exists(filePath))
+                throw new FileNotFoundException("File not found", path);
+
+            using (var stream = _fileSystem.OpenFile(filePath, FileAccess.Read))
             {
-                value.Deserialize(stream, size);
+                value.Deserialize(stream, (int)stream.Length);
             }
         }
 
         public void WriteFile(string path, IBinarySerializable value)
         {
-            using (var stream = _fileSystem.CreateFile(path))
+            using (var stream = _fileSystem.CreateFile(path.ToPath()))
             {
                 value.Serialize(stream);
             }

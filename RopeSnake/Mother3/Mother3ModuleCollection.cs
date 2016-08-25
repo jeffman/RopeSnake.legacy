@@ -25,7 +25,7 @@ namespace RopeSnake.Mother3
 
         public IEnumerator<Mother3Module> GetEnumerator()
         {
-            yield return Data;
+            //yield return Data;
             yield return Text;
         }
 

@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using Newtonsoft.Json;
+using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
@@ -25,7 +26,7 @@ namespace RopeSnake.Core
         public virtual T ReadJson<T>(string path)
         {
             var serializer = new JsonSerializer();
-            using (var stream = _fileSystem.OpenFile(path))
+            using (var stream = _fileSystem.OpenFile(path.ToPath(), FileAccess.Read))
             {
                 using (var textReader = new StreamReader(stream))
                 {
@@ -45,7 +46,7 @@ namespace RopeSnake.Core
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
 
-            using (var stream = _fileSystem.CreateFile(path))
+            using (var stream = _fileSystem.CreateFile(path.ToPath()))
             {
                 using (var textWriter = new StreamWriter(stream))
                 {

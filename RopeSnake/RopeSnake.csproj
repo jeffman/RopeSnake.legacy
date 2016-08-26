@@ -36,16 +36,8 @@
       <HintPath>..\packages\Newtonsoft.Json.9.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
       <Private>True</Private>
     </Reference>
-    <Reference Include="SevenZipSharp, Version=0.64.3890.29348, Culture=neutral, PublicKeyToken=20de82c62b055c88, processorArchitecture=MSIL">
-      <HintPath>..\packages\SevenZipSharp.0.64\lib\SevenZipSharp.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
     <Reference Include="SharpFileSystem, Version=1.0.0.37, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\SharpFileSystem.1.0.0.37\lib\net45\SharpFileSystem.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="SharpFileSystem.SevenZip, Version=1.0.0.37, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\SharpFileSystem.SevenZip.1.0.0.37\lib\net45\SharpFileSystem.SevenZip.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -76,7 +68,6 @@
     <Compile Include="Core\IO\SharpFileSystemWrappers\FileMetaData.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\IFileSystemWrapper.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\PhysicalFileSystemWrapper.cs" />
-    <Compile Include="Core\IO\SharpFileSystemWrappers\SevenZipFileSystemWrapper.cs" />
     <Compile Include="Core\LazyBlockCollection.cs" />
     <Compile Include="Core\OrderedDictionary.cs" />
     <Compile Include="Core\Range.cs" />

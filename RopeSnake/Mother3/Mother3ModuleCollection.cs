@@ -14,6 +14,7 @@ namespace RopeSnake.Mother3
     {
         public DataModule Data { get; }
         public TextModule Text { get; }
+        public MapModule Maps { get; }
 
         public Mother3Module this[string moduleName] => this.First(m => m.Name == moduleName);
 
@@ -21,12 +22,14 @@ namespace RopeSnake.Mother3
         {
             Data = new DataModule(romConfig, projectSettings);
             Text = new TextModule(romConfig, projectSettings);
+            Maps = new MapModule(romConfig, projectSettings);
         }
 
         public IEnumerator<Mother3Module> GetEnumerator()
         {
             yield return Data;
             yield return Text;
+            yield return Maps;
         }
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();

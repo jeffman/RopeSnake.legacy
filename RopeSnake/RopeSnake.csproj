@@ -94,6 +94,8 @@
     <Compile Include="Mother3\IO\ShortOffsetTableWriter.cs" />
     <Compile Include="Mother3\IO\WideOffsetTableReader.cs" />
     <Compile Include="Mother3\IO\WideOffsetTableWriter.cs" />
+    <Compile Include="Mother3\Maps\MapExtensions.cs" />
+    <Compile Include="Mother3\Maps\MapModule.cs" />
     <Compile Include="Mother3\Mother3Module.cs" />
     <Compile Include="Mother3\Mother3ModuleCollection.cs" />
     <Compile Include="Mother3\Mother3Project.cs" />

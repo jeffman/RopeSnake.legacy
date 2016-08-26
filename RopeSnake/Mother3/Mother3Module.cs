@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SharpFileSystem;
 using RopeSnake.Core;
 using RopeSnake.Gba;
+using RopeSnake.Mother3.IO;
 using RopeSnake.Mother3.Text;
 
 namespace RopeSnake.Mother3
@@ -68,12 +69,32 @@ namespace RopeSnake.Mother3
             int offset = RomConfig.GetOffset(key, romData);
             int count = RomConfig.GetParameter<int>(key + ".Count");
             var stream = romData.ToBinaryStream(offset);
+            return ReadTable(stream, count, elementReader);
+        }
 
+        protected List<T> ReadTable<T>(BinaryStream stream, int count, Func<BinaryStream, T> elementReader)
+        {
             var list = new List<T>();
             for (int i = 0; i < count; i++)
                 list.Add(elementReader(stream));
 
             return list;
+        }
+
+        protected List<T> ReadDummyTable<T>(Block romData, string key, Func<BinaryStream, T> elementReader)
+        {
+            int offset = RomConfig.GetOffset(key, romData);
+            int count = RomConfig.GetParameter<int>(key + ".Count");
+            var stream = romData.ToBinaryStream(offset);
+            var offsetTableReader = new WideOffsetTableReader(stream);
+
+            if (offsetTableReader.Count != 1)
+                throw new InvalidOperationException($"Tried to read a dummy table that contains {offsetTableReader.Count} offsets: {key}");
+
+            if (!offsetTableReader.Next())
+                throw new InvalidOperationException($"Null pointer in dummy table: {key}");
+
+            return ReadTable(stream, count, elementReader);
         }
 
         protected static Block SerializeTable<T>(List<T> list, int fieldSize, Action<BinaryStream, T> elementWriter)
@@ -85,6 +106,22 @@ namespace RopeSnake.Mother3
                 elementWriter(stream, element);
 
             return block;
+        }
+
+        protected static SerializeDummyTableResult SerializeDummyTable<T>(List<T> list, int fieldSize, string key, Action<BinaryStream, T> elementWriter)
+        {
+            string[] keys = { key, $"{key}.Table" };
+            var blocks = new LazyBlockCollection();
+            blocks.Add(key, () => WideOffsetTableWriter.CreateOffsetTable(1));
+            blocks.Add(keys[1], () => SerializeTable(list, fieldSize, elementWriter));
+            return new SerializeDummyTableResult(blocks, keys);
+        }
+
+        protected static string[] AddDummyResults(SerializeDummyTableResult result, LazyBlockCollection blocks, List<List<string>> contiguousKeys)
+        {
+            blocks.AddRange(result.Blocks);
+            contiguousKeys.Add(new List<string>(result.Keys));
+            return result.Keys;
         }
 
         public static string[] GetOffsetAndDataKeys(string key)
@@ -116,6 +153,18 @@ namespace RopeSnake.Mother3
             }
 
             BlockKeysForFiles.Add(path, keySet);
+        }
+
+        protected class SerializeDummyTableResult
+        {
+            public LazyBlockCollection Blocks { get; private set; }
+            public string[] Keys { get; private set; }
+
+            public SerializeDummyTableResult(LazyBlockCollection blocks, string[] keys)
+            {
+                Blocks = blocks;
+                Keys = keys;
+            }
         }
 
         #endregion

@@ -10,6 +10,14 @@ namespace RopeSnake.Mother3.Data
 {
     public sealed class DataModule : Mother3Module
     {
+        #region Static strings
+
+        private static readonly string ItemsKey = "Data.Items";
+
+        private static readonly FileSystemPath ItemsPath = "/data/items.json".ToPath();
+
+        #endregion
+
         public override string Name => "Data";
 
         public List<Item> Items { get; set; }
@@ -24,32 +32,32 @@ namespace RopeSnake.Mother3.Data
         {
             var jsonManager = new JsonFileManager(fileSystem);
 
-            Items = jsonManager.ReadJson<List<Item>>(@"data\items.json");
+            Items = jsonManager.ReadJson<List<Item>>(ItemsPath);
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
         {
             var jsonManager = new JsonFileManager(fileSystem);
 
-            jsonManager.WriteJson(@"data\items.json", Items);
+            jsonManager.WriteJson(ItemsPath, Items);
         }
 
         public override void ReadFromRom(Block romData)
         {
-            Items = ReadTable(romData, "Data.Items", s => s.ReadItem());
+            Items = ReadTable(romData, ItemsKey, s => s.ReadItem());
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             WriteAllocatedBlocks(romData, allocatedBlocks);
-            UpdateRomReferences(romData, allocatedBlocks, "Data.Items");
+            UpdateRomReferences(romData, allocatedBlocks, ItemsKey);
         }
 
         public override ModuleSerializationResult Serialize()
         {
             var blocks = new LazyBlockCollection();
 
-            blocks.Add("Data.Items", () => SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
+            blocks.Add(ItemsKey, () => SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
 
             return new ModuleSerializationResult(blocks, null);
         }

@@ -14,13 +14,13 @@ namespace RopeSnake.Mother3
     {
         protected Mother3RomConfig RomConfig { get; }
         protected Mother3ProjectSettings ProjectSettings { get; }
-        protected Dictionary<string, IEnumerable<string>> BlockKeysForFiles { get; }
+        protected Dictionary<FileSystemPath, IEnumerable<string>> BlockKeysForFiles { get; }
 
         protected Mother3Module(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
-            BlockKeysForFiles = new Dictionary<string, IEnumerable<string>>();
+            BlockKeysForFiles = new Dictionary<FileSystemPath, IEnumerable<string>>();
         }
 
         #region Helpers
@@ -89,7 +89,7 @@ namespace RopeSnake.Mother3
             return new string[] { $"{key}.OffsetTable", $"{key}.Data" };
         }
 
-        protected void AddBlockKeysForFile(string path, params object[] keys)
+        protected void AddBlockKeysForFile(FileSystemPath path, params object[] keys)
         {
             var keySet = new HashSet<string>();
 
@@ -128,7 +128,7 @@ namespace RopeSnake.Mother3
         public abstract void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         public abstract ModuleSerializationResult Serialize();
 
-        public virtual IEnumerable<string> GetBlockKeysForFile(string path)
+        public virtual IEnumerable<string> GetBlockKeysForFile(FileSystemPath path)
         {
             IEnumerable<string> keys;
             if (BlockKeysForFiles.TryGetValue(path, out keys))

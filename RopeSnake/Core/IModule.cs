@@ -16,7 +16,7 @@ namespace RopeSnake.Core
         void ReadFromFiles(IFileSystem fileSystem);
         void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         ModuleSerializationResult Serialize();
-        IEnumerable<string> GetBlockKeysForFile(string path);
+        IEnumerable<string> GetBlockKeysForFile(FileSystemPath path);
     }
 
     public sealed class ModuleSerializationResult

@@ -23,10 +23,10 @@ namespace RopeSnake.Core
             _fileSystem = fileSystem;
         }
 
-        public virtual T ReadJson<T>(string path)
+        public virtual T ReadJson<T>(FileSystemPath path)
         {
             var serializer = new JsonSerializer();
-            using (var stream = _fileSystem.OpenFile(path.ToPath(), FileAccess.Read))
+            using (var stream = _fileSystem.OpenFile(path, FileAccess.Read))
             {
                 using (var textReader = new StreamReader(stream))
                 {
@@ -38,7 +38,7 @@ namespace RopeSnake.Core
             }
         }
 
-        public virtual void WriteJson(string path, object value)
+        public virtual void WriteJson(FileSystemPath path, object value)
         {
             if (!IsStale(value))
                 return;
@@ -46,7 +46,12 @@ namespace RopeSnake.Core
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
 
-            using (var stream = _fileSystem.CreateFile(path.ToPath()))
+            if (!_fileSystem.Exists(path.ParentPath))
+            {
+                _fileSystem.CreateDirectoryRecursive(path.ParentPath);
+            }
+
+            using (var stream = _fileSystem.CreateFile(path))
             {
                 using (var textWriter = new StreamWriter(stream))
                 {

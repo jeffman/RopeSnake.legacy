@@ -12,9 +12,9 @@ namespace RopeSnake.Mother3
 {
     public sealed class Mother3Project
     {
-        private static readonly string CacheFolder = ".cache";
-        private static readonly string CacheKeysFile = "Cache.Keys.json";
-        private static readonly string FileSystemStatePath = "state.json";
+        private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
+        private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("Cache.Keys.json");
+        private static readonly FileSystemPath FileSystemStatePath = "/state.json".ToPath();
 
         public Block RomData { get; private set; }
         public Mother3RomConfig RomConfig { get; private set; }
@@ -43,8 +43,8 @@ namespace RopeSnake.Mother3
             RomConfig.UpdateLookups();
         }
 
-        public static Mother3Project CreateNew(IFileSystem fileSystem, string romDataPath,
-            string romConfigPath)
+        public static Mother3Project CreateNew(IFileSystem fileSystem, FileSystemPath romDataPath,
+            FileSystemPath romConfigPath)
         {
             var binaryManager = new BinaryFileManager(fileSystem);
             var jsonManager = new JsonFileManager(fileSystem);
@@ -64,14 +64,14 @@ namespace RopeSnake.Mother3
             return project;
         }
 
-        public static Mother3Project Load(IFileSystem fileSystem, string projectSettingsPath)
+        public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
         {
             var jsonManager = new JsonFileManager(fileSystem);
             var projectSettings = jsonManager.ReadJson<Mother3ProjectSettings>(projectSettingsPath);
-            var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigPath);
+            var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigFile);
 
             var binaryManager = new BinaryFileManager(fileSystem);
-            var romData = binaryManager.ReadFile<Block>(projectSettings.BaseRomPath);
+            var romData = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile);
 
             var project = new Mother3Project(romData, romConfig, projectSettings);
             project.UpdateRomConfig();
@@ -82,17 +82,17 @@ namespace RopeSnake.Mother3
             return project;
         }
 
-        public void Save(IFileSystem fileSystem, string projectSettingsPath)
+        public void Save(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
         {
             foreach (var module in Modules)
                 module.WriteToFiles(fileSystem, StaleObjects);
 
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
-            jsonManager.WriteJson(ProjectSettings.RomConfigPath, RomConfig);
+            jsonManager.WriteJson(ProjectSettings.RomConfigFile, RomConfig);
         }
 
-        public void Compile(IFileSystem fileSystem)
+        public void Compile(IFileSystemWrapper fileSystem)
         {
             var sw = System.Diagnostics.Stopwatch.StartNew();
 
@@ -107,7 +107,7 @@ namespace RopeSnake.Mother3
             var compilationResult = compiler.Compile();
 
             var binaryManager = new BinaryFileManager(fileSystem);
-            binaryManager.WriteFile(ProjectSettings.OutputRomPath, outputRomData);
+            binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
 
             WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
             CleanCache(fileSystem);
@@ -127,26 +127,24 @@ namespace RopeSnake.Mother3
             var binaryManager = new BinaryFileManager(fileSystem);
             var jsonManager = new JsonFileManager(fileSystem);
 
-            if (fileSystem.Exists(CacheFolder.ToPath()))
+            if (fileSystem.Exists(CacheKeysFile))
             {
-                string cacheKeysPath = Path.Combine(CacheFolder, CacheKeysFile);
-                if (fileSystem.Exists(cacheKeysPath.ToPath()))
+                var cacheKeys = jsonManager.ReadJson<string[]>(CacheKeysFile);
+                foreach (string key in cacheKeys.Except(staleBlockKeys))
                 {
-                    var cacheKeys = jsonManager.ReadJson<string[]>(cacheKeysPath);
-                    foreach (string cacheKey in cacheKeys.Except(staleBlockKeys))
+                    var cacheFilePath = CachePath.AppendFile($"{key}.bin");
+                    Block block;
+
+                    if (fileSystem.Exists(cacheFilePath))
                     {
-                        string cacheFilePath = Path.Combine(CacheFolder, $"{cacheKey}.bin");
-                        Block block;
-                        if (fileSystem.Exists(cacheFilePath.ToPath()))
-                        {
-                            block = binaryManager.ReadFile<Block>(cacheFilePath);
-                        }
-                        else
-                        {
-                            block = null;
-                        }
-                        cache.Add(cacheKey, block);
+                        block = binaryManager.ReadFile<Block>(cacheFilePath);
                     }
+                    else
+                    {
+                        block = null;
+                    }
+
+                    cache.Add(key, block);
                 }
             }
 
@@ -158,12 +156,12 @@ namespace RopeSnake.Mother3
             var binaryManager = new BinaryFileManager(fileSystem);
             var jsonManager = new JsonFileManager(fileSystem);
 
-            jsonManager.WriteJson(Path.Combine(CacheFolder, CacheKeysFile), cache.Keys.ToArray());
+            jsonManager.WriteJson(CacheKeysFile, cache.Keys.ToArray());
 
             foreach (var key in updatedKeys)
             {
                 var block = cache[key];
-                string cacheFilePath = Path.Combine(CacheFolder, $"{key}.bin");
+                var cacheFilePath = CachePath.AppendFile($"{key}.bin");
 
                 if (block != null)
                 {
@@ -171,34 +169,31 @@ namespace RopeSnake.Mother3
                 }
                 else
                 {
-                    fileSystem.Delete(cacheFilePath.ToPath());
+                    fileSystem.Delete(cacheFilePath);
                 }
             }
         }
 
         public void CleanCache(IFileSystem fileSystem)
         {
-            string cacheKeysPath = Path.Combine(CacheFolder, CacheKeysFile);
             var jsonManager = new JsonFileManager(fileSystem);
 
-            if (fileSystem.Exists(cacheKeysPath.ToPath()))
+            if (fileSystem.Exists(CacheKeysFile))
             {
-                var cachedFiles = new HashSet<string>(jsonManager.ReadJson<string[]>(cacheKeysPath).Select(f => $"{f}.bin"));
-
-                var cacheFolderPath = CacheFolder.ToPath();
-                var existingFiles = fileSystem.GetEntities(cacheFolderPath);
+                var cachedFiles = new HashSet<FileSystemPath>(jsonManager.ReadJson<string[]>(CacheKeysFile).Select(f => CachePath.AppendFile($"{f}.bin")));
+                var existingFiles = fileSystem.GetEntities(CachePath);
 
                 foreach (var file in existingFiles)
                 {
-                    if (file == CacheKeysFile.ToPath() || cachedFiles.Contains(file.Path))
+                    if (file == CacheKeysFile || cachedFiles.Contains(file))
                         continue;
 
-                    fileSystem.Delete(Path.Combine(CacheFolder, file.Path).ToPath());
+                    fileSystem.Delete(file);
                 }
             }
         }
 
-        private IEnumerable<string> GetStaleBlockKeys(IEnumerable<string> paths)
+        private IEnumerable<string> GetStaleBlockKeys(IEnumerable<FileSystemPath> paths)
         {
             return Modules.SelectMany(m => paths.SelectMany(p => m.GetBlockKeysForFile(p)));
         }

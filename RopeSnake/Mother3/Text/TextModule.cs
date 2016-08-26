@@ -29,19 +29,19 @@ namespace RopeSnake.Mother3.Text
         private static readonly string SkillDescriptionsKey = "Text.SkillDescriptions";
         private static readonly string MainScriptKey = "Text.MainScript";
 
-        private static readonly string RoomDescriptionsFile = Path.Combine("text", "room-descriptions.json");
-        private static readonly string ItemNamesFile = Path.Combine("text", "item-names.json");
-        private static readonly string ItemDescriptionsFile = Path.Combine("text", "item-descriptions.json");
-        private static readonly string CharNamesFile = Path.Combine("text", "char-names.json");
-        private static readonly string PartyCharNamesFile = Path.Combine("text", "party-char-names.json");
-        private static readonly string EnemyNamesFile = Path.Combine("text", "enemy-names.json");
-        private static readonly string PsiNamesFile = Path.Combine("text", "psi-names.json");
-        private static readonly string PsiDescriptionsFile = Path.Combine("text", "psi-descriptions.json");
-        private static readonly string StatusesFile = Path.Combine("text", "statuses.json");
-        private static readonly string DefaultCharNamesFile = Path.Combine("text", "default-char-names.json");
-        private static readonly string SkillsFile = Path.Combine("text", "skills.json");
-        private static readonly string SkillDescriptionsFile = Path.Combine("text", "skill-descriptions.json");
-        private static readonly string MainScriptFile = Path.Combine("text", "main-script.json");
+        private static readonly FileSystemPath RoomDescriptionsPath = "/text/room-descriptions.json".ToPath();
+        private static readonly FileSystemPath ItemNamesPath = "/text/item-names.json".ToPath();
+        private static readonly FileSystemPath ItemDescriptionsPath = "/text/item-descriptions.json".ToPath();
+        private static readonly FileSystemPath CharNamesPath = "/text/char-names.json".ToPath();
+        private static readonly FileSystemPath PartyCharNamesPath = "/text/party-char-names.json".ToPath();
+        private static readonly FileSystemPath EnemyNamesPath = "/text/enemy-names.json".ToPath();
+        private static readonly FileSystemPath PsiNamesPath = "/text/psi-names.json".ToPath();
+        private static readonly FileSystemPath PsiDescriptionsPath = "/text/psi-descriptions.json".ToPath();
+        private static readonly FileSystemPath StatusesPath = "/text/statuses.json".ToPath();
+        private static readonly FileSystemPath DefaultCharNamesPath = "/text/default-char-names.json".ToPath();
+        private static readonly FileSystemPath SkillsPath = "/text/skills.json".ToPath();
+        private static readonly FileSystemPath SkillDescriptionsPath = "/text/skill-descriptions.json".ToPath();
+        private static readonly FileSystemPath MainScriptPath = "/text/main-script.json".ToPath();
 
         #endregion
 
@@ -74,33 +74,33 @@ namespace RopeSnake.Mother3.Text
         {
             var jsonManager = new JsonFileManager(fileSystem);
 
-            RoomDescriptions = jsonManager.ReadJson<List<string>>(RoomDescriptionsFile);
-            ItemNames = jsonManager.ReadJson<StringTable>(ItemNamesFile);
-            ItemDescriptions = jsonManager.ReadJson<List<string>>(ItemDescriptionsFile);
-            CharNames = jsonManager.ReadJson<StringTable>(CharNamesFile);
-            PartyCharNames = jsonManager.ReadJson<StringTable>(PartyCharNamesFile);
-            EnemyNames = jsonManager.ReadJson<StringTable>(EnemyNamesFile);
-            PsiNames = jsonManager.ReadJson<StringTable>(PsiNamesFile);
-            PsiDescriptions = jsonManager.ReadJson<List<string>>(PsiDescriptionsFile);
-            Statuses = jsonManager.ReadJson<StringTable>(StatusesFile);
-            DefaultCharNames = jsonManager.ReadJson<StringTable>(DefaultCharNamesFile);
-            Skills = jsonManager.ReadJson<StringTable>(SkillsFile);
-            SkillDescriptions = jsonManager.ReadJson<List<string>>(SkillDescriptionsFile);
-            MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptFile);
+            RoomDescriptions = jsonManager.ReadJson<List<string>>(RoomDescriptionsPath);
+            ItemNames = jsonManager.ReadJson<StringTable>(ItemNamesPath);
+            ItemDescriptions = jsonManager.ReadJson<List<string>>(ItemDescriptionsPath);
+            CharNames = jsonManager.ReadJson<StringTable>(CharNamesPath);
+            PartyCharNames = jsonManager.ReadJson<StringTable>(PartyCharNamesPath);
+            EnemyNames = jsonManager.ReadJson<StringTable>(EnemyNamesPath);
+            PsiNames = jsonManager.ReadJson<StringTable>(PsiNamesPath);
+            PsiDescriptions = jsonManager.ReadJson<List<string>>(PsiDescriptionsPath);
+            Statuses = jsonManager.ReadJson<StringTable>(StatusesPath);
+            DefaultCharNames = jsonManager.ReadJson<StringTable>(DefaultCharNamesPath);
+            Skills = jsonManager.ReadJson<StringTable>(SkillsPath);
+            SkillDescriptions = jsonManager.ReadJson<List<string>>(SkillDescriptionsPath);
+            MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptPath);
 
-            AddBlockKeysForFile(RoomDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
-            AddBlockKeysForFile(ItemNamesFile, TextBankKey, ItemNamesKey);
-            AddBlockKeysForFile(ItemDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(ItemDescriptionsKey));
-            AddBlockKeysForFile(CharNamesFile, TextBankKey, CharNamesKey);
-            AddBlockKeysForFile(PartyCharNamesFile, TextBankKey, PartyCharNamesKey);
-            AddBlockKeysForFile(EnemyNamesFile, TextBankKey, EnemyNamesKey);
-            AddBlockKeysForFile(PsiNamesFile, TextBankKey, PsiNamesKey);
-            AddBlockKeysForFile(PsiDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(PsiDescriptionsKey));
-            AddBlockKeysForFile(StatusesFile, TextBankKey, StatusesKey);
-            AddBlockKeysForFile(DefaultCharNamesFile, TextBankKey, DefaultCharNamesKey);
-            AddBlockKeysForFile(SkillsFile, TextBankKey, SkillsKey);
-            AddBlockKeysForFile(SkillDescriptionsFile, TextBankKey, GetOffsetAndDataKeys(SkillDescriptionsKey));
-            AddBlockKeysForFile(MainScriptFile, MainScriptKey, MainScript.SelectMany((s, i) => GetOffsetAndDataKeys($"{MainScriptKey}.{i}")));
+            AddBlockKeysForFile(RoomDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
+            AddBlockKeysForFile(ItemNamesPath, TextBankKey, ItemNamesKey);
+            AddBlockKeysForFile(ItemDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(ItemDescriptionsKey));
+            AddBlockKeysForFile(CharNamesPath, TextBankKey, CharNamesKey);
+            AddBlockKeysForFile(PartyCharNamesPath, TextBankKey, PartyCharNamesKey);
+            AddBlockKeysForFile(EnemyNamesPath, TextBankKey, EnemyNamesKey);
+            AddBlockKeysForFile(PsiNamesPath, TextBankKey, PsiNamesKey);
+            AddBlockKeysForFile(PsiDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(PsiDescriptionsKey));
+            AddBlockKeysForFile(StatusesPath, TextBankKey, StatusesKey);
+            AddBlockKeysForFile(DefaultCharNamesPath, TextBankKey, DefaultCharNamesKey);
+            AddBlockKeysForFile(SkillsPath, TextBankKey, SkillsKey);
+            AddBlockKeysForFile(SkillDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(SkillDescriptionsKey));
+            AddBlockKeysForFile(MainScriptPath, MainScriptKey, MainScript.SelectMany((s, i) => GetOffsetAndDataKeys($"{MainScriptKey}.{i}")));
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
@@ -108,19 +108,19 @@ namespace RopeSnake.Mother3.Text
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.StaleObjects = staleObjects;
 
-            jsonManager.WriteJson(RoomDescriptionsFile, RoomDescriptions);
-            jsonManager.WriteJson(ItemNamesFile, ItemNames);
-            jsonManager.WriteJson(ItemDescriptionsFile, ItemDescriptions);
-            jsonManager.WriteJson(CharNamesFile, CharNames);
-            jsonManager.WriteJson(PartyCharNamesFile, PartyCharNames);
-            jsonManager.WriteJson(EnemyNamesFile, EnemyNames);
-            jsonManager.WriteJson(PsiNamesFile, PsiNames);
-            jsonManager.WriteJson(PsiDescriptionsFile, PsiDescriptions);
-            jsonManager.WriteJson(StatusesFile, Statuses);
-            jsonManager.WriteJson(DefaultCharNamesFile, DefaultCharNames);
-            jsonManager.WriteJson(SkillsFile, Skills);
-            jsonManager.WriteJson(SkillDescriptionsFile, SkillDescriptions);
-            jsonManager.WriteJson(MainScriptFile, MainScript);
+            jsonManager.WriteJson(RoomDescriptionsPath, RoomDescriptions);
+            jsonManager.WriteJson(ItemNamesPath, ItemNames);
+            jsonManager.WriteJson(ItemDescriptionsPath, ItemDescriptions);
+            jsonManager.WriteJson(CharNamesPath, CharNames);
+            jsonManager.WriteJson(PartyCharNamesPath, PartyCharNames);
+            jsonManager.WriteJson(EnemyNamesPath, EnemyNames);
+            jsonManager.WriteJson(PsiNamesPath, PsiNames);
+            jsonManager.WriteJson(PsiDescriptionsPath, PsiDescriptions);
+            jsonManager.WriteJson(StatusesPath, Statuses);
+            jsonManager.WriteJson(DefaultCharNamesPath, DefaultCharNames);
+            jsonManager.WriteJson(SkillsPath, Skills);
+            jsonManager.WriteJson(SkillDescriptionsPath, SkillDescriptions);
+            jsonManager.WriteJson(MainScriptPath, MainScript);
         }
 
         public override void ReadFromRom(Block romData)

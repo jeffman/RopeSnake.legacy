@@ -15,6 +15,7 @@ namespace RopeSnake.Mother3
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
         private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("Cache.Keys.json");
         private static readonly FileSystemPath FileSystemStatePath = "/state.json".ToPath();
+        private static readonly FileSystemPath CompilationReportLog = "/compile.log".ToPath();
 
         public Block RomData { get; private set; }
         public Mother3RomConfig RomConfig { get; private set; }
@@ -119,6 +120,8 @@ namespace RopeSnake.Mother3
 
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
+
+            LogCompilationResult(fileSystem, compilationResult, allocator.Ranges);
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
@@ -213,6 +216,46 @@ namespace RopeSnake.Mother3
             var currentState = fileSystem.GetState(FileSystemPath.Root, CachePath);
             var differences = currentState.Compare(previousState);
             return differences.Keys;
+        }
+
+        private static void LogCompilationResult(IFileSystem fileSystem, Compiler.CompilationResult result,
+            IEnumerable<Range> remainingRanges)
+        {
+            using (var logFile = fileSystem.CreateFile(CompilationReportLog))
+            {
+                using (var writer = new StreamWriter(logFile))
+                {
+                    writer.WriteLine($"Compilation report, {DateTime.Now}");
+                    writer.WriteLine("====");
+                    writer.WriteLine();
+
+                    int totalFree = remainingRanges.Sum(r => r.Size);
+                    writer.WriteLine($"Remaining free ranges: {totalFree} (0x{totalFree:X}) bytes total");
+                    foreach (var range in remainingRanges)
+                    {
+                        writer.WriteLine($"  [0x{range.Start:X}, 0x{range.End:X}]");
+                    }
+                    writer.WriteLine();
+
+                    writer.WriteLine("Updated blocks:");
+                    foreach (var key in result.UpdatedKeys)
+                    {
+                        writer.WriteLine($"  {key}");
+                    }
+                    writer.WriteLine();
+
+                    writer.WriteLine("Blocks written to ROM:");
+                    foreach (var key in result.WrittenBlocks.Keys)
+                    {
+                        var block = result.WrittenBlocks[key];
+
+                        if (block == null)
+                            continue;
+
+                        writer.WriteLine($"  {key}: {block.Size} (0x{block.Size:X}) bytes, written to 0x{result.AllocationResult[key]:X}");
+                    }
+                }
+            }
         }
 
         private void FillFreeRanges(Block romData, IEnumerable<Range> freeRanges, byte fillValue)

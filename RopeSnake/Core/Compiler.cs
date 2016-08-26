@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -80,11 +81,14 @@ namespace RopeSnake.Core
         {
             public BlockCollection WrittenBlocks { get; }
             public IEnumerable<string> UpdatedKeys { get; }
+            public IReadOnlyDictionary<string, int> AllocationResult { get; }
 
-            public CompilationResult(BlockCollection writtenBlocks, IEnumerable<string> updatedKeys)
+            public CompilationResult(BlockCollection writtenBlocks, IEnumerable<string> updatedKeys,
+                IDictionary<string, int> allocationResult)
             {
                 WrittenBlocks = writtenBlocks;
                 UpdatedKeys = updatedKeys;
+                AllocationResult = new ReadOnlyDictionary<string, int>(allocationResult);
             }
         }
 
@@ -143,7 +147,7 @@ namespace RopeSnake.Core
                 writtenBlocks.AddRange(blocks);
             }
 
-            return new CompilationResult(writtenBlocks, updatedKeys);
+            return new CompilationResult(writtenBlocks, updatedKeys, allocationResults);
         }
 
         private ResolveSerializedBlocksResult ResolveSerializedBlocks(LazyBlockCollection lazyBlocks, BlockCollection blockCache)

@@ -63,6 +63,9 @@
       7464,
       7620
     ],
+    "Maps.Info": [
+      111572
+    ],
     "Text.MainScript": [
       163668,
       163736
@@ -71,10 +74,12 @@
   "FreeRanges": [
     "[0xE5108, 0xEBD07]",
     "[0xD1EE78, 0xD2D2D7]",
+    "[0xD2E1D8, 0xD34F43]",
     "[0x136A6F4, 0x1433D7B]"
   ],
   "Parameters": {
-    "Data.Items.Count": 256
+    "Data.Items.Count": 256,
+    "Maps.Info.Count": 1000
   },
   "CharLookup": {
     "3": ",",

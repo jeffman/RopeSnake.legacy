@@ -52,10 +52,13 @@ namespace RopeSnake.Mother3
             foreach (string key in allocatedBlocks.Keys)
             {
                 var block = allocatedBlocks[key];
-                if (block == null)
+                if (block == null || block.Size == 0)
                     continue;
 
                 int pointer = allocatedBlocks.GetAllocatedPointer(key);
+                if (pointer == 0)
+                    throw new Exception($"Attempted to write block with null pointer: {key}");
+
                 block.CopyTo(romData.Data, pointer, 0, block.Size);
             }
         }

@@ -57,7 +57,7 @@ namespace RopeSnake.Mother3.Data
         {
             var blocks = new LazyBlockCollection();
 
-            blocks.Add(ItemsKey, () => SerializeTable(Items, Item.FieldSize, DataStreamExtensions.WriteItem));
+            blocks.Add(ItemsKey, () => SerializeTable(Items, Item.FieldSize, DataExtensions.WriteItem));
 
             return new ModuleSerializationResult(blocks, null);
         }

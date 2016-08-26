@@ -7,7 +7,7 @@ using RopeSnake.Core;
 
 namespace RopeSnake.Mother3.Data
 {
-    public static class DataStreamExtensions
+    public static class DataExtensions
     {
         public static Item ReadItem(this BinaryStream stream)
         {

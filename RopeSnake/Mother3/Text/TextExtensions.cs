@@ -8,7 +8,7 @@ using RopeSnake.Mother3.IO;
 
 namespace RopeSnake.Mother3.Text
 {
-    public static class TextStreamExtensions
+    public static class TextExtensions
     {
         private static readonly int StringOffsetTableBufferSize = 256 * 1024;
 

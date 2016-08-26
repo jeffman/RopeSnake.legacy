@@ -156,16 +156,16 @@ namespace RopeSnake.Mother3.Text
 
             blockCollection.Add(TextBankKey, () => WideOffsetTableWriter.CreateOffsetTable(16));
             blockCollection.AddStringOffsetTableBlocks(RoomDescriptionsKey, codec, RoomDescriptions, false, false);
-            blockCollection.Add(ItemNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, ItemNames));
+            blockCollection.Add(ItemNamesKey, () => TextExtensions.SerializeStringTable(codec, ItemNames));
             blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsKey, codec, ItemDescriptions, false, false);
-            blockCollection.Add(CharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, CharNames));
-            blockCollection.Add(PartyCharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, PartyCharNames));
-            blockCollection.Add(EnemyNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, EnemyNames));
-            blockCollection.Add(PsiNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, PsiNames));
+            blockCollection.Add(CharNamesKey, () => TextExtensions.SerializeStringTable(codec, CharNames));
+            blockCollection.Add(PartyCharNamesKey, () => TextExtensions.SerializeStringTable(codec, PartyCharNames));
+            blockCollection.Add(EnemyNamesKey, () => TextExtensions.SerializeStringTable(codec, EnemyNames));
+            blockCollection.Add(PsiNamesKey, () => TextExtensions.SerializeStringTable(codec, PsiNames));
             blockCollection.AddStringOffsetTableBlocks(PsiDescriptionsKey, codec, PsiDescriptions, false, false);
-            blockCollection.Add(StatusesKey, () => TextStreamExtensions.SerializeStringTable(codec, Statuses));
-            blockCollection.Add(DefaultCharNamesKey, () => TextStreamExtensions.SerializeStringTable(codec, DefaultCharNames));
-            blockCollection.Add(SkillsKey, () => TextStreamExtensions.SerializeStringTable(codec, Skills));
+            blockCollection.Add(StatusesKey, () => TextExtensions.SerializeStringTable(codec, Statuses));
+            blockCollection.Add(DefaultCharNamesKey, () => TextExtensions.SerializeStringTable(codec, DefaultCharNames));
+            blockCollection.Add(SkillsKey, () => TextExtensions.SerializeStringTable(codec, Skills));
             blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
 
             _textKeys = blockCollection.Keys.ToArray();

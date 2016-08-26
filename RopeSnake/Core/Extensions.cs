@@ -81,5 +81,12 @@ namespace RopeSnake.Core
         {
             return FileSystemPath.Parse(path);
         }
+
+        public static FileSystemState GetState(this IFileSystemWrapper fileSystem, FileSystemPath path, params FileSystemPath[] ignorePaths)
+        {
+            return new FileSystemState(fileSystem.GetEntitiesRecursive(path)
+                .Where(p => !ignorePaths.Any(i => p == i || p.IsChildOf(i)))
+                .Select(p => fileSystem.GetMetaData(p)));
+        }
     }
 }

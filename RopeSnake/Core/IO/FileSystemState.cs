@@ -3,21 +3,22 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
     public sealed class FileSystemState
     {
-        public List<FileSystemProperties> FileProperties { get; }
+        public IEnumerable<FileMetaData> FileProperties { get; }
 
-        public FileSystemState(IEnumerable<FileSystemProperties> fileProperties)
+        public FileSystemState(IEnumerable<FileMetaData> fileProperties)
         {
-            FileProperties = new List<FileSystemProperties>(fileProperties);
+            FileProperties = fileProperties.ToArray();
         }
 
-        public Dictionary<string, FileChangedState> Compare(FileSystemState before)
+        public Dictionary<FileSystemPath, FileChangedState> Compare(FileSystemState before)
         {
-            var results = new Dictionary<string, FileChangedState>();
+            var results = new Dictionary<FileSystemPath, FileChangedState>();
             var beforeLookup = before.FileProperties.ToDictionary(p => p.Path, p => p);
             var afterLookup = FileProperties.ToDictionary(p => p.Path, p => p);
 

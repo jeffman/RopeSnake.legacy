@@ -61,7 +61,6 @@
     <Compile Include="Core\Extensions.cs" />
     <Compile Include="Core\IAllocator.cs" />
     <Compile Include="Core\IO\FileSystemPathConverter.cs" />
-    <Compile Include="Core\IO\FileSystemProperties.cs" />
     <Compile Include="Core\IO\FileSystemState.cs" />
     <Compile Include="Core\IO\IBinarySerializable.cs" />
     <Compile Include="Core\IModule.cs" />

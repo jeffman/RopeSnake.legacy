@@ -105,7 +105,7 @@ namespace RopeSnake.Mother3
             var allocator = new RangeAllocator(RomConfig.FreeRanges);
             var outputRomData = new Block(RomData);
 
-            var staleBlockKeys = new string[] { };// GetStaleBlockKeys(GetChangedPaths(fileSystem));
+            var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
             var cache = ReadCache(fileSystem, staleBlockKeys);
 
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
@@ -119,7 +119,7 @@ namespace RopeSnake.Mother3
             CleanCache(fileSystem);
 
             var jsonManager = new JsonFileManager(fileSystem);
-            //jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState("^\\.cache"));
+            jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
 
             sw.Stop();
             var time = sw.Elapsed.TotalMilliseconds;
@@ -206,19 +206,19 @@ namespace RopeSnake.Mother3
 
         private FileSystemState GetPreviousFileSystemState(IFileSystem fileSystem)
         {
-            if (!fileSystem.Exists(FileSystemStatePath.ToPath()))
-                return new FileSystemState(Enumerable.Empty<FileSystemProperties>());
+            if (!fileSystem.Exists(FileSystemStatePath))
+                return new FileSystemState(Enumerable.Empty<FileMetaData>());
 
             var jsonManager = new JsonFileManager(fileSystem);
             return jsonManager.ReadJson<FileSystemState>(FileSystemStatePath);
         }
 
-        //private IEnumerable<string> GetChangedPaths(IFileSystem fileSystem)
-        //{
-        //    var previousState = GetPreviousFileSystemState(fileSystem);
-        //    var currentState = fileSystem.GetState();
-        //    var differences = currentState.Compare(previousState);
-        //    return differences.Keys;
-        //}
+        private IEnumerable<FileSystemPath> GetChangedPaths(IFileSystemWrapper fileSystem)
+        {
+            var previousState = GetPreviousFileSystemState(fileSystem);
+            var currentState = fileSystem.GetState(FileSystemPath.Root, CachePath);
+            var differences = currentState.Compare(previousState);
+            return differences.Keys;
+        }
     }
 }

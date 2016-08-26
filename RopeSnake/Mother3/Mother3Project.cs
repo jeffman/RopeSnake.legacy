@@ -100,8 +100,6 @@ namespace RopeSnake.Mother3
 
         public void Compile(IFileSystemWrapper fileSystem)
         {
-            var sw = System.Diagnostics.Stopwatch.StartNew();
-
             var allocator = new RangeAllocator(RomConfig.FreeRanges);
             var outputRomData = new Block(RomData);
 
@@ -120,11 +118,6 @@ namespace RopeSnake.Mother3
 
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
-
-            sw.Stop();
-            var time = sw.Elapsed.TotalMilliseconds;
-            Console.WriteLine(time);
-            Console.ReadLine();
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)

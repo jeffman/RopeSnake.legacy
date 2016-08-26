@@ -37,6 +37,8 @@ namespace RopeSnake.Core
 
         #endregion
 
+        public IEnumerable<Range> Ranges => _rangeList;
+
         /// <summary>
         /// Gets or sets a flag indicating whether unaligned chunks should be discarded during allocation.
         /// 

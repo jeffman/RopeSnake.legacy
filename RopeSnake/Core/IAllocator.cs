@@ -10,6 +10,7 @@ namespace RopeSnake.Core
     {
         int Allocate(int size, int alignment, AllocationMode mode);
         void Deallocate(Range range);
+        IEnumerable<Range> Ranges { get; }
     }
 
     /// <summary>

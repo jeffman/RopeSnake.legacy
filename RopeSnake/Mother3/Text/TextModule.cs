@@ -201,10 +201,19 @@ namespace RopeSnake.Mother3.Text
             }
 
             _mainScriptKeys = blockCollection.Keys.ToArray();
-    
+
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
                 contiguousBlocks.Add(new List<string>(_mainScriptKeys));
+            }
+            else
+            {
+                // Offset table and data should always be contiguous regardless
+                for (int i = 0; i < MainScript.Count; i++)
+                {
+                    var keys = GetOffsetAndDataKeys($"{MainScriptKey}.{i}");
+                    contiguousBlocks.Add(new List<string>(keys));
+                }
             }
 
             return blockCollection;

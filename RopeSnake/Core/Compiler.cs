@@ -209,15 +209,20 @@ namespace RopeSnake.Core
 
             foreach (var request in requests)
             {
+                int pointer;
                 if (request.Size > 0)
                 {
-                    int pointer = _allocator.Allocate(request.Size, AllocationAlignment, AllocationMode.Smallest);
+                    pointer = _allocator.Allocate(request.Size, AllocationAlignment, AllocationMode.Smallest);
+                }
+                else
+                {
+                    pointer = 0;
+                }
 
-                    var allocatedPointers = request.GenerateAllocatedPointers(pointer);
-                    foreach (var kv in allocatedPointers)
-                    {
-                        allAllocatedPointers.Add(kv.Key, kv.Value);
-                    }
+                var allocatedPointers = request.GenerateAllocatedPointers(pointer);
+                foreach (var kv in allocatedPointers)
+                {
+                    allAllocatedPointers.Add(kv.Key, kv.Value);
                 }
             }
 

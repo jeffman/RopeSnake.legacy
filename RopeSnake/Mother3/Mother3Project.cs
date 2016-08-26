@@ -90,6 +90,12 @@ namespace RopeSnake.Mother3
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
             jsonManager.WriteJson(ProjectSettings.RomConfigFile, RomConfig);
+
+            if (!fileSystem.Exists(ProjectSettings.BaseRomFile))
+            {
+                var binaryManager = new BinaryFileManager(fileSystem);
+                binaryManager.WriteFile(ProjectSettings.BaseRomFile, RomData);
+            }
         }
 
         public void Compile(IFileSystemWrapper fileSystem)

@@ -79,7 +79,7 @@ namespace RopeSnake.Core
         public class CompilationResult
         {
             public BlockCollection WrittenBlocks { get; }
-            public IEnumerable<string> UpdatedKeys { get; set; }
+            public IEnumerable<string> UpdatedKeys { get; }
 
             public CompilationResult(BlockCollection writtenBlocks, IEnumerable<string> updatedKeys)
             {

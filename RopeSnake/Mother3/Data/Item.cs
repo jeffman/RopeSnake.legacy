@@ -11,6 +11,9 @@ namespace RopeSnake.Mother3.Data
     {
         public static readonly int FieldSize = 108;
 
+        [JsonProperty(Order = -1, DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
+        public string NameHint { get; set; }
+
         public int Index { get; set; }
         public ItemType Type { get; set; }
         public bool Key { get; set; }

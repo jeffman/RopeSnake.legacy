@@ -61,5 +61,13 @@ namespace RopeSnake.Mother3.Data
 
             return new ModuleSerializationResult(blocks, null);
         }
+
+        public void UpdateNameHints(Text.TextModule textModule)
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                Items[i].NameHint = textModule.ItemNames[i];
+            }
+        }
     }
 }

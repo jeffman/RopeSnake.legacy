@@ -17,6 +17,7 @@ namespace RopeSnake.Core
         protected IFileSystem FileSystem { get { return _fileSystem; } }
 
         public ISet<object> StaleObjects { get; set; }
+        public bool WriteByteArraysAsArrays { get; set; } = true;
 
         public JsonFileManager(IFileSystem fileSystem)
         {
@@ -26,6 +27,11 @@ namespace RopeSnake.Core
         public virtual T ReadJson<T>(FileSystemPath path)
         {
             var serializer = new JsonSerializer();
+            if (WriteByteArraysAsArrays)
+            {
+                serializer.Converters.Add(new ByteArrayJsonConverter());
+            }
+
             using (var stream = _fileSystem.OpenFile(path, FileAccess.Read))
             {
                 using (var textReader = new StreamReader(stream))
@@ -45,6 +51,10 @@ namespace RopeSnake.Core
 
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
+            if (WriteByteArraysAsArrays)
+            {
+                serializer.Converters.Add(new ByteArrayJsonConverter());
+            }
 
             if (!_fileSystem.Exists(path.ParentPath))
             {

@@ -109,6 +109,7 @@ namespace RopeSnake.Mother3
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
             compiler.AllocationAlignment = 4;
             var compilationResult = compiler.Compile();
+            FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
 
             var binaryManager = new BinaryFileManager(fileSystem);
             binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
@@ -212,6 +213,17 @@ namespace RopeSnake.Mother3
             var currentState = fileSystem.GetState(FileSystemPath.Root, CachePath);
             var differences = currentState.Compare(previousState);
             return differences.Keys;
+        }
+
+        private void FillFreeRanges(Block romData, IEnumerable<Range> freeRanges, byte fillValue)
+        {
+            foreach (var range in freeRanges)
+            {
+                for (int position = range.Start; position <= range.End; position++)
+                {
+                    romData[position] = fillValue;
+                }
+            }
         }
     }
 }

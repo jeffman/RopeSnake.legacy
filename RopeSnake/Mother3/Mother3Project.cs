@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -12,6 +13,13 @@ namespace RopeSnake.Mother3
 {
     public sealed class Mother3Project
     {
+        private static readonly string[] DefaultModules =
+        {
+            "Data",
+            "Text",
+            "Maps"
+        };
+
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
         private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("Cache.Keys.json");
         private static readonly FileSystemPath FileSystemStatePath = "/state.json".ToPath();
@@ -24,12 +32,12 @@ namespace RopeSnake.Mother3
         public HashSet<object> StaleObjects { get; private set; }
 
         private Mother3Project(Block romData, Mother3RomConfig romConfig,
-            Mother3ProjectSettings projectSettings)
+            Mother3ProjectSettings projectSettings, params string[] modulesToLoad)
         {
             RomData = romData;
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
-            Modules = new Mother3ModuleCollection(romConfig, projectSettings);
+            Modules = new Mother3ModuleCollection(romConfig, projectSettings, modulesToLoad);
             StaleObjects = new HashSet<object>();
         }
 
@@ -54,7 +62,7 @@ namespace RopeSnake.Mother3
             var romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigPath);
             var projectSettings = Mother3ProjectSettings.CreateDefault();
 
-            var project = new Mother3Project(romData, romConfig, projectSettings);
+            var project = new Mother3Project(romData, romConfig, projectSettings, DefaultModules);
             project.UpdateRomConfig();
 
             foreach (var module in project.Modules)
@@ -65,7 +73,8 @@ namespace RopeSnake.Mother3
             return project;
         }
 
-        public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
+        public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath,
+            params string[] modulesToLoad)
         {
             var jsonManager = new JsonFileManager(fileSystem);
             var projectSettings = jsonManager.ReadJson<Mother3ProjectSettings>(projectSettingsPath);
@@ -74,7 +83,10 @@ namespace RopeSnake.Mother3
             var binaryManager = new BinaryFileManager(fileSystem);
             var romData = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile);
 
-            var project = new Mother3Project(romData, romConfig, projectSettings);
+            if (modulesToLoad == null || modulesToLoad.Length == 0)
+                modulesToLoad = DefaultModules;
+
+            var project = new Mother3Project(romData, romConfig, projectSettings, modulesToLoad);
             project.UpdateRomConfig();
 
             foreach (var module in project.Modules)

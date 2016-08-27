@@ -113,7 +113,7 @@ namespace RopeSnake.Mother3
 
         public void Compile(IFileSystemWrapper fileSystem)
         {
-            var allocator = new RangeAllocator(RomConfig.FreeRanges);
+            var allocator = new RangeAllocator(Modules.SelectMany(m => RomConfig.FreeRanges[m.Name]));
             var outputRomData = new Block(RomData);
 
             var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));

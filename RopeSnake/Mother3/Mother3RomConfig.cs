@@ -19,7 +19,7 @@ namespace RopeSnake.Mother3
         public Dictionary<string, HashSet<int>> References { get; private set; }
 
         [JsonProperty]
-        public List<Range> FreeRanges { get; private set; }
+        public Dictionary<string, List<Range>> FreeRanges { get; private set; }
 
         [JsonProperty]
         public ScriptEncodingParameters ScriptEncodingParameters { get; private set; }

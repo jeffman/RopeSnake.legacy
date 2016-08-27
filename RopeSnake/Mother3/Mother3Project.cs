@@ -114,9 +114,12 @@ namespace RopeSnake.Mother3
 
         public void Compile(IFileSystemWrapper fileSystem, bool useCache)
         {
-            var allocator = new RangeAllocator(Modules.SelectMany(m => RomConfig.FreeRanges[m.Name]));
             var times = new Dictionary<string, TimeSpan>();
             var timer = new Stopwatch();
+
+            var freeRanges = Modules.SelectMany(m => RomConfig.FreeRanges[m.Name])
+                .Concat(RomConfig.FreeRanges["Nullspace"]);
+            var allocator = new RangeAllocator(freeRanges);
 
             var outputRomData = new Block(RomData);
 

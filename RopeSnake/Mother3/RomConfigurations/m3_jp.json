@@ -81,6 +81,9 @@
     ],
     "Maps": [
       "[0xD2E1D8, 0xD34F43]"
+    ],
+    "Nullspace": [
+      "[0x1F86008, 0x1FDFFFF]"
     ]
   },
   "Parameters": {

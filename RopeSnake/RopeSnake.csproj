@@ -66,6 +66,7 @@
     <Compile Include="Core\IO\IBinarySerializable.cs" />
     <Compile Include="Core\IModule.cs" />
     <Compile Include="Core\IO\JsonFileManager.cs" />
+    <Compile Include="Core\IO\LogTableWriter.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\FileMetaData.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\IFileSystemWrapper.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\PhysicalFileSystemWrapper.cs" />

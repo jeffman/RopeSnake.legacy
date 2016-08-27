@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpFileSystem;
+using System.Diagnostics;
 
 namespace RopeSnake.Core
 {
@@ -87,6 +88,13 @@ namespace RopeSnake.Core
             return new FileSystemState(fileSystem.GetEntitiesRecursive(path)
                 .Where(p => !ignorePaths.Any(i => p == i || p.IsChildOf(i)))
                 .Select(p => fileSystem.GetMetaData(p)));
+        }
+
+        public static TimeSpan GetAndRestart(this Stopwatch stopwatch)
+        {
+            var elapsed = stopwatch.Elapsed;
+            stopwatch.Restart();
+            return elapsed;
         }
     }
 }

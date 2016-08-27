@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using SharpFileSystem;
 using RopeSnake.Core;
 using RopeSnake.Mother3.Data;
+using System.Diagnostics;
 
 namespace RopeSnake.Mother3
 {
@@ -111,29 +112,51 @@ namespace RopeSnake.Mother3
             }
         }
 
-        public void Compile(IFileSystemWrapper fileSystem)
+        public void Compile(IFileSystemWrapper fileSystem, bool useCache)
         {
             var allocator = new RangeAllocator(Modules.SelectMany(m => RomConfig.FreeRanges[m.Name]));
+            var times = new Dictionary<string, TimeSpan>();
+            var timer = new Stopwatch();
+
             var outputRomData = new Block(RomData);
 
-            var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
-            var cache = ReadCache(fileSystem, staleBlockKeys);
+            timer.Start();
+
+            BlockCollection cache;
+            if (useCache)
+            {
+                var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
+                cache = ReadCache(fileSystem, staleBlockKeys);
+                times.Add("Read cache", timer.GetAndRestart());
+            }
+            else
+            {
+                cache = new BlockCollection();
+                timer.Restart();
+            }
 
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
             compiler.AllocationAlignment = 4;
             var compilationResult = compiler.Compile();
             FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
+            times.Add("Compile", timer.GetAndRestart());
 
             var binaryManager = new BinaryFileManager(fileSystem);
             binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
+            times.Add("Write to ROM file", timer.GetAndRestart());
 
-            WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
-            CleanCache(fileSystem);
+            if (useCache)
+            {
+                WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
+                CleanCache(fileSystem);
 
-            var jsonManager = new JsonFileManager(fileSystem);
-            jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
+                var jsonManager = new JsonFileManager(fileSystem);
+                jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
+                times.Add("Write cache", timer.GetAndRestart());
+            }
 
-            LogCompilationResult(fileSystem, compilationResult, allocator.Ranges);
+            timer.Stop();
+            LogCompilationResult(fileSystem, compilationResult, allocator.Ranges, times);
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
@@ -231,7 +254,7 @@ namespace RopeSnake.Mother3
         }
 
         private static void LogCompilationResult(IFileSystem fileSystem, Compiler.CompilationResult result,
-            IEnumerable<Range> remainingRanges)
+            IEnumerable<Range> remainingRanges, Dictionary<string, TimeSpan> times)
         {
             using (var logFile = fileSystem.CreateFile(CompilationReportLog))
             {
@@ -241,30 +264,70 @@ namespace RopeSnake.Mother3
                     writer.WriteLine("====");
                     writer.WriteLine();
 
-                    int totalFree = remainingRanges.Sum(r => r.Size);
-                    writer.WriteLine($"Remaining free ranges: {totalFree} (0x{totalFree:X}) bytes total");
-                    foreach (var range in remainingRanges)
                     {
-                        writer.WriteLine($"  [0x{range.Start:X}, 0x{range.End:X}]");
+                        writer.WriteLine("Timing:");
+                        var logger = new LogTableWriter(writer);
+                        logger.AddHeader("Action", 40);
+                        logger.AddHeader("Time (ms)", 20);
+                        logger.WriteHeader(2);
+                        foreach (var kv in times)
+                        {
+                            logger.WriteLine(2, kv.Key, kv.Value.TotalMilliseconds.ToString("F3"));
+                        }
+                        logger.WriteLine(2, "Total", times.Values.Sum(t => t.TotalMilliseconds).ToString("F3"));
+
+                        writer.WriteLine();
                     }
-                    writer.WriteLine();
 
-                    writer.WriteLine("Updated blocks:");
-                    foreach (var key in result.UpdatedKeys)
+                    if (remainingRanges.Count() > 0)
                     {
-                        writer.WriteLine($"  {key}");
+                        int totalFree = remainingRanges.Sum(r => r.Size);
+                        writer.WriteLine($"Remaining free ranges: {totalFree} (0x{totalFree:X}) bytes total");
+
+                        var logger = new LogTableWriter(writer);
+                        logger.AddHeader("Start", 12);
+                        logger.AddHeader("End", 12);
+                        logger.AddHeader("Size", 12);
+                        logger.AddHeader("Size (hex)", 12);
+                        logger.WriteHeader(2);
+                        foreach (var range in remainingRanges)
+                        {
+                            logger.WriteLine(2, $"0x{range.Start:X}", $"0x{range.End:X}", range.Size, $"0x{range.Size:X}");
+                        }
+                        writer.WriteLine();
                     }
-                    writer.WriteLine();
 
-                    writer.WriteLine("Blocks written to ROM:");
-                    foreach (var key in result.WrittenBlocks.Keys)
+                    if (result.UpdatedKeys.Count() > 0)
                     {
-                        var block = result.WrittenBlocks[key];
+                        writer.WriteLine("Updated blocks:");
 
-                        if (block == null)
-                            continue;
+                        var logger = new LogTableWriter(writer);
+                        logger.AddHeader("Key", 40);
+                        logger.WriteHeader(2);
+                        foreach (var key in result.UpdatedKeys)
+                        {
+                            logger.WriteLine(2, key);
+                        }
+                        writer.WriteLine();
+                    }
 
-                        writer.WriteLine($"  {key}: {block.Size} (0x{block.Size:X}) bytes, written to 0x{result.AllocationResult[key]:X}");
+                    if (result.WrittenBlocks.Count > 0)
+                    {
+                        writer.WriteLine("Blocks written to ROM:");
+
+                        var logger = new LogTableWriter(writer);
+                        logger.AddHeader("Key", 40);
+                        logger.AddHeader("Size", 12);
+                        logger.AddHeader("Size (hex)", 12);
+                        logger.AddHeader("Location", 12);
+                        logger.WriteHeader(2);
+                        foreach (var kv in result.WrittenBlocks.Where(kv => kv.Value != null)
+                            .OrderBy(kv => result.AllocationResult[kv.Key]))
+                        {
+                            var key = kv.Key;
+                            var block = kv.Value;
+                            logger.WriteLine(2, key, block.Size, $"0x{block.Size:X}", $"0x{result.AllocationResult[key]:X}");
+                        }
                     }
                 }
             }

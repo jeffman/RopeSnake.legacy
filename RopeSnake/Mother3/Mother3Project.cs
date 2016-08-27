@@ -23,7 +23,7 @@ namespace RopeSnake.Mother3
 
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
         private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("Cache.Keys.json");
-        private static readonly FileSystemPath FileSystemStatePath = "/state.json".ToPath();
+        private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("State.json");
         private static readonly FileSystemPath CompilationReportLog = "/compile.log".ToPath();
 
         public Block RomData { get; private set; }
@@ -300,25 +300,12 @@ namespace RopeSnake.Mother3
                         writer.WriteLine();
                     }
 
-                    if (result.UpdatedKeys.Count() > 0)
-                    {
-                        writer.WriteLine("Updated blocks:");
-
-                        var logger = new LogTableWriter(writer);
-                        logger.AddHeader("Key", 40);
-                        logger.WriteHeader(2);
-                        foreach (var key in result.UpdatedKeys)
-                        {
-                            logger.WriteLine(2, key);
-                        }
-                        writer.WriteLine();
-                    }
-
                     if (result.WrittenBlocks.Count > 0)
                     {
                         writer.WriteLine("Blocks written to ROM:");
 
                         var logger = new LogTableWriter(writer);
+                        logger.AddHeader("", 4);
                         logger.AddHeader("Key", 40);
                         logger.AddHeader("Size", 12);
                         logger.AddHeader("Size (hex)", 12);
@@ -329,7 +316,7 @@ namespace RopeSnake.Mother3
                         {
                             var key = kv.Key;
                             var block = kv.Value;
-                            logger.WriteLine(2, key, block.Size, $"0x{block.Size:X}", $"0x{result.AllocationResult[key]:X}");
+                            logger.WriteLine(2, result.UpdatedKeys.Contains(key) ? "[*]" : "", key, block.Size, $"0x{block.Size:X}", $"0x{result.AllocationResult[key]:X}");
                         }
                     }
                 }

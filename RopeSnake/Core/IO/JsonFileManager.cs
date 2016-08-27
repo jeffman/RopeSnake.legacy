@@ -10,29 +10,27 @@ using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
-    public class JsonFileManager
+    public class JsonFileManager : FileManagerBase
     {
-        private IFileSystem _fileSystem;
-
-        protected IFileSystem FileSystem { get { return _fileSystem; } }
-
-        public ISet<object> StaleObjects { get; set; }
         public bool WriteByteArraysAsArrays { get; set; } = true;
 
         public JsonFileManager(IFileSystem fileSystem)
+            : base(fileSystem)
         {
-            _fileSystem = fileSystem;
+
         }
 
         public virtual T ReadJson<T>(FileSystemPath path)
         {
+            OnFileRead(path);
+
             var serializer = new JsonSerializer();
             if (WriteByteArraysAsArrays)
             {
                 serializer.Converters.Add(new ByteArrayJsonConverter());
             }
 
-            using (var stream = _fileSystem.OpenFile(path, FileAccess.Read))
+            using (var stream = FileSystem.OpenFile(path, FileAccess.Read))
             {
                 using (var textReader = new StreamReader(stream))
                 {
@@ -49,6 +47,8 @@ namespace RopeSnake.Core
             if (!IsStale(value))
                 return;
 
+            OnFileWrite(path);
+
             var serializer = new JsonSerializer();
             serializer.Formatting = Formatting.Indented;
             if (WriteByteArraysAsArrays)
@@ -56,12 +56,12 @@ namespace RopeSnake.Core
                 serializer.Converters.Add(new ByteArrayJsonConverter());
             }
 
-            if (!_fileSystem.Exists(path.ParentPath))
+            if (!FileSystem.Exists(path.ParentPath))
             {
-                _fileSystem.CreateDirectoryRecursive(path.ParentPath);
+                FileSystem.CreateDirectoryRecursive(path.ParentPath);
             }
 
-            using (var stream = _fileSystem.CreateFile(path))
+            using (var stream = FileSystem.CreateFile(path))
             {
                 using (var textWriter = new StreamWriter(stream))
                 {

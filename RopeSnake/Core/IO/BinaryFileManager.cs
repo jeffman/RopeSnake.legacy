@@ -8,15 +8,12 @@ using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
-    public class BinaryFileManager
+    public class BinaryFileManager : FileManagerBase
     {
-        private IFileSystem _fileSystem;
-
-        protected IFileSystem Manager { get { return _fileSystem; } }
-
         public BinaryFileManager(IFileSystem fileSystem)
+            : base(fileSystem)
         {
-            _fileSystem = fileSystem;
+
         }
 
         public T ReadFile<T>(FileSystemPath path)
@@ -29,10 +26,12 @@ namespace RopeSnake.Core
 
         public void ReadFile(FileSystemPath path, IBinarySerializable value)
         {
-            if (!_fileSystem.Exists(path))
+            OnFileRead(path);
+
+            if (!FileSystem.Exists(path))
                 throw new FileNotFoundException("File not found", path.Path);
 
-            using (var stream = _fileSystem.OpenFile(path, FileAccess.Read))
+            using (var stream = FileSystem.OpenFile(path, FileAccess.Read))
             {
                 value.Deserialize(stream, (int)stream.Length);
             }
@@ -40,7 +39,9 @@ namespace RopeSnake.Core
 
         public void WriteFile(FileSystemPath path, IBinarySerializable value)
         {
-            using (var stream = _fileSystem.CreateFile(path))
+            OnFileWrite(path);
+
+            using (var stream = FileSystem.CreateFile(path))
             {
                 value.Serialize(stream);
             }

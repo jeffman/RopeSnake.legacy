@@ -37,9 +37,7 @@ namespace RopeSnake.Mother3.Maps
             stream.ReadBytes(info.Unknown, 0, 12);
 
             for (int i = 0; i < 3; i++)
-            {
                 info.Layers[i] = stream.ReadLayerInfo();
-            }
 
             return info;
         }
@@ -53,9 +51,7 @@ namespace RopeSnake.Mother3.Maps
             stream.WriteBytes(info.Unknown, 0, 12);
 
             for (int i = 0; i < 3; i++)
-            {
                 stream.WriteLayerInfo(info.Layers[i]);
-            }
         }
     }
 }

@@ -91,7 +91,10 @@ namespace RopeSnake.Mother3
             project.UpdateRomConfig();
 
             foreach (var module in project.Modules)
+            {
+                module.Progress = new Progress<ProgressPercent>(p => Console.WriteLine(p.Message));
                 module.ReadFromFiles(fileSystem);
+            }
 
             return project;
         }

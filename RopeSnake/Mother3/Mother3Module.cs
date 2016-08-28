@@ -17,6 +17,8 @@ namespace RopeSnake.Mother3
         protected Mother3ProjectSettings ProjectSettings { get; }
         protected Dictionary<FileSystemPath, IEnumerable<string>> BlockKeysForFiles { get; }
 
+        public IProgress<ProgressPercent> Progress { get; set; }
+
         protected Mother3Module(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
         {
             RomConfig = romConfig;
@@ -25,6 +27,46 @@ namespace RopeSnake.Mother3
         }
 
         #region Helpers
+
+        protected void RegisterFileManagerProgress(FileManagerBase fileManager)
+        {
+            fileManager.FileRead += FileReadEventHandler;
+            fileManager.FileWrite += FileWriteEventHandler;
+        }
+
+        protected void UnregisterFileManagerProgress(FileManagerBase fileManager)
+        {
+            fileManager.FileRead -= FileReadEventHandler;
+            fileManager.FileWrite -= FileWriteEventHandler;
+        }
+
+        private void FileReadEventHandler(object sender, FileEventArgs e)
+        {
+            FileEventHandlerInternal(sender, e, "Reading");
+        }
+
+        private void FileWriteEventHandler(object sender, FileEventArgs e)
+        {
+            FileEventHandlerInternal(sender, e, "Writing");
+        }
+
+        private void FileEventHandlerInternal(object sender, FileEventArgs e, string action)
+        {
+            if (Progress == null)
+                return;
+
+            string message;
+            if (e.Index == IndexTotal.Single)
+            {
+                message = $"{action} {e.Path.Path}";
+            }
+            else
+            {
+                message = $"{action} {e.Path.Path} {e.Index}]";
+            }
+
+            Progress.Report(new ProgressPercent(message, e.Index.ToPercent()));
+        }
 
         protected void UpdateRomReferences(Block romData, string key, int value)
         {

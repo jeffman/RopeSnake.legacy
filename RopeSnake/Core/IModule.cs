@@ -10,6 +10,7 @@ namespace RopeSnake.Core
     public interface IModule
     {
         string Name { get; }
+        IProgress<ProgressPercent> Progress { set; }
 
         void ReadFromRom(Block romData);
         void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks);

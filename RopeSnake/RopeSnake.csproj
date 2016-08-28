@@ -74,6 +74,7 @@
     <Compile Include="Core\IO\SharpFileSystemWrappers\PhysicalFileSystemWrapper.cs" />
     <Compile Include="Core\LazyBlockCollection.cs" />
     <Compile Include="Core\OrderedDictionary.cs" />
+    <Compile Include="Core\ProgressPercent.cs" />
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
     <Compile Include="Gba\GbaTile.cs" />

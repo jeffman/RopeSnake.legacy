@@ -73,6 +73,7 @@ namespace RopeSnake.Mother3.Text
         public override void ReadFromFiles(IFileSystem fileSystem)
         {
             var jsonManager = new JsonFileManager(fileSystem);
+            RegisterFileManagerProgress(jsonManager);
 
             RoomDescriptions = jsonManager.ReadJson<List<string>>(RoomDescriptionsPath);
             ItemNames = jsonManager.ReadJson<StringTable>(ItemNamesPath);
@@ -106,6 +107,7 @@ namespace RopeSnake.Mother3.Text
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
         {
             var jsonManager = new JsonFileManager(fileSystem);
+            RegisterFileManagerProgress(jsonManager);
             jsonManager.StaleObjects = staleObjects;
 
             jsonManager.WriteJson(RoomDescriptionsPath, RoomDescriptions);

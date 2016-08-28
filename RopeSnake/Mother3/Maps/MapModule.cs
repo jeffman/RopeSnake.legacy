@@ -35,6 +35,7 @@ namespace RopeSnake.Mother3.Maps
         public override void ReadFromFiles(IFileSystem fileSystem)
         {
             var jsonManager = new JsonFileManager(fileSystem);
+            RegisterFileManagerProgress(jsonManager);
 
             MapInfo = jsonManager.ReadJson<List<MapInfo>>(MapInfoPath);
         }
@@ -42,6 +43,7 @@ namespace RopeSnake.Mother3.Maps
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
         {
             var jsonManager = new JsonFileManager(fileSystem);
+            RegisterFileManagerProgress(jsonManager);
             jsonManager.StaleObjects = staleObjects;
 
             jsonManager.WriteJson(MapInfoPath, MapInfo);

@@ -124,8 +124,6 @@ namespace RopeSnake.Mother3
             var projectSettings = jsonManager.ReadJson<Mother3ProjectSettings>(projectSettingsPath);
             var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigFile);
 
-            var binaryManager = new BinaryFileManager(fileSystem);
-
             if (modulesToLoad == null || modulesToLoad.Length == 0)
                 modulesToLoad = DefaultModules;
 

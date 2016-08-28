@@ -6,11 +6,15 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using NLog;
 
 namespace RopeSnake.Core
 {
     public abstract class FileManagerBase
     {
+        private Logger _log;
+        protected Logger Log => _log ?? (_log = LogManager.GetLogger(GetType().Name));
+
         private IFileSystem _fileSystem;
         private object _lockObj = new object();
         protected IFileSystem FileSystem { get { return _fileSystem; } }
@@ -25,6 +29,12 @@ namespace RopeSnake.Core
         protected FileManagerBase(IFileSystem fileSystem)
         {
             _fileSystem = fileSystem;
+
+            if (Log.IsTraceEnabled)
+            {
+                FileRead += (s, e) => Log.Trace($"Reading {e.Path.Path} {e.Index}");
+                FileWrite += (s, e) => Log.Trace($"Writing {e.Path.Path} {e.Index}");
+            }
         }
 
         protected virtual void OnFileRead(FileSystemPath path, IndexTotal index)

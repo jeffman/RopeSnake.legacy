@@ -8,11 +8,15 @@ using RopeSnake.Core;
 using RopeSnake.Gba;
 using RopeSnake.Mother3.IO;
 using RopeSnake.Mother3.Text;
+using NLog;
 
 namespace RopeSnake.Mother3
 {
     public abstract class Mother3Module : IModule
     {
+        private Logger _log;
+        protected Logger Log => _log ?? (_log = LogManager.GetLogger(GetType().Name));
+
         protected Mother3RomConfig RomConfig { get; }
         protected Mother3ProjectSettings ProjectSettings { get; }
         protected Dictionary<FileSystemPath, IEnumerable<string>> BlockKeysForFiles { get; }
@@ -72,6 +76,8 @@ namespace RopeSnake.Mother3
         {
             var stream = romData.ToBinaryStream();
             var references = RomConfig.GetReferences(key);
+
+            Log.Debug($"Updating references for {key}: new pointer = 0x{value:X}, ref locations = {string.Join(", ", references.Select(r => $"0x{r:X}"))}");
 
             foreach (int reference in references)
             {

@@ -25,8 +25,8 @@ namespace RopeSnake.Mother3
         private static readonly Logger _log = LogManager.GetLogger(nameof(Mother3Project));
 
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
-        private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("Cache.Keys.json");
-        private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("State.json");
+        private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("keys.txt");
+        private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("state.json");
         private static readonly FileSystemPath CompilationReportLog = "/compile.log".ToPath();
 
         public Block RomData { get; private set; }
@@ -170,7 +170,6 @@ namespace RopeSnake.Mother3
             {
                 _log.Info("Writing cache");
                 WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
-                CleanCache(fileSystem);
 
                 var jsonManager = new JsonFileManager(fileSystem);
                 jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
@@ -182,74 +181,22 @@ namespace RopeSnake.Mother3
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
         {
-            var cache = new BlockCollection();
-            var binaryManager = new BinaryFileManager(fileSystem);
-            var jsonManager = new JsonFileManager(fileSystem);
-
-            if (fileSystem.Exists(CacheKeysFile))
+            if (fileSystem.Exists(CachePath))
             {
-                var cacheKeys = jsonManager.ReadJson<string[]>(CacheKeysFile);
-                foreach (string key in cacheKeys.Except(staleBlockKeys))
-                {
-                    var cacheFilePath = CachePath.AppendFile($"{key}.bin");
-                    Block block;
-
-                    if (fileSystem.Exists(cacheFilePath))
-                    {
-                        block = binaryManager.ReadFile<Block>(cacheFilePath);
-                    }
-                    else
-                    {
-                        block = null;
-                    }
-
-                    cache.Add(key, block);
-                }
+                var binaryManager = new BinaryFileManager(fileSystem);
+                return new BlockCollection(binaryManager.ReadFileDictionary<Block>(CachePath, staleBlockKeys));
             }
-
-            return cache;
+            else
+            {
+                return new BlockCollection();
+            }
         }
 
         public void WriteCache(IFileSystem fileSystem, BlockCollection cache, IEnumerable<string> updatedKeys)
         {
             var binaryManager = new BinaryFileManager(fileSystem);
-            var jsonManager = new JsonFileManager(fileSystem);
-
-            jsonManager.WriteJson(CacheKeysFile, cache.Keys.ToArray());
-
-            foreach (var key in updatedKeys)
-            {
-                var block = cache[key];
-                var cacheFilePath = CachePath.AppendFile($"{key}.bin");
-
-                if (block != null)
-                {
-                    binaryManager.WriteFile(cacheFilePath, block);
-                }
-                else
-                {
-                    fileSystem.Delete(cacheFilePath);
-                }
-            }
-        }
-
-        public void CleanCache(IFileSystem fileSystem)
-        {
-            var jsonManager = new JsonFileManager(fileSystem);
-
-            if (fileSystem.Exists(CacheKeysFile))
-            {
-                var cachedFiles = new HashSet<FileSystemPath>(jsonManager.ReadJson<string[]>(CacheKeysFile).Select(f => CachePath.AppendFile($"{f}.bin")));
-                var existingFiles = fileSystem.GetEntities(CachePath);
-
-                foreach (var file in existingFiles)
-                {
-                    if (file == CacheKeysFile || cachedFiles.Contains(file))
-                        continue;
-
-                    fileSystem.Delete(file);
-                }
-            }
+            binaryManager.StaleObjects = new HashSet<object>(updatedKeys.Select(k => cache[k]));
+            binaryManager.WriteFileDictionary(CachePath, cache);
         }
 
         private IEnumerable<string> GetStaleBlockKeys(IEnumerable<FileSystemPath> paths)

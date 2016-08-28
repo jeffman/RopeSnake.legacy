@@ -32,6 +32,10 @@ namespace RopeSnake.Graphics
                 throw new ArgumentException(nameof(newCount));
 
             _tiles = new T[newCount];
+            for (int i = 0; i < newCount; i++)
+            {
+                _tiles[i] = new T();
+            }
         }
 
         public virtual IEnumerator<T> GetEnumerator() => ((IEnumerable<T>)_tiles).GetEnumerator();
@@ -60,7 +64,6 @@ namespace RopeSnake.Graphics
 
             for (int i = 0; i < Count; i++)
             {
-                _tiles[i] = new T();
                 _tiles[i].Deserialize(stream, fileSize);
             }
         }

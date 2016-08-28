@@ -134,10 +134,6 @@ namespace RopeSnake.Mother3
         {
             _log.Info("Compiling project");
 
-            var times = new Dictionary<string, TimeSpan>();
-            var timer = new Stopwatch();
-            timer.Start();
-
             var freeRanges = Modules.SelectMany(m => RomConfig.FreeRanges[m.Name])
                 .Concat(RomConfig.FreeRanges["Nullspace"]);
             var allocator = new RangeAllocator(freeRanges);
@@ -150,26 +146,23 @@ namespace RopeSnake.Mother3
                 _log.Info("Reading cache");
                 var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
                 cache = ReadCache(fileSystem, staleBlockKeys);
-                times.Add("Read cache", timer.GetAndRestart());
             }
             else
             {
                 cache = new BlockCollection();
-                timer.Restart();
             }
 
+            _log.Info("Executing compiler");
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
             compiler.AllocationAlignment = 4;
-            _log.Info("Executing compiler");
             var compilationResult = compiler.Compile();
+
             _log.Debug("Filling free ranges with 0xFF");
             FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
-            times.Add("Compile", timer.GetAndRestart());
 
             _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile.Path}");
             var binaryManager = new BinaryFileManager(fileSystem);
             binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
-            times.Add("Write to ROM file", timer.GetAndRestart());
 
             if (useCache)
             {
@@ -179,12 +172,9 @@ namespace RopeSnake.Mother3
 
                 var jsonManager = new JsonFileManager(fileSystem);
                 jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
-                times.Add("Write cache", timer.GetAndRestart());
             }
 
-            timer.Stop();
-            LogCompilationResult(fileSystem, compilationResult, allocator.Ranges, times);
-            _log.Info($"Finished compiling in {times.Values.Sum(t => t.TotalMilliseconds):F3}");
+            LogCompilationResult(fileSystem, compilationResult, allocator.Ranges);
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
@@ -282,7 +272,7 @@ namespace RopeSnake.Mother3
         }
 
         private static void LogCompilationResult(IFileSystem fileSystem, Compiler.CompilationResult result,
-            IEnumerable<Range> remainingRanges, Dictionary<string, TimeSpan> times)
+            IEnumerable<Range> remainingRanges)
         {
             using (var logFile = fileSystem.CreateFile(CompilationReportLog))
             {
@@ -291,21 +281,6 @@ namespace RopeSnake.Mother3
                     writer.WriteLine($"Compilation report, {DateTime.Now}");
                     writer.WriteLine("====");
                     writer.WriteLine();
-
-                    {
-                        writer.WriteLine("Timing:");
-                        var logger = new LogTableWriter(writer);
-                        logger.AddHeader("Action", 40);
-                        logger.AddHeader("Time (ms)", 20);
-                        logger.WriteHeader(2);
-                        foreach (var kv in times)
-                        {
-                            logger.WriteLine(2, kv.Key, kv.Value.TotalMilliseconds.ToString("F3"));
-                        }
-                        logger.WriteLine(2, "Total", times.Values.Sum(t => t.TotalMilliseconds).ToString("F3"));
-
-                        writer.WriteLine();
-                    }
 
                     if (remainingRanges.Count() > 0)
                     {

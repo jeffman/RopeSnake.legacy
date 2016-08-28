@@ -29,29 +29,30 @@ namespace RopeSnake.Mother3
         private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("state.json");
         private static readonly FileSystemPath CompilationReportLog = "/compile.log".ToPath();
 
-        public Block RomData { get; private set; }
         public Mother3RomConfig RomConfig { get; private set; }
         public Mother3ProjectSettings ProjectSettings { get; private set; }
         public Mother3ModuleCollection Modules { get; private set; }
         public HashSet<object> StaleObjects { get; private set; }
 
-        private Mother3Project(Block romData, Mother3RomConfig romConfig,
+        private Mother3Project(Mother3RomConfig romConfig,
             Mother3ProjectSettings projectSettings, params string[] modulesToLoad)
         {
-            RomData = romData;
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
             Modules = new Mother3ModuleCollection(romConfig, projectSettings, modulesToLoad);
             StaleObjects = new HashSet<object>();
         }
 
-        private void UpdateRomConfig()
+        private void UpdateRomConfig(Block romData)
         {
-            if (RomConfig.IsJapanese)
-                RomConfig.AddJapaneseCharsToLookup(RomData);
+            if (romData != null)
+            {
+                if (RomConfig.IsJapanese)
+                    RomConfig.AddJapaneseCharsToLookup(romData);
 
-            if (RomConfig.ScriptEncodingParameters != null)
-                RomConfig.ReadEncodingPadData(RomData);
+                if (RomConfig.ScriptEncodingParameters != null)
+                    RomConfig.ReadEncodingPadData(romData);
+            }
 
             RomConfig.UpdateLookups();
         }
@@ -68,8 +69,8 @@ namespace RopeSnake.Mother3
             var romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigPath);
             var projectSettings = Mother3ProjectSettings.CreateDefault();
 
-            var project = new Mother3Project(romData, romConfig, projectSettings, DefaultModules);
-            project.UpdateRomConfig();
+            var project = new Mother3Project(romConfig, projectSettings, DefaultModules);
+            project.UpdateRomConfig(romData);
 
             foreach (var module in project.Modules)
             {
@@ -92,13 +93,12 @@ namespace RopeSnake.Mother3
             var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigFile);
 
             var binaryManager = new BinaryFileManager(fileSystem);
-            var romData = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile);
 
             if (modulesToLoad == null || modulesToLoad.Length == 0)
                 modulesToLoad = DefaultModules;
 
-            var project = new Mother3Project(romData, romConfig, projectSettings, modulesToLoad);
-            project.UpdateRomConfig();
+            var project = new Mother3Project(romConfig, projectSettings, modulesToLoad);
+            project.UpdateRomConfig(null);
 
             foreach (var module in project.Modules)
             {
@@ -123,13 +123,6 @@ namespace RopeSnake.Mother3
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
             jsonManager.WriteJson(ProjectSettings.RomConfigFile, RomConfig);
-
-            if (!fileSystem.Exists(ProjectSettings.BaseRomFile))
-            {
-                _log.Info($"Writing base ROM to {ProjectSettings.BaseRomFile.Path}");
-                var binaryManager = new BinaryFileManager(fileSystem);
-                binaryManager.WriteFile(ProjectSettings.BaseRomFile, RomData);
-            }
         }
 
         public void Compile(IFileSystemWrapper fileSystem, bool useCache)
@@ -140,7 +133,9 @@ namespace RopeSnake.Mother3
                 .Concat(RomConfig.FreeRanges["Nullspace"]);
             var allocator = new RangeAllocator(freeRanges);
 
-            var outputRomData = new Block(RomData);
+            var binaryManager = new BinaryFileManager(fileSystem);
+            var baseRom = binaryManager.ReadFile<Block>(ProjectSettings.BaseRomFile);
+            var outputRomData = new Block(baseRom);
 
             BlockCollection cache;
             if (useCache)
@@ -163,7 +158,6 @@ namespace RopeSnake.Mother3
             FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
 
             _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile.Path}");
-            var binaryManager = new BinaryFileManager(fileSystem);
             binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
 
             if (useCache)

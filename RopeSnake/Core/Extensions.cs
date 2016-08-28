@@ -80,6 +80,8 @@ namespace RopeSnake.Core
 
         public static FileSystemPath ToPath(this string path)
         {
+            if (!path.StartsWith("/"))
+                path = "/" + path;
             return FileSystemPath.Parse(path);
         }
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace RopeSnake.Mother3.Data
 {
@@ -15,9 +16,11 @@ namespace RopeSnake.Mother3.Data
         public string NameHint { get; set; }
 
         public int Index { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
         public ItemType Type { get; set; }
         public bool Key { get; set; }
         public ushort SellPrice { get; set; }
+        [JsonConverter(typeof(StringEnumConverter))]
         public EquipFlags EquipFlags { get; set; }
         public int Hp { get; set; }
         public short Pp { get; set; }
@@ -30,7 +33,7 @@ namespace RopeSnake.Mother3.Data
         public ushort BattleTextIndex { get; set; }
         public Dictionary<AilmentType, short> AilmentProtection { get; set; }
         public Dictionary<ElementalType, sbyte> ElementalProtection { get; set; }
-        [JsonProperty(PropertyName = "Unknown", Order = 99)]
+        [JsonProperty(Order = 99)]
         public byte[] Unknown { get; set; } = new byte[52];
     }
 

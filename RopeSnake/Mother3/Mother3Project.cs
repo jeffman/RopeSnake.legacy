@@ -141,7 +141,7 @@ namespace RopeSnake.Mother3
 
         public void Save(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
         {
-            _log.Info($"Loading project \"{projectSettingsPath.Path}\"");
+            _log.Info($"Saving project \"{projectSettingsPath.Path}\"");
 
             foreach (var module in Modules)
             {

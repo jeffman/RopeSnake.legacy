@@ -10,6 +10,7 @@ using RopeSnake.Core;
 using RopeSnake.Mother3.Data;
 using System.Diagnostics;
 using NLog;
+using File = System.IO.File;
 
 namespace RopeSnake.Mother3
 {
@@ -57,18 +58,36 @@ namespace RopeSnake.Mother3
             RomConfig.UpdateLookups();
         }
 
-        public static Mother3Project CreateNew(IFileSystem fileSystem, FileSystemPath romDataPath,
-            FileSystemPath romConfigPath)
+        public static Mother3Project CreateNew(string romDataPath, string romConfigPath, string outputDirectory)
         {
-            _log.Info($"Creating new project with ROM file \"{romDataPath.Path}\" and config file \"{romConfigPath.Path}\"");
+            foreach (var filePath in new[] { romDataPath, romConfigPath })
+            {
+                if (!File.Exists(filePath))
+                    throw new FileNotFoundException($"File not found: {filePath}", filePath);
+            }
 
-            var binaryManager = new BinaryFileManager(fileSystem);
-            var jsonManager = new JsonFileManager(fileSystem);
+            if (File.Exists(outputDirectory))
+                throw new Exception("Output path must be a directory");
 
-            var romData = binaryManager.ReadFile<Block>(romDataPath);
-            var romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigPath);
+            _log.Info($"Creating new project with ROM file \"{romDataPath}\" and config file \"{romConfigPath}\"");
+
+            Block romData;
+            var romDataFileInfo = new FileInfo(romDataPath);
+            using (var disk = new PhysicalFileSystemWrapper(romDataFileInfo.DirectoryName))
+            {
+                var binaryManager = new BinaryFileManager(disk);
+                romData = binaryManager.ReadFile<Block>(romDataFileInfo.Name.ToPath());
+            }
+
+            Mother3RomConfig romConfig;
+            var romConfigFileInfo = new FileInfo(romConfigPath);
+            using (var disk = new PhysicalFileSystemWrapper(romConfigFileInfo.DirectoryName))
+            {
+                var jsonManager = new JsonFileManager(disk);
+                romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigFileInfo.Name.ToPath());
+            }
+
             var projectSettings = Mother3ProjectSettings.CreateDefault();
-
             var project = new Mother3Project(romConfig, projectSettings, DefaultModules);
             project.UpdateRomConfig(romData);
 
@@ -78,8 +97,21 @@ namespace RopeSnake.Mother3
                 module.ReadFromRom(romData);
             }
 
-            project.StaleObjects = null;
+            project.Modules.Data.UpdateNameHints(project.Modules.Text);
+            project.Modules.Maps.UpdateNameHints(project.Modules.Text);
 
+            // When we initially create a project, we want *all* files written, so we need to
+            // set project.StaleObject to null
+            project.StaleObjects = null;
+            using (var disk = new PhysicalFileSystemWrapper(outputDirectory))
+            {
+                project.Save(disk, "/project.json".ToPath());
+            }
+
+            _log.Info("Copying base ROM to output directory");
+            File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.EntityName));
+
+            _log.Info("Finished creating project");
             return project;
         }
 

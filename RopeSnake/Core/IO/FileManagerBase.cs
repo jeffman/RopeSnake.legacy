@@ -19,7 +19,9 @@ namespace RopeSnake.Core
         private object _lockObj = new object();
         protected IFileSystem FileSystem { get { return _fileSystem; } }
         protected IndexTotal CurrentIndex { get; set; }
+
         protected string CountFile { get; } = "count.txt";
+        protected string KeysFile { get; } = "keys.txt";
 
         public ISet<object> StaleObjects { get; set; }
         public event FileEventDelegate FileRead;
@@ -164,6 +166,100 @@ namespace RopeSnake.Core
                     {
                         FileSystem.Delete(path);
                     }
+                }
+            }
+        }
+
+        protected Dictionary<string, T> ReadFileDictionaryAction<T>(FileSystemPath directory, string extension,
+            IEnumerable<string> keysToIgnore, Func<FileSystemPath, T> action)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            var dict = new Dictionary<string, T>();
+
+            lock (_lockObj)
+            {
+                CurrentIndex = IndexTotal.Single;
+                var keysPath = directory.AppendFile(KeysFile);
+
+                if (!FileSystem.Exists(keysPath))
+                    throw new Exception($"The keys file {KeysFile} is missing from {directory.Path}.");
+
+                var keys = new List<string>();
+                ReadFileAction(keysPath, stream =>
+                {
+                    using (var reader = new StreamReader(stream))
+                    {
+                        string line;
+                        while ((line = reader.ReadLine()) != null)
+                        {
+                            if (keysToIgnore != null && !keysToIgnore.Contains(line))
+                                keys.Add(line);
+                        }
+                    }
+                });
+
+                for (int i = 0; i < keys.Count; i++)
+                {
+                    string key = keys[i];
+                    CurrentIndex = new IndexTotal(i + 1, keys.Count);
+                    var path = directory.AppendFile($"{key}.{extension}");
+
+                    if (FileSystem.Exists(path))
+                    {
+                        dict.Add(key, action(path));
+                    }
+                    else
+                    {
+                        dict.Add(key, default(T));
+                    }
+                }
+            }
+
+            return dict;
+        }
+
+        protected void CreateFileDictionaryAction<T>(FileSystemPath directory, string extension, IEnumerable<KeyValuePair<string, T>> dict,
+            Action<FileSystemPath, T> action)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            lock (_lockObj)
+            {
+                CurrentIndex = IndexTotal.Single;
+                int count = 0;
+                CreateFileAction(directory.AppendFile(KeysFile), null, stream =>
+                {
+                    using (var writer = new StreamWriter(stream))
+                    {
+                        foreach (var kv in dict)
+                        {
+                            writer.WriteLine(kv.Key);
+                            count++;
+                        }
+                    }
+                });
+
+                int i = 0;
+                foreach (var kv in dict)
+                {
+                    string key = kv.Key;
+                    CurrentIndex = new IndexTotal(i + 1, count);
+                    var path = directory.AppendFile($"{key}.{extension}");
+
+                    T value = kv.Value;
+                    if (value != null)
+                    {
+                        action(path, kv.Value);
+                    }
+                    else
+                    {
+                        FileSystem.Delete(path);
+                    }
+
+                    i++;
                 }
             }
         }

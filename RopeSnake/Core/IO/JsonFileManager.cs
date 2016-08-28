@@ -37,6 +37,11 @@ namespace RopeSnake.Core
             return ReadFileListAction(directory, JsonExtension, ReadJsonInternal<T>);
         }
 
+        public Dictionary<string, T> ReadFileDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
+        {
+            return ReadFileDictionaryAction(directory, JsonExtension, keysToIgnore, ReadJsonInternal<T>);
+        }
+
         private T ReadJsonInternal<T>(FileSystemPath path)
         {
             T returnValue = default(T);
@@ -68,6 +73,11 @@ namespace RopeSnake.Core
         public void WriteJsonList<T>(FileSystemPath directory, IList<T> list)
         {
             CreateFileListAction(directory, JsonExtension, list, (p, e) => WriteJsonInternal(p, e));
+        }
+
+        public void WriteFileDictionary<T>(FileSystemPath directory, IEnumerable<KeyValuePair<string, T>> dict)
+        {
+            CreateFileDictionaryAction(directory, JsonExtension, dict, (p, e) => WriteJsonInternal(p, e));
         }
 
         private void WriteJsonInternal(FileSystemPath path, object value)

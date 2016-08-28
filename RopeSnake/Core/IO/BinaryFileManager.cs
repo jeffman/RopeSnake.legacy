@@ -49,6 +49,12 @@ namespace RopeSnake.Core
             return ReadFileListAction(directory, BinExtension, ReadFileInternal<T>);
         }
 
+        public Dictionary<string, T> ReadFileDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
+            where T : IBinarySerializable, new()
+        {
+            return ReadFileDictionaryAction(directory, BinExtension, keysToIgnore, ReadFileInternal<T>);
+        }
+
         private void ReadFileInternal(FileSystemPath path, IBinarySerializable value)
         {
             ReadFileAction(path, s => value.Deserialize(s, (int)s.Length));
@@ -66,6 +72,11 @@ namespace RopeSnake.Core
         public void WriteFileList<T>(FileSystemPath directory, IList<T> list) where T : IBinarySerializable
         {
             CreateFileListAction(directory, BinExtension, list, (p, e) => WriteFileInternal(p, e));
+        }
+
+        public void WriteFileDictionary<T>(FileSystemPath directory, IEnumerable<KeyValuePair<string, T>> dict) where T : IBinarySerializable
+        {
+            CreateFileDictionaryAction(directory, BinExtension, dict, (p, e) => WriteFileInternal(p, e));
         }
 
         private void WriteFileInternal(FileSystemPath path, IBinarySerializable value)

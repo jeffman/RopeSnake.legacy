@@ -177,10 +177,13 @@ namespace RopeSnake.Core
                 return true;
 
             var enumerable = value as IEnumerable;
-            foreach (var child in enumerable)
+            if (enumerable != null)
             {
-                if (StaleObjects.Contains(child))
-                    return true;
+                foreach (var child in enumerable)
+                {
+                    if (StaleObjects.Contains(child))
+                        return true;
+                }
             }
 
             return false;

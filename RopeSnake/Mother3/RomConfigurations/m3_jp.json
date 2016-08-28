@@ -39,6 +39,20 @@
       412132,
       536896
     ],
+    "Data.Enemies": [
+      158604,
+      188164,
+      191372,
+      352272,
+      380528,
+      380800,
+      384684,
+      527176,
+      530804,
+      531928,
+      532108,
+      532356
+    ],
     "Text.MainFont": [
       41232,
       302284,
@@ -73,7 +87,8 @@
   },
   "FreeRanges": {
     "Data": [
-      "[0xE5108, 0xEBD07]"
+      "[0xE5108, 0xEBD07]",
+      "[0xD0D28, 0xD9D27]"
     ],
     "Text": [
       "[0xD1EE78, 0xD2D2D7]",
@@ -88,6 +103,7 @@
   },
   "Parameters": {
     "Data.Items.Count": 256,
+    "Data.Enemies.Count": 256,
     "Maps.Info.Count": 1000
   },
   "CharLookup": {

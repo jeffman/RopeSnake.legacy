@@ -100,5 +100,122 @@ namespace RopeSnake.Mother3.Data
 
             stream.WriteBytes(item.Unknown, 38, 14);
         }
+
+        public static ItemDrop ReadItemDrop(this BinaryStream stream)
+        {
+            var drop = new ItemDrop();
+            drop.Item = stream.ReadByte();
+            drop.Chance = stream.ReadByte();
+            stream.Position += 2;
+            return drop;
+        }
+
+        public static void WriteItemDrop(this BinaryStream stream, ItemDrop drop)
+        {
+            stream.WriteByte(drop.Item);
+            stream.WriteByte(drop.Chance);
+            stream.WriteUShort(0);
+        }
+
+        public static Enemy ReadEnemy(this BinaryStream stream)
+        {
+            var enemy = new Enemy();
+
+            enemy.Index = stream.ReadInt();
+
+            stream.ReadBytes(enemy.Unknown, 0, 6);
+
+            enemy.BackgroundIndex = stream.ReadUShort();
+            enemy.SwirlMusic = stream.ReadUShort();
+            enemy.BattleMusic = stream.ReadUShort();
+            enemy.WinMusic = stream.ReadUShort();
+            enemy.Level = stream.ReadUShort();
+            enemy.Hp = stream.ReadInt();
+            enemy.Pp = stream.ReadInt();
+            enemy.Offense = stream.ReadByte();
+            enemy.Defense = stream.ReadByte();
+            enemy.Iq = stream.ReadByte();
+            enemy.Speed = stream.ReadByte();
+
+            stream.ReadBytes(enemy.Unknown, 6, 4);
+
+            enemy.SurpriseOffense = stream.ReadByte();
+            enemy.SurpriseDefense = stream.ReadByte();
+            enemy.SurpriseIq = stream.ReadByte();
+            enemy.SurpriseSpeed = stream.ReadByte();
+
+            stream.ReadBytes(enemy.Unknown, 6, 4);
+
+            enemy.Weaknesses = new Dictionary<WeaknessType, ushort>();
+            for (int i = 0; i < 20; i++)
+                enemy.Weaknesses.Add((WeaknessType)i, stream.ReadUShort());
+
+            for (int i = 0; i < 8; i++)
+                enemy.Actions[i] = stream.ReadUShort();
+
+            enemy.AttackSound = stream.ReadUShort();
+            enemy.EncounterText = stream.ReadByte();
+            enemy.DeathText = stream.ReadByte();
+
+            stream.ReadBytes(enemy.Unknown, 14, 16);
+
+            for (int i = 0; i < 3; i++)
+                enemy.ItemDrops[i] = stream.ReadItemDrop();
+
+            enemy.Experience = stream.ReadInt();
+            enemy.Money = stream.ReadInt();
+
+            stream.ReadBytes(enemy.Unknown, 30, 4);
+
+            return enemy;
+        }
+
+        public static void WriteEnemy(this BinaryStream stream, Enemy enemy)
+        {
+            stream.WriteInt(enemy.Index);
+
+            stream.WriteBytes(enemy.Unknown, 0, 6);
+
+            stream.WriteUShort(enemy.BackgroundIndex);
+            stream.WriteUShort(enemy.SwirlMusic);
+            stream.WriteUShort(enemy.BattleMusic);
+            stream.WriteUShort(enemy.WinMusic);
+            stream.WriteUShort(enemy.Level);
+            stream.WriteInt(enemy.Hp);
+            stream.WriteInt(enemy.Pp);
+            stream.WriteByte(enemy.Offense);
+            stream.WriteByte(enemy.Defense);
+            stream.WriteByte(enemy.Iq);
+            stream.WriteByte(enemy.Speed);
+
+            stream.WriteBytes(enemy.Unknown, 6, 4);
+
+            stream.WriteByte(enemy.SurpriseOffense);
+            stream.WriteByte(enemy.SurpriseDefense);
+            stream.WriteByte(enemy.SurpriseIq);
+            stream.WriteByte(enemy.SurpriseSpeed);
+
+            stream.WriteBytes(enemy.Unknown, 10, 4);
+
+            for (int i = 0; i < 20; i++)
+                stream.WriteUShort(enemy.Weaknesses[(WeaknessType)i]);
+
+            for (int i = 0; i < 8; i++)
+                stream.WriteUShort(enemy.Actions[i]);
+
+            stream.WriteUShort(enemy.AttackSound);
+            stream.WriteByte(enemy.EncounterText);
+            stream.WriteByte(enemy.DeathText);
+
+            stream.WriteBytes(enemy.Unknown, 14, 16);
+
+            for (int i = 0; i < 3; i++)
+                stream.WriteItemDrop(enemy.ItemDrops[i]);
+
+            stream.WriteInt(enemy.Experience);
+            stream.WriteInt(enemy.Money);
+
+            stream.WriteBytes(enemy.Unknown, 30, 4);
+        }
     }
 }

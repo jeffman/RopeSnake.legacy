@@ -97,6 +97,7 @@
     <Compile Include="Graphics\Tileset.cs" />
     <Compile Include="Mother3\Data\DataModule.cs" />
     <Compile Include="Mother3\Data\DataExtensions.cs" />
+    <Compile Include="Mother3\Data\Enemy.cs" />
     <Compile Include="Mother3\Data\Item.cs" />
     <Compile Include="Mother3\IO\OffsetTableReader.cs" />
     <Compile Include="Mother3\IO\ShortOffsetTableReader.cs" />

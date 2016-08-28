@@ -13,14 +13,17 @@ namespace RopeSnake.Mother3.Data
         #region Static strings
 
         private static readonly string ItemsKey = "Data.Items";
+        private static readonly string EnemiesKey = "Data.Enemies";
 
         private static readonly FileSystemPath ItemsPath = "/data/items.json".ToPath();
+        private static readonly FileSystemPath EnemiesPath = "/data/enemies.json".ToPath();
 
         #endregion
 
         public override string Name => "Data";
 
         public List<Item> Items { get; set; }
+        public List<Enemy> Enemies { get; set; }
 
         public DataModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
             : base(romConfig, projectSettings)
@@ -34,6 +37,7 @@ namespace RopeSnake.Mother3.Data
             RegisterFileManagerProgress(jsonManager);
 
             Items = jsonManager.ReadJson<List<Item>>(ItemsPath);
+            Enemies = jsonManager.ReadJson<List<Enemy>>(EnemiesPath);
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
@@ -42,17 +46,20 @@ namespace RopeSnake.Mother3.Data
             RegisterFileManagerProgress(jsonManager);
 
             jsonManager.WriteJson(ItemsPath, Items);
+            jsonManager.WriteJson(EnemiesPath, Enemies);
         }
 
         public override void ReadFromRom(Block romData)
         {
-            Items = ReadTable(romData, ItemsKey, s => s.ReadItem());
+            Items = ReadTable(romData, ItemsKey, DataExtensions.ReadItem);
+            Enemies = ReadTable(romData, EnemiesKey, DataExtensions.ReadEnemy);
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, ItemsKey);
+            UpdateRomReferences(romData, allocatedBlocks, EnemiesKey);
         }
 
         public override ModuleSerializationResult Serialize()
@@ -60,6 +67,7 @@ namespace RopeSnake.Mother3.Data
             var blocks = new LazyBlockCollection();
 
             blocks.Add(ItemsKey, () => SerializeTable(Items, Item.FieldSize, DataExtensions.WriteItem));
+            blocks.Add(EnemiesKey, () => SerializeTable(Enemies, Enemy.FieldSize, DataExtensions.WriteEnemy));
 
             return new ModuleSerializationResult(blocks, null);
         }
@@ -69,6 +77,11 @@ namespace RopeSnake.Mother3.Data
             for (int i = 0; i < Items.Count; i++)
             {
                 Items[i].NameHint = textModule.ItemNames[i];
+            }
+
+            for (int i = 0; i < Enemies.Count; i++)
+            {
+                Enemies[i].NameHint = textModule.EnemyNames[i];
             }
         }
     }

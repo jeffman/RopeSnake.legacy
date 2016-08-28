@@ -115,7 +115,7 @@ namespace RopeSnake.Core
         public CompilationResult Compile()
         {
             var writtenBlocks = new BlockCollection();
-            var updatedKeys = new List<string>();
+            var updatedKeys = new HashSet<string>();
 
             var allSerializationResults = new Dictionary<IModule, ModuleSerializationResult>();
             var allResolvedBlocks = new Dictionary<IModule, ResolveSerializedBlocksResult>();

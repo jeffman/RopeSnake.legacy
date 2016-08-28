@@ -118,6 +118,7 @@ namespace RopeSnake.Mother3
                 _log.Info($"Writing module {module.Name}");
                 module.WriteToFiles(fileSystem, StaleObjects);
             }
+            _log.Info("Finished writing modules");
 
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
@@ -125,6 +126,7 @@ namespace RopeSnake.Mother3
 
             if (!fileSystem.Exists(ProjectSettings.BaseRomFile))
             {
+                _log.Info($"Writing base ROM to {ProjectSettings.BaseRomFile.Path}");
                 var binaryManager = new BinaryFileManager(fileSystem);
                 binaryManager.WriteFile(ProjectSettings.BaseRomFile, RomData);
             }
@@ -175,6 +177,7 @@ namespace RopeSnake.Mother3
             }
 
             LogCompilationResult(fileSystem, compilationResult, allocator.Ranges);
+            _log.Info("Finished compiling");
         }
 
         public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)

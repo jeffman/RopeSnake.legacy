@@ -10,8 +10,11 @@ using SharpFileSystem;
 
 namespace RopeSnake.Core
 {
-    public class JsonFileManager : FileManagerBase
+    public sealed class JsonFileManager : FileManagerBase
     {
+        private static readonly string JsonExtension = "json";
+        private object _lockObj = new object();
+
         public bool WriteByteArraysAsArrays { get; set; } = true;
 
         public JsonFileManager(IFileSystem fileSystem)
@@ -20,75 +23,71 @@ namespace RopeSnake.Core
 
         }
 
-        public virtual T ReadJson<T>(FileSystemPath path)
+        public T ReadJson<T>(FileSystemPath path)
         {
-            OnFileRead(path);
-
-            var serializer = new JsonSerializer();
-            if (WriteByteArraysAsArrays)
+            lock (_lockObj)
             {
-                serializer.Converters.Add(new ByteArrayJsonConverter());
+                CurrentIndex = IndexTotal.Single;
+                return ReadJsonInternal<T>(path);
             }
+        }
 
-            using (var stream = FileSystem.OpenFile(path, FileAccess.Read))
+        public List<T> ReadJsonList<T>(FileSystemPath directory)
+        {
+            return ReadFileListAction(directory, JsonExtension, ReadJsonInternal<T>);
+        }
+
+        private T ReadJsonInternal<T>(FileSystemPath path)
+        {
+            T returnValue = default(T);
+
+            ReadFileAction(path, stream =>
             {
                 using (var textReader = new StreamReader(stream))
                 {
                     using (var jsonReader = new JsonTextReader(textReader))
                     {
-                        return serializer.Deserialize<T>(jsonReader);
+                        var serializer = new JsonSerializer();
+                        returnValue = serializer.Deserialize<T>(jsonReader);
                     }
                 }
+            });
+
+            return returnValue;
+        }
+
+        public void WriteJson(FileSystemPath path, object value)
+        {
+            lock (_lockObj)
+            {
+                CurrentIndex = IndexTotal.Single;
+                WriteJsonInternal(path, value);
             }
         }
 
-        public virtual void WriteJson(FileSystemPath path, object value)
+        public void WriteJsonList<T>(FileSystemPath directory, IList<T> list)
         {
-            if (!IsStale(value))
-                return;
+            CreateFileListAction(directory, JsonExtension, list, (p, e) => WriteJsonInternal(p, e));
+        }
 
-            OnFileWrite(path);
-
-            var serializer = new JsonSerializer();
-            serializer.Formatting = Formatting.Indented;
-            if (WriteByteArraysAsArrays)
-            {
-                serializer.Converters.Add(new ByteArrayJsonConverter());
-            }
-
-            if (!FileSystem.Exists(path.ParentPath))
-            {
-                FileSystem.CreateDirectoryRecursive(path.ParentPath);
-            }
-
-            using (var stream = FileSystem.CreateFile(path))
+        private void WriteJsonInternal(FileSystemPath path, object value)
+        {
+            CreateFileAction(path, value, stream =>
             {
                 using (var textWriter = new StreamWriter(stream))
                 {
                     using (var jsonWriter = new JsonTextWriter(textWriter))
                     {
+                        var serializer = new JsonSerializer();
+                        serializer.Formatting = Formatting.Indented;
+                        if (WriteByteArraysAsArrays)
+                        {
+                            serializer.Converters.Add(new ByteArrayJsonConverter());
+                        }
                         serializer.Serialize(jsonWriter, value);
                     }
                 }
-            }
-        }
-
-        protected virtual bool IsStale(object value)
-        {
-            if (StaleObjects == null)
-                return true;
-
-            if (StaleObjects.Contains(value))
-                return true;
-
-            var enumerable = value as IEnumerable;
-            foreach (var child in enumerable)
-            {
-                if (StaleObjects.Contains(child))
-                    return true;
-            }
-
-            return false;
+            });
         }
     }
 }

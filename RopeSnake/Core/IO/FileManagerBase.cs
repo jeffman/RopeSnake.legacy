@@ -61,7 +61,7 @@ namespace RopeSnake.Core
                 throw new ArgumentException(nameof(path));
 
             if (!FileSystem.Exists(path))
-                throw new FileNotFoundException("File not found", path.Path);
+                throw new FileNotFoundException($"File not found: {path.Path}", path.Path);
 
             OnFileRead(path, CurrentIndex);
 

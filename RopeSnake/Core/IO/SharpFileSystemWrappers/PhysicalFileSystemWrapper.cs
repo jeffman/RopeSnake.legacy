@@ -22,7 +22,7 @@ namespace RopeSnake.Core
             var physicalPath = GetPhysicalPath(path);
 
             if (!Exists(path))
-                throw new FileNotFoundException("File or directory not found", Path.GetFullPath(physicalPath));
+                throw new FileNotFoundException($"File or directory not found: {Path.GetFullPath(physicalPath)}", Path.GetFullPath(physicalPath));
 
             if (path.IsDirectory)
             {

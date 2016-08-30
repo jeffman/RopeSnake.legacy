@@ -109,7 +109,7 @@ namespace RopeSnake.Mother3
             }
 
             _log.Info("Copying base ROM to output directory");
-            File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.EntityName));
+            File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.EntityName), true);
 
             _log.Info("Finished creating project");
             return project;

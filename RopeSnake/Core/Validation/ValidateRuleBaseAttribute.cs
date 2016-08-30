@@ -10,10 +10,18 @@ namespace RopeSnake.Core.Validation
     [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property, AllowMultiple = true)]
     public abstract class ValidateRuleBaseAttribute : ValidateBaseAttribute
     {
+        public virtual NullHandling NullHandling { get; set; } = NullHandling.Pass;
         public override ValidateFlags Flags { get; set; } = ValidateFlags.Instance;
         public bool Warn { get; set; } = false;
 
-        public abstract bool Validate(object value, LazyString path, Logger log);
+        public virtual bool Validate(object value, LazyString path, Logger log)
+        {
+            if (value == null && NullHandling == NullHandling.Pass)
+                return true;
+            return ValidateInternal(value, path, log);
+        }
+
+        protected abstract bool ValidateInternal(object value, LazyString path, Logger log);
 
         protected bool Fail(string message, LazyString path, Logger log)
         {
@@ -28,5 +36,11 @@ namespace RopeSnake.Core.Validation
                 return false;
             }
         }
+    }
+
+    public enum NullHandling
+    {
+        Pass,
+        Check
     }
 }

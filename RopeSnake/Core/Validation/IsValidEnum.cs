@@ -19,7 +19,7 @@ namespace RopeSnake.Core.Validation
             _enumType = enumType;
         }
 
-        public override bool Validate(object value, LazyString path, Logger log)
+        protected override bool ValidateInternal(object value, LazyString path, Logger log)
         {
             if (!Enum.IsDefined(_enumType, value))
             {

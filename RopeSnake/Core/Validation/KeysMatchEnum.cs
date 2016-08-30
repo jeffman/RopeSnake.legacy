@@ -21,11 +21,8 @@ namespace RopeSnake.Core.Validation
             _keys = new HashSet<object>(Enum.GetValues(enumType).Cast<object>());
         }
 
-        public override bool Validate(object value, LazyString path, Logger log)
+        protected override bool ValidateInternal(object value, LazyString path, Logger log)
         {
-            if (value == null)
-                return true;
-
             var dictionary = value as IDictionary;
             if (dictionary == null)
                 throw new Exception("Value must implement IDictionary");

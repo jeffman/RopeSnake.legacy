@@ -17,11 +17,8 @@ namespace RopeSnake.Core.Validation
             _count = count;
         }
 
-        public override bool Validate(object value, LazyString path, Logger log)
+        protected override bool ValidateInternal(object value, LazyString path, Logger log)
         {
-            if (value == null)
-                return true;
-
             var collection = value as ICollection;
             if (collection == null)
                 throw new Exception("Value must implement ICollection");

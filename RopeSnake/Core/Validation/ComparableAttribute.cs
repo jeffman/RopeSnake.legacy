@@ -19,7 +19,7 @@ namespace RopeSnake.Core.Validation
         protected abstract bool Compare(IComparable value);
         protected abstract string GetFailMessage(object value);
 
-        public override bool Validate(object value, LazyString path, Logger log)
+        protected override bool ValidateInternal(object value, LazyString path, Logger log)
         {
             var comparable = Convert.ChangeType(value, CompareType) as IComparable;
             if (comparable == null)

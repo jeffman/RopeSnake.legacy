@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using SharpFileSystem;
 using RopeSnake.Core;
+using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Mother3.Data
 {
+    [Validate]
     public sealed class DataModule : Mother3Module
     {
         #region Static strings
@@ -22,7 +24,10 @@ namespace RopeSnake.Mother3.Data
 
         public override string Name => "Data";
 
+        [Validate(Flags = ValidateFlags.Collection), NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection)]
         public List<Item> Items { get; set; }
+
+        [Validate(Flags = ValidateFlags.Collection), NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection)]
         public List<Enemy> Enemies { get; set; }
 
         public DataModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)

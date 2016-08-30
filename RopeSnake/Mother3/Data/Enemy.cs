@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Mother3.Data
 {
+    [Validate]
     public sealed class Enemy
     {
         public static readonly int FieldSize = 144;
@@ -35,19 +37,26 @@ namespace RopeSnake.Mother3.Data
         public byte DeathText { get; set; }
         public int Experience { get; set; }
         public int Money { get; set; }
+
+        [NotNull, KeysMatchEnum(typeof(WeaknessType))]
         public Dictionary<WeaknessType, ushort> Weaknesses { get; set; }
-        [JsonProperty]
+
+        [JsonProperty, NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection), CountEquals(3), Validate(Flags = ValidateFlags.Collection)]
         public ItemDrop[] ItemDrops { get; private set; } = new ItemDrop[3];
-        [JsonProperty]
+
+        [JsonProperty, NotNull, CountEquals(8)]
         public ushort[] Actions { get; private set; } = new ushort[8];
 
-        [JsonProperty(Order = 99)]
+        [JsonProperty(Order = 99), NotNull, CountEquals(34)]
         public byte[] Unknown { get; set; } = new byte[34];
     }
 
+    [Validate]
     public sealed class ItemDrop
     {
         public byte Item { get; set; }
+
+        [InRange(0, 100, Warn = true)]
         public byte Chance { get; set; }
     }
 

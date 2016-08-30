@@ -5,9 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Mother3.Data
 {
+    [Validate]
     public sealed class Item
     {
         public static readonly int FieldSize = 108;
@@ -16,7 +18,7 @@ namespace RopeSnake.Mother3.Data
         public string NameHint { get; set; }
 
         public int Index { get; set; }
-        [JsonConverter(typeof(StringEnumConverter))]
+        [JsonConverter(typeof(StringEnumConverter)), IsValidEnum(typeof(ItemType), Warn = true)]
         public ItemType Type { get; set; }
         public bool Key { get; set; }
         public ushort SellPrice { get; set; }
@@ -31,9 +33,14 @@ namespace RopeSnake.Mother3.Data
         public ushort LowerHp { get; set; }
         public ushort UpperHp { get; set; }
         public ushort BattleTextIndex { get; set; }
+
+        [NotNull, KeysMatchEnum(typeof(AilmentType))]
         public Dictionary<AilmentType, short> AilmentProtection { get; set; }
+
+        [NotNull, KeysMatchEnum(typeof(ElementalType))]
         public Dictionary<ElementalType, sbyte> ElementalProtection { get; set; }
-        [JsonProperty(Order = 99)]
+
+        [JsonProperty(Order = 99), NotNull, CountEquals(52)]
         public byte[] Unknown { get; set; } = new byte[52];
     }
 

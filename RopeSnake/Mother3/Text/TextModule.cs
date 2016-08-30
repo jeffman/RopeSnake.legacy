@@ -6,10 +6,12 @@ using System.Text;
 using System.Threading.Tasks;
 using SharpFileSystem;
 using RopeSnake.Core;
+using RopeSnake.Core.Validation;
 using RopeSnake.Mother3.IO;
 
 namespace RopeSnake.Mother3.Text
 {
+    [Validate]
     public sealed class TextModule : Mother3Module
     {
         #region Static strings
@@ -47,19 +49,19 @@ namespace RopeSnake.Mother3.Text
 
         public override string Name => "Text";
 
-        public List<string> RoomDescriptions { get; set; }
-        public StringTable ItemNames { get; set; }
-        public List<string> ItemDescriptions { get; set; }
-        public StringTable CharNames { get; set; }
-        public StringTable PartyCharNames { get; set; }
-        public StringTable EnemyNames { get; set; }
-        public StringTable PsiNames { get; set; }
-        public List<string> PsiDescriptions { get; set; }
-        public StringTable Statuses { get; set; }
-        public StringTable DefaultCharNames { get; set; }
-        public StringTable Skills { get; set; }
-        public List<string> SkillDescriptions { get; set; }
-        public List<List<string>> MainScript { get; set; }
+        [NotNull] public List<string> RoomDescriptions { get; set; }
+        [NotNull] public StringTable ItemNames { get; set; }
+        [NotNull] public List<string> ItemDescriptions { get; set; }
+        [NotNull] public StringTable CharNames { get; set; }
+        [NotNull] public StringTable PartyCharNames { get; set; }
+        [NotNull] public StringTable EnemyNames { get; set; }
+        [NotNull] public StringTable PsiNames { get; set; }
+        [NotNull] public List<string> PsiDescriptions { get; set; }
+        [NotNull] public StringTable Statuses { get; set; }
+        [NotNull] public StringTable DefaultCharNames { get; set; }
+        [NotNull] public StringTable Skills { get; set; }
+        [NotNull] public List<string> SkillDescriptions { get; set; }
+        [NotNull] public List<List<string>> MainScript { get; set; }
 
         private string[] _textKeys;
         private string[] _mainScriptKeys;

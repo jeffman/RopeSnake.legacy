@@ -92,8 +92,7 @@ namespace RopeSnake.Mother3.Data
         Fleas = 7,
         Burned = 8,
         Solidified = 9,
-        Numb = 10,
-        Trip = 38
+        Numb = 10
     }
 
     public enum ElementalType : int

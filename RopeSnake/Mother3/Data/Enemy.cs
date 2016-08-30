@@ -9,7 +9,7 @@ using RopeSnake.Core.Validation;
 namespace RopeSnake.Mother3.Data
 {
     [Validate]
-    public sealed class Enemy
+    public sealed class Enemy : INameHint
     {
         public static readonly int FieldSize = 144;
 

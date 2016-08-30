@@ -1,6 +1,18 @@
 ﻿{
   "Version": "jp",
   "References": {
+    "Data.Psi": [
+      265612,
+      265888,
+      265996,
+      267268,
+      322972,
+      327560,
+      339380,
+      378560,
+      378860,
+      535460
+    ],
     "Data.Items": [
       116680,
       118120,
@@ -87,6 +99,7 @@
   },
   "FreeRanges": {
     "Data": [
+      "[0xE1908, 0xE5108]",
       "[0xE5108, 0xEBD07]",
       "[0xD0D28, 0xD9D27]"
     ],
@@ -102,6 +115,7 @@
     ]
   },
   "Parameters": {
+    "Data.Psi.Count": 256,
     "Data.Items.Count": 256,
     "Data.Enemies.Count": 256,
     "Maps.Info.Count": 1000

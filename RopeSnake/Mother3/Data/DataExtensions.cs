@@ -217,5 +217,64 @@ namespace RopeSnake.Mother3.Data
 
             stream.WriteBytes(enemy.Unknown, 30, 4);
         }
+
+        public static Psi ReadPsi(this BinaryStream stream)
+        {
+            var psi = new Psi();
+
+            psi.Index = stream.ReadInt();
+            psi.Category = (PsiCategory)stream.ReadInt();
+            stream.ReadBytes(psi.Unknown, 0, 4);
+            psi.PpCost = stream.ReadUShort();
+            stream.ReadBytes(psi.Unknown, 4, 6);
+            psi.Type = (ElementalType)stream.ReadInt();
+            psi.Target = (PsiTarget)stream.ReadUShort();
+            stream.ReadBytes(psi.Unknown, 10, 4);
+            psi.LowAmount = stream.ReadUShort();
+            psi.HighAmount = stream.ReadUShort();
+
+            int afflictionType = stream.ReadByte();
+            if (afflictionType == 0)
+            {
+                psi.AfflictionType = null;
+            }
+            else
+            {
+                psi.AfflictionType = (AilmentType)(afflictionType - 1);
+            }
+
+            psi.AfflictionChance = stream.ReadByte();
+            stream.ReadBytes(psi.Unknown, 14, 11);
+            stream.ReadBytes(psi.Animations, 0, 2);
+            stream.ReadBytes(psi.Unknown, 25, 7);
+
+            return psi;
+        }
+
+        public static void WritePsi(this BinaryStream stream, Psi psi)
+        {
+            stream.WriteInt(psi.Index);
+            stream.WriteInt((int)psi.Category);
+            stream.WriteBytes(psi.Unknown, 0, 4);
+            stream.WriteUShort(psi.PpCost);
+            stream.WriteBytes(psi.Unknown, 4, 6);
+            stream.WriteInt((int)psi.Type);
+            stream.WriteUShort((ushort)psi.Target);
+            stream.WriteBytes(psi.Unknown, 10, 4);
+
+            if (psi.AfflictionType == null)
+            {
+                stream.WriteByte(0);
+            }
+            else
+            {
+                stream.WriteByte((byte)(psi.AfflictionType + 1));
+            }
+
+            stream.WriteByte(psi.AfflictionChance);
+            stream.WriteBytes(psi.Unknown, 14, 11);
+            stream.WriteBytes(psi.Animations, 0, 2);
+            stream.WriteBytes(psi.Unknown, 25, 7);
+        }
     }
 }

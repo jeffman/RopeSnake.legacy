@@ -14,15 +14,20 @@ namespace RopeSnake.Mother3.Data
     {
         #region Static strings
 
+        private static readonly string PsiKey = "Data.Psi";
         private static readonly string ItemsKey = "Data.Items";
         private static readonly string EnemiesKey = "Data.Enemies";
 
+        private static readonly FileSystemPath PsiPath = "/data/psi.json".ToPath();
         private static readonly FileSystemPath ItemsPath = "/data/items.json".ToPath();
         private static readonly FileSystemPath EnemiesPath = "/data/enemies.json".ToPath();
 
         #endregion
 
         public override string Name => "Data";
+
+        [Validate(Flags = ValidateFlags.Collection), NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection)]
+        public List<Psi> Psi { get; set; }
 
         [Validate(Flags = ValidateFlags.Collection), NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection)]
         public List<Item> Items { get; set; }
@@ -41,6 +46,7 @@ namespace RopeSnake.Mother3.Data
             var jsonManager = new JsonFileManager(fileSystem);
             RegisterFileManagerProgress(jsonManager);
 
+            Psi = jsonManager.ReadJson<List<Psi>>(PsiPath);
             Items = jsonManager.ReadJson<List<Item>>(ItemsPath);
             Enemies = jsonManager.ReadJson<List<Enemy>>(EnemiesPath);
         }
@@ -50,12 +56,14 @@ namespace RopeSnake.Mother3.Data
             var jsonManager = new JsonFileManager(fileSystem);
             RegisterFileManagerProgress(jsonManager);
 
+            jsonManager.WriteJson(PsiPath, Psi);
             jsonManager.WriteJson(ItemsPath, Items);
             jsonManager.WriteJson(EnemiesPath, Enemies);
         }
 
         public override void ReadFromRom(Block romData)
         {
+            Psi = ReadTable(romData, PsiKey, DataExtensions.ReadPsi);
             Items = ReadTable(romData, ItemsKey, DataExtensions.ReadItem);
             Enemies = ReadTable(romData, EnemiesKey, DataExtensions.ReadEnemy);
         }
@@ -63,14 +71,14 @@ namespace RopeSnake.Mother3.Data
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             WriteAllocatedBlocks(romData, allocatedBlocks);
-            UpdateRomReferences(romData, allocatedBlocks, ItemsKey);
-            UpdateRomReferences(romData, allocatedBlocks, EnemiesKey);
+            UpdateRomReferences(romData, allocatedBlocks, PsiKey, ItemsKey, EnemiesKey);
         }
 
         public override ModuleSerializationResult Serialize()
         {
             var blocks = new LazyBlockCollection();
 
+            blocks.Add(PsiKey, () => SerializeTable(Psi, Data.Psi.FieldSize, DataExtensions.WritePsi));
             blocks.Add(ItemsKey, () => SerializeTable(Items, Item.FieldSize, DataExtensions.WriteItem));
             blocks.Add(EnemiesKey, () => SerializeTable(Enemies, Enemy.FieldSize, DataExtensions.WriteEnemy));
 
@@ -79,14 +87,29 @@ namespace RopeSnake.Mother3.Data
 
         public void UpdateNameHints(Text.TextModule textModule)
         {
-            for (int i = 0; i < Items.Count; i++)
-            {
-                Items[i].NameHint = textModule.ItemNames[i];
-            }
+            UpdateNameHints(Psi, textModule.PsiNames);
+            UpdateNameHints(Items, textModule.ItemNames);
+            UpdateNameHints(Enemies, textModule.EnemyNames);
+        }
 
-            for (int i = 0; i < Enemies.Count; i++)
+        private static void UpdateNameHints(IEnumerable<INameHint> values, IList<string> nameHints)
+        {
+            int index = 0;
+            foreach (var value in values)
             {
-                Enemies[i].NameHint = textModule.EnemyNames[i];
+                try
+                {
+                    value.NameHint = nameHints[index];
+                }
+                catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException)
+                {
+                    // Name hints are totally optional and can fail for many reasons,
+                    // none of which are remotely fatal, so we can squash any index exceptions
+                }
+                finally
+                {
+                    index++;
+                }
             }
         }
     }

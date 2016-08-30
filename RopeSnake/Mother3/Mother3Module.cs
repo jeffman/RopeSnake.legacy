@@ -118,15 +118,17 @@ namespace RopeSnake.Mother3
             int offset = RomConfig.GetOffset(key, romData);
             int count = RomConfig.GetParameter<int>(key + ".Count");
             var stream = romData.ToBinaryStream(offset);
-            return ReadTable(stream, count, elementReader);
+            return ReadTable(stream, count, key, elementReader);
         }
 
-        protected List<T> ReadTable<T>(BinaryStream stream, int count, Func<BinaryStream, T> elementReader)
+        protected List<T> ReadTable<T>(BinaryStream stream, int count, string key, Func<BinaryStream, T> elementReader)
         {
             var list = new List<T>();
             for (int i = 0; i < count; i++)
+            {
+                Log.Trace($"Reading element {i} at 0x{stream.Position:X} from table {key}");
                 list.Add(elementReader(stream));
-
+            }
             return list;
         }
 
@@ -143,7 +145,7 @@ namespace RopeSnake.Mother3
             if (!offsetTableReader.Next())
                 throw new InvalidOperationException($"Null pointer in dummy table: {key}");
 
-            return ReadTable(stream, count, elementReader);
+            return ReadTable(stream, count, key, elementReader);
         }
 
         protected static Block SerializeTable<T>(List<T> list, int fieldSize, Action<BinaryStream, T> elementWriter)

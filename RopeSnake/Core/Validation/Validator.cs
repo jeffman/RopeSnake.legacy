@@ -152,7 +152,7 @@ namespace RopeSnake.Core.Validation
                     int index = 0;
                     foreach (object element in collection)
                     {
-                        var elementPath = path.Append(() => $"[{index}]");
+                        var elementPath = path.Append(() => GetCollectionIndexer(element, index));
                         foreach (var collectionRule in collectionRules)
                         {
                             success &= collectionRule.Validate(element, elementPath, log);
@@ -167,16 +167,17 @@ namespace RopeSnake.Core.Validation
                     dictionary = value as IDictionary;
                     foreach (var key in dictionary.Keys)
                     {
-                        var keyPath = path.Append($".Keys[{key}]");
+                        var keyPath = path.Append(() => GetDictionaryKeyIndexer(key));
                         foreach (var keyRule in dictionaryKeyRules)
                         {
                             success &= keyRule.Validate(key, keyPath, log);
                         }
 
-                        var valuePath = path.Append(() => $"[{key}]");
+                        var element = dictionary[key];
+                        var valuePath = path.Append(() => GetDictionaryValueIndexer(element, key));
                         foreach (var valueRule in dictionaryValueRules)
                         {
-                            success &= valueRule.Validate(dictionary[key], valuePath, log);
+                            success &= valueRule.Validate(element, valuePath, log);
                         }
                     }
                 }
@@ -198,7 +199,7 @@ namespace RopeSnake.Core.Validation
                     {
                         if (element != null)
                         {
-                            var elementPath = path.Append(() => $"[{index}]");
+                            var elementPath = path.Append(() => GetCollectionIndexer(element, index));
                             success &= Validator.Object(element, elementPath, log);
                         }
                         index++;
@@ -216,7 +217,7 @@ namespace RopeSnake.Core.Validation
                         {
                             if (doKeys)
                             {
-                                var keyPath = path.Append(() => $".Keys[{key}]");
+                                var keyPath = path.Append(() => GetDictionaryKeyIndexer(key));
                                 success &= Validator.Object(key, keyPath, log);
                             }
 
@@ -225,7 +226,7 @@ namespace RopeSnake.Core.Validation
                                 var element = dictionary[key];
                                 if (element != null)
                                 {
-                                    var elementPath = path.Append(() => $"[{key}]");
+                                    var elementPath = path.Append(() => GetDictionaryValueIndexer(element, key));
                                     success &= Validator.Object(element, elementPath, log);
                                 }
                             }
@@ -235,6 +236,26 @@ namespace RopeSnake.Core.Validation
             }
 
             return success;
+        }
+
+        private static string GetCollectionIndexer(object value, int index)
+        {
+            var nameHint = value as INameHint;
+            if (nameHint != null)
+            {
+                return $"[{index} \"{nameHint.NameHint}\"]";
+            }
+            return $"[{index}]";
+        }
+
+        private static string GetDictionaryKeyIndexer(object key)
+        {
+            return $".Keys[{key}]";
+        }
+
+        private static string GetDictionaryValueIndexer(object value, object key)
+        {
+            return $"[{key}]";
         }
     }
 }

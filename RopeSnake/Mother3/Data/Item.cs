@@ -10,7 +10,7 @@ using RopeSnake.Core.Validation;
 namespace RopeSnake.Mother3.Data
 {
     [Validate]
-    public sealed class Item
+    public sealed class Item : INameHint
     {
         public static readonly int FieldSize = 108;
 
@@ -92,7 +92,8 @@ namespace RopeSnake.Mother3.Data
         Fleas = 7,
         Burned = 8,
         Solidified = 9,
-        Numb = 10
+        Numb = 10,
+        Trip = 38
     }
 
     public enum ElementalType : int

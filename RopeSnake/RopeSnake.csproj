@@ -144,9 +144,6 @@
   </ItemGroup>
   <ItemGroup />
   <ItemGroup>
-    <None Include="Mother3\RomConfigurations\m3_jp.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

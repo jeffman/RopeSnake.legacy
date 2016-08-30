@@ -223,6 +223,16 @@ namespace RopeSnake.Mother3
             binaryManager.WriteFileDictionary(CachePath, cache);
         }
 
+        public bool Validate()
+        {
+            bool success = true;
+            foreach (var module in Modules)
+            {
+                success &= module.Validate(new LazyString(module.Name));
+            }
+            return success;
+        }
+
         private IEnumerable<string> GetStaleBlockKeys(IEnumerable<FileSystemPath> paths)
         {
             return Modules.SelectMany(m => paths.SelectMany(p => m.GetBlockKeysForFile(p)));

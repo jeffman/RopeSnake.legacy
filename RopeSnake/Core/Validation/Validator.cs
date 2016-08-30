@@ -11,17 +11,36 @@ namespace RopeSnake.Core.Validation
 {
     public static class Validator
     {
+        private class AttributeBundle
+        {
+            public ValidateAttribute Validate { get; private set; }
+            public ValidateRuleBaseAttribute[] InstanceRules { get; private set; }
+            public ValidateRuleBaseAttribute[] CollectionRules { get; private set; }
+            public ValidateRuleBaseAttribute[] DictionaryKeyRules { get; private set; }
+            public ValidateRuleBaseAttribute[] DictionaryValueRules { get; private set; }
+
+            public AttributeBundle(IEnumerable<ValidateBaseAttribute> attributes)
+            {
+                Validate = attributes.FirstOrDefault(a => a.GetType() == typeof(ValidateAttribute)) as ValidateAttribute;
+                var rules = attributes.OfType<ValidateRuleBaseAttribute>();
+                InstanceRules = rules.Where(a => a.Flags.HasFlag(ValidateFlags.Instance)).ToArray();
+                CollectionRules = rules.Where(a => a.Flags.HasFlag(ValidateFlags.Collection)).ToArray();
+                DictionaryKeyRules = rules.Where(a => a.Flags.HasFlag(ValidateFlags.DictionaryValues)).ToArray();
+                DictionaryValueRules = rules.Where(a => a.Flags.HasFlag(ValidateFlags.DictionaryKeys)).ToArray();
+            }
+        }
+
         private static readonly Type _typeOfCollection = typeof(ICollection);
         private static readonly Type _typeOfDictionary = typeof(IDictionary);
 
         private static Dictionary<Type, ValidateAttribute> _typeAttributes
             = new Dictionary<Type, ValidateAttribute>();
 
-        private static Dictionary<Type, IEnumerable<PropertyInfo>> _typePropertyInfo
-            = new Dictionary<Type, IEnumerable<PropertyInfo>>();
+        private static Dictionary<Type, PropertyInfo[]> _typePropertyInfo
+            = new Dictionary<Type, PropertyInfo[]>();
 
-        private static Dictionary<PropertyInfo, IEnumerable<ValidateBaseAttribute>> _propertyAttributes
-            = new Dictionary<PropertyInfo, IEnumerable<ValidateBaseAttribute>>();
+        private static Dictionary<PropertyInfo, AttributeBundle> _propertyAttributes
+            = new Dictionary<PropertyInfo, AttributeBundle>();
 
         private static ValidateAttribute GetTypeAttribute(Type type)
         {
@@ -39,9 +58,9 @@ namespace RopeSnake.Core.Validation
             return attribute;
         }
 
-        private static IEnumerable<PropertyInfo> GetTypePropertyInfo(Type type)
+        private static PropertyInfo[] GetTypePropertyInfo(Type type)
         {
-            IEnumerable<PropertyInfo> properties;
+            PropertyInfo[] properties;
             if (_typePropertyInfo.TryGetValue(type, out properties))
                 return properties;
 
@@ -50,15 +69,20 @@ namespace RopeSnake.Core.Validation
             return properties;
         }
 
-        private static IEnumerable<ValidateBaseAttribute> GetPropertyAttributes(PropertyInfo property)
+        private static AttributeBundle GetPropertyAttributes(PropertyInfo property)
         {
-            IEnumerable<ValidateBaseAttribute> attributes;
-            if (_propertyAttributes.TryGetValue(property, out attributes))
-                return attributes;
+            AttributeBundle bundle;
+            if (_propertyAttributes.TryGetValue(property, out bundle))
+                return bundle;
 
-            attributes = property.GetCustomAttributes<ValidateBaseAttribute>();
-            _propertyAttributes.Add(property, attributes);
-            return attributes;
+            var attributes = property.GetCustomAttributes<ValidateBaseAttribute>();
+            bundle = null;
+            if (attributes.Any())
+            {
+                bundle = new AttributeBundle(attributes);
+            }
+            _propertyAttributes.Add(property, bundle);
+            return bundle;
         }
 
         public static bool Object(object value, LazyString path, Logger log)
@@ -87,7 +111,7 @@ namespace RopeSnake.Core.Validation
             var value = property.GetValue(owner);
             var attributes = GetPropertyAttributes(property);
 
-            if (attributes.Any())
+            if (attributes != null)
             {
                 return ValidateObjectWithAttributes(value, ownerPath.Append($".{property.Name}"), attributes, log);
             }
@@ -97,17 +121,15 @@ namespace RopeSnake.Core.Validation
             }
         }
 
-        private static bool ValidateObjectWithAttributes(object value, LazyString path,
-            IEnumerable<ValidateBaseAttribute> attributes, Logger log)
+        private static bool ValidateObjectWithAttributes(object value, LazyString path, AttributeBundle attributes, Logger log)
         {
             bool success = true;
 
             // Get all rule attributes for various flags
-            var ruleAttributes = attributes.OfType<ValidateRuleBaseAttribute>();
-            var instanceRules = ruleAttributes.Where(a => a.Flags.HasFlag(ValidateFlags.Instance));
-            var collectionRules = ruleAttributes.Where(a => a.Flags.HasFlag(ValidateFlags.Collection));
-            var dictionaryValueRules = ruleAttributes.Where(a => a.Flags.HasFlag(ValidateFlags.DictionaryValues));
-            var dictionaryKeyRules = ruleAttributes.Where(a => a.Flags.HasFlag(ValidateFlags.DictionaryKeys));
+            var instanceRules = attributes.InstanceRules;
+            var collectionRules = attributes.CollectionRules;
+            var dictionaryKeyRules = attributes.DictionaryKeyRules;
+            var dictionaryValueRules = attributes.DictionaryValueRules;
 
             // For the instance, run all instance attributes
             foreach (var instanceRule in instanceRules)
@@ -130,7 +152,7 @@ namespace RopeSnake.Core.Validation
                     int index = 0;
                     foreach (object element in collection)
                     {
-                        var elementPath = path.Append($"[{index}]");
+                        var elementPath = path.Append(() => $"[{index}]");
                         foreach (var collectionRule in collectionRules)
                         {
                             success &= collectionRule.Validate(element, elementPath, log);
@@ -151,7 +173,7 @@ namespace RopeSnake.Core.Validation
                             success &= keyRule.Validate(key, keyPath, log);
                         }
 
-                        var valuePath = path.Append($"[{key.ToString()}]");
+                        var valuePath = path.Append(() => $"[{key}]");
                         foreach (var valueRule in dictionaryValueRules)
                         {
                             success &= valueRule.Validate(dictionary[key], valuePath, log);
@@ -161,8 +183,7 @@ namespace RopeSnake.Core.Validation
             }
 
             // Recursively validate the instance
-            var validateAttribute = attributes.OfType<ValidateAttribute>()
-                .FirstOrDefault(a => a.GetType() == typeof(ValidateAttribute));
+            var validateAttribute = attributes.Validate;
             if (validateAttribute != null)
             {
                 if (validateAttribute.Flags.HasFlag(ValidateFlags.Instance))
@@ -177,7 +198,7 @@ namespace RopeSnake.Core.Validation
                     {
                         if (element != null)
                         {
-                            var elementPath = path.Append($"[{index}]");
+                            var elementPath = path.Append(() => $"[{index}]");
                             success &= Validator.Object(element, elementPath, log);
                         }
                         index++;
@@ -195,7 +216,7 @@ namespace RopeSnake.Core.Validation
                         {
                             if (doKeys)
                             {
-                                var keyPath = path.Append($".Keys[{key.ToString()}]");
+                                var keyPath = path.Append(() => $".Keys[{key}]");
                                 success &= Validator.Object(key, keyPath, log);
                             }
 
@@ -204,7 +225,7 @@ namespace RopeSnake.Core.Validation
                                 var element = dictionary[key];
                                 if (element != null)
                                 {
-                                    var elementPath = path.Append($"[{key.ToString()}]");
+                                    var elementPath = path.Append(() => $"[{key}]");
                                     success &= Validator.Object(element, elementPath, log);
                                 }
                             }

@@ -9,6 +9,7 @@ namespace RopeSnake.Core
     public sealed class LazyString
     {
         private Func<string> _stringFunc;
+        private string _evaluated;
 
         public LazyString(string str) : this(() => str)
         {
@@ -25,9 +26,14 @@ namespace RopeSnake.Core
             return new LazyString(() => string.Concat(_stringFunc(), str));
         }
 
+        public LazyString Append(Func<string> str)
+        {
+            return new LazyString(() => string.Concat(_stringFunc(), str()));
+        }
+
         public string Evaluate()
         {
-            return _stringFunc();
+            return _evaluated ?? (_evaluated = _stringFunc());
         }
     }
 }

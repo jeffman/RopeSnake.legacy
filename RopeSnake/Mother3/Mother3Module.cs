@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SharpFileSystem;
 using RopeSnake.Core;
+using RopeSnake.Core.Validation;
 using RopeSnake.Gba;
 using RopeSnake.Mother3.IO;
 using RopeSnake.Mother3.Text;
@@ -227,6 +228,11 @@ namespace RopeSnake.Mother3
         public abstract void ReadFromFiles(IFileSystem fileSystem);
         public abstract void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects);
         public abstract ModuleSerializationResult Serialize();
+
+        public virtual bool Validate(LazyString path)
+        {
+            return true;
+        }
 
         public virtual IEnumerable<string> GetBlockKeysForFile(FileSystemPath path)
         {

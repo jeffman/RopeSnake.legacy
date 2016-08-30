@@ -4,10 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using SharpFileSystem;
+using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Core
 {
-    public interface IModule
+    public interface IModule : IValidatable
     {
         string Name { get; }
         IProgress<ProgressPercent> Progress { set; }

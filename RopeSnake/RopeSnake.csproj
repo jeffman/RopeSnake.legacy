@@ -77,10 +77,12 @@
     <Compile Include="Core\IO\SharpFileSystemWrappers\IFileSystemWrapper.cs" />
     <Compile Include="Core\IO\SharpFileSystemWrappers\PhysicalFileSystemWrapper.cs" />
     <Compile Include="Core\LazyBlockCollection.cs" />
+    <Compile Include="Core\LazyString.cs" />
     <Compile Include="Core\OrderedDictionary.cs" />
     <Compile Include="Core\ProgressPercent.cs" />
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
+    <Compile Include="Core\Validation\IValidatable.cs" />
     <Compile Include="Gba\GbaTile.cs" />
     <Compile Include="Gba\GbaTilemap.cs" />
     <Compile Include="Gba\GbaTileset.cs" />

@@ -7,11 +7,11 @@ using NLog;
 
 namespace RopeSnake.Core.Validation
 {
-    public class IsValidEnum : ValidateRuleBaseAttribute
+    public class IsValidEnumAttribute : ValidateRuleBaseAttribute
     {
         private Type _enumType;
 
-        public IsValidEnum(Type enumType)
+        public IsValidEnumAttribute(Type enumType)
         {
             if (!enumType.IsEnum)
                 throw new ArgumentException(nameof(enumType));

@@ -8,12 +8,12 @@ using NLog;
 
 namespace RopeSnake.Core.Validation
 {
-    public class KeysMatchEnum : ValidateRuleBaseAttribute
+    public class KeysMatchEnumAttribute : ValidateRuleBaseAttribute
     {
         private Type _enumType;
         private HashSet<object> _keys;
 
-        public KeysMatchEnum(Type enumType)
+        public KeysMatchEnumAttribute(Type enumType)
         {
             if (!enumType.IsEnum)
                 throw new ArgumentException(nameof(enumType));

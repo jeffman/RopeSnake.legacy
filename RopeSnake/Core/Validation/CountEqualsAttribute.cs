@@ -8,11 +8,11 @@ using NLog;
 
 namespace RopeSnake.Core.Validation
 {
-    public class CountEquals : ValidateRuleBaseAttribute
+    public class CountEqualsAttribute : ValidateRuleBaseAttribute
     {
         private int _count;
 
-        public CountEquals(int count)
+        public CountEqualsAttribute(int count)
         {
             _count = count;
         }

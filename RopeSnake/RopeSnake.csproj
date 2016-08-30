@@ -83,13 +83,13 @@
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
     <Compile Include="Core\Validation\ComparableAttribute.cs" />
-    <Compile Include="Core\Validation\CountEquals.cs" />
+    <Compile Include="Core\Validation\CountEqualsAttribute.cs" />
     <Compile Include="Core\Validation\GreaterThanAttribute.cs" />
     <Compile Include="Core\Validation\GreaterThanOrEqualAttribute.cs" />
     <Compile Include="Core\Validation\InRangeAttribute.cs" />
-    <Compile Include="Core\Validation\IsValidEnum.cs" />
+    <Compile Include="Core\Validation\IsValidEnumAttribute.cs" />
     <Compile Include="Core\Validation\IValidatable.cs" />
-    <Compile Include="Core\Validation\KeysMatchEnum.cs" />
+    <Compile Include="Core\Validation\KeysMatchEnumAttribute.cs" />
     <Compile Include="Core\Validation\LessThanAttribute.cs" />
     <Compile Include="Core\Validation\LessThanOrEqualAttribute.cs" />
     <Compile Include="Core\Validation\NotNullAttribute.cs" />

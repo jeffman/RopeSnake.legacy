@@ -231,7 +231,7 @@ namespace RopeSnake.Mother3
 
         public virtual bool Validate(LazyString path)
         {
-            return true;
+            return Validator.Object(this, path, Log);
         }
 
         public virtual IEnumerable<string> GetBlockKeysForFile(FileSystemPath path)

@@ -88,9 +88,31 @@ namespace RopeSnake.Mother3
         }
 
         protected void UpdateRomReferences(Block romData,
-            AllocatedBlockCollection allocatedBlocks, params string[] keys)
+            AllocatedBlockCollection allocatedBlocks, params object[] keys)
         {
-            foreach (string key in keys)
+            // It's just convenient to allow both strings and string arrays as params, so let's flatten them into one list
+            var actualKeys = new HashSet<string>();
+
+            foreach (var key in keys)
+            {
+                var str = key as string;
+                if (str != null)
+                {
+                    actualKeys.Add(str);
+                    continue;
+                }
+
+                var enumerable = key as IEnumerable<string>;
+                if (enumerable != null)
+                {
+                    actualKeys.AddRange(enumerable);
+                    continue;
+                }
+
+                throw new ArgumentException(nameof(keys));
+            }
+
+            foreach (string key in actualKeys)
             {
                 int pointer = allocatedBlocks.GetAllocatedPointer(key);
                 UpdateRomReferences(romData, key, pointer);

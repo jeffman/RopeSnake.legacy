@@ -35,7 +35,7 @@ namespace RopeSnake.Mother3.Text
             if (romConfig.IsJapanese)
                 return new JapaneseStringCodec(romConfig);
             else
-                return null;
+                return new EnglishStringCodec(romConfig);
         }
 
         protected ControlCode ReadChar(BinaryStream stream, StringBuilder sb,
@@ -47,7 +47,6 @@ namespace RopeSnake.Mother3.Text
             count++;
 
             ControlCode code = ControlCodes.FirstOrDefault(cc => cc.Code == ch);
-            var charLookup = isSaturn ? SaturnLookup : CharLookup;
 
             if (code != null)
             {
@@ -78,6 +77,8 @@ namespace RopeSnake.Mother3.Text
             }
             else
             {
+                var charLookup = isSaturn ? SaturnLookup : CharLookup;
+
                 if (charLookup.ContainsKey(ch))
                 {
                     contextString = charLookup[ch];

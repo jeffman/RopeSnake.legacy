@@ -134,6 +134,8 @@
     <Compile Include="Mother3\Mother3RomConfig.cs" />
     <Compile Include="Mother3\Text\ContextString.cs" />
     <Compile Include="Mother3\Text\ControlCode.cs" />
+    <Compile Include="Mother3\Text\EnglishStringCodec.cs" />
+    <Compile Include="Mother3\Text\EnglishStringStreamReader.cs" />
     <Compile Include="Mother3\Text\JapaneseStringCodec.cs" />
     <Compile Include="Mother3\Text\StringCodec.cs" />
     <Compile Include="Mother3\Text\ReverseLookup.cs" />

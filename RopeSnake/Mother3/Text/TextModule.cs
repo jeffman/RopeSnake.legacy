@@ -30,6 +30,8 @@ namespace RopeSnake.Mother3.Text
         private static readonly string SkillsKey = "Text.Skills";
         private static readonly string SkillDescriptionsKey = "Text.SkillDescriptions";
         private static readonly string MainScriptKey = "Text.MainScript";
+        private static readonly string EnemyNamesShortKey = "Text.EnemyNamesShort";
+        private static readonly string ItemDescriptionsSpecialKey = "Text.ItemDescriptionsSpecial";
 
         private static readonly FileSystemPath RoomDescriptionsPath = "/text/room-descriptions.json".ToPath();
         private static readonly FileSystemPath ItemNamesPath = "/text/item-names.json".ToPath();
@@ -44,6 +46,8 @@ namespace RopeSnake.Mother3.Text
         private static readonly FileSystemPath SkillsPath = "/text/skills.json".ToPath();
         private static readonly FileSystemPath SkillDescriptionsPath = "/text/skill-descriptions.json".ToPath();
         private static readonly FileSystemPath MainScriptPath = "/text/main-script.json".ToPath();
+        private static readonly FileSystemPath EnemyNamesShortPath = "/text/enemy-names-short.json".ToPath();
+        private static readonly FileSystemPath ItemDescriptionsSpecialPath = "/text/item-descriptions-special.json".ToPath();
 
         #endregion
 
@@ -62,6 +66,9 @@ namespace RopeSnake.Mother3.Text
         [NotNull] public StringTable Skills { get; set; }
         [NotNull] public List<string> SkillDescriptions { get; set; }
         [NotNull] public List<List<string>> MainScript { get; set; }
+
+        public StringTable EnemyNamesShort { get; set; }
+        public List<string> ItemDescriptionsSpecial { get; set; }
 
         private string[] _textKeys;
         private string[] _mainScriptKeys;
@@ -104,6 +111,15 @@ namespace RopeSnake.Mother3.Text
             AddBlockKeysForFile(SkillsPath, TextBankKey, SkillsKey);
             AddBlockKeysForFile(SkillDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(SkillDescriptionsKey));
             AddBlockKeysForFile(MainScriptPath, MainScriptKey, MainScript.SelectMany((s, i) => GetOffsetAndDataKeys($"{MainScriptKey}.{i}")));
+
+            if (RomConfig.IsEnglish)
+            {
+                EnemyNamesShort = jsonManager.ReadJson<StringTable>(EnemyNamesShortPath);
+                ItemDescriptionsSpecial = jsonManager.ReadJson<List<string>>(ItemDescriptionsSpecialPath);
+
+                AddBlockKeysForFile(EnemyNamesShortPath, EnemyNamesShortKey);
+                AddBlockKeysForFile(ItemDescriptionsSpecialPath, GetOffsetAndDataKeys(ItemDescriptionsSpecialKey));
+            }
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
@@ -125,6 +141,12 @@ namespace RopeSnake.Mother3.Text
             jsonManager.WriteJson(SkillsPath, Skills);
             jsonManager.WriteJson(SkillDescriptionsPath, SkillDescriptions);
             jsonManager.WriteJson(MainScriptPath, MainScript);
+
+            if (RomConfig.IsEnglish)
+            {
+                jsonManager.WriteJson(EnemyNamesShortPath, EnemyNamesShort);
+                jsonManager.WriteJson(ItemDescriptionsSpecialPath, ItemDescriptionsSpecial);
+            }
         }
 
         public override void ReadFromRom(Block romData)
@@ -152,6 +174,17 @@ namespace RopeSnake.Mother3.Text
             DefaultCharNames = offsetTableReader.ReadStringTable(codec);
             Skills = offsetTableReader.ReadStringTable(codec);
             SkillDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+
+            if (RomConfig.IsEnglish)
+            {
+                stream.Position = RomConfig.GetOffset(EnemyNamesShortKey, romData);
+                EnemyNamesShort = stream.ReadStringTable(codec);
+
+                var itemDescKeys = GetOffsetAndDataKeys(ItemDescriptionsSpecialKey);
+                var itemDescPositions = itemDescKeys.Select(k => RomConfig.GetOffset(k, romData)).ToArray();
+                stream.Position = itemDescPositions[0];
+                ItemDescriptionsSpecial = stream.ReadStringOffsetTable(codec, false, false, itemDescPositions[1]);
+            }
         }
 
         private LazyBlockCollection SerializeTextBank(StringCodec codec, List<List<string>> contiguousBlocks)
@@ -173,6 +206,12 @@ namespace RopeSnake.Mother3.Text
             blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
 
             _textKeys = blockCollection.Keys.ToArray();
+
+            if (RomConfig.IsEnglish)
+            {
+                blockCollection.Add(EnemyNamesShortKey, () => TextExtensions.SerializeStringTable(codec, EnemyNamesShort));
+                blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false, false);
+            }
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
@@ -253,6 +292,11 @@ namespace RopeSnake.Mother3.Text
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);
 
             EncodeMainScript(romData, allocatedBlocks);
+
+            if (RomConfig.IsEnglish)
+            {
+                UpdateRomReferences(romData, allocatedBlocks, EnemyNamesShortKey, GetOffsetAndDataKeys(ItemDescriptionsSpecialKey));
+            }
 
             _textKeys = null;
             _mainScriptKeys = null;

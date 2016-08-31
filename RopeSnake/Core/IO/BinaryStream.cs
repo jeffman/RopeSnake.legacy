@@ -9,18 +9,18 @@ namespace RopeSnake.Core
 {
     public class BinaryStream
     {
-        private Stream _stream;
+        public Stream BaseStream { get; }
 
         public virtual int Position
         {
             get
             {
-                return (int)_stream.Position;
+                return (int)BaseStream.Position;
             }
 
             set
             {
-                _stream.Seek(value, SeekOrigin.Begin);
+                BaseStream.Seek(value, SeekOrigin.Begin);
             }
         }
 
@@ -35,7 +35,7 @@ namespace RopeSnake.Core
 
         public BinaryStream(Stream stream, bool littleEndian)
         {
-            _stream = stream;
+            BaseStream = stream;
             IsLittleEndian = littleEndian;
             SetUpEndianness();
         }
@@ -62,7 +62,7 @@ namespace RopeSnake.Core
 
         public virtual byte ReadByte()
         {
-            int value = _stream.ReadByte();
+            int value = BaseStream.ReadByte();
             if (value == -1)
             {
                 throw new IOException("Could not read from base stream");
@@ -71,16 +71,30 @@ namespace RopeSnake.Core
             return (byte)value;
         }
 
-        public virtual void WriteByte(byte value) => _stream.WriteByte(value);
+        public virtual void WriteByte(byte value) => BaseStream.WriteByte(value);
+        public virtual byte PeekByte()
+        {
+            byte value = ReadByte();
+            Position--;
+            return value;
+        }
 
         public virtual sbyte ReadSByte() => (sbyte)ReadByte();
         public virtual void WriteSByte(sbyte value) => WriteByte((byte)value);
+        public virtual sbyte PeekSByte() => (sbyte)PeekByte();
 
         public virtual ushort ReadUShort() => ushortReader();
         public virtual void WriteUShort(ushort value) => ushortWriter(value);
+        public virtual ushort PeekUShort()
+        {
+            ushort value = ReadUShort();
+            Position -= 2;
+            return value;
+        }
 
         public virtual short ReadShort() => (short)ReadUShort();
         public virtual void WriteShort(short value) => WriteUShort((ushort)value);
+        public virtual short PeekShort() => (short)PeekUShort();
 
         public virtual uint ReadUInt() => (uint)ReadInt();
         public virtual void WriteUInt(uint value) => WriteInt((int)value);
@@ -121,7 +135,7 @@ namespace RopeSnake.Core
         public virtual bool ReadBool() => ReadByte() != 0;
         public virtual void WriteBool(bool value) => WriteByte((byte)(value ? 1 : 0));
 
-        public virtual void ReadBytes(byte[] dest, int destOffset, int count) => _stream.Read(dest, destOffset, count);
-        public virtual void WriteBytes(byte[] source, int sourceOffset, int count) => _stream.Write(source, sourceOffset, count);
+        public virtual void ReadBytes(byte[] dest, int destOffset, int count) => BaseStream.Read(dest, destOffset, count);
+        public virtual void WriteBytes(byte[] source, int sourceOffset, int count) => BaseStream.Write(source, sourceOffset, count);
     }
 }

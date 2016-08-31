@@ -79,6 +79,7 @@
     <Compile Include="Core\LazyBlockCollection.cs" />
     <Compile Include="Core\LazyString.cs" />
     <Compile Include="Core\OrderedDictionary.cs" />
+    <Compile Include="Core\Patch.cs" />
     <Compile Include="Core\ProgressPercent.cs" />
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />

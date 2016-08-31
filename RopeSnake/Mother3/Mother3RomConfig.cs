@@ -36,6 +36,9 @@ namespace RopeSnake.Mother3
         [JsonProperty]
         public Dictionary<string, object> Parameters { get; private set; }
 
+        [JsonProperty]
+        public List<PatchCollection> Patches { get; private set; }
+
         [JsonIgnore]
         public ReverseLookup ReverseCharLookup { get; private set; }
 

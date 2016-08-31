@@ -87,6 +87,18 @@ namespace RopeSnake.Mother3
                 romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigFileInfo.Name.ToPath());
             }
 
+            if (romConfig.Patches != null)
+            {
+                foreach (var patchCollection in romConfig.Patches)
+                {
+                    _log.Info($"Applying patch: {patchCollection.Description}");
+                    foreach (var patch in patchCollection)
+                    {
+                        patch.Apply(romData);
+                    }
+                }
+            }
+
             var projectSettings = Mother3ProjectSettings.CreateDefault();
             var project = new Mother3Project(romConfig, projectSettings, DefaultModules);
             project.UpdateRomConfig(romData);

@@ -14,6 +14,7 @@ namespace RopeSnake.Mother3
     public sealed class Mother3RomConfig
     {
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+        private static readonly string[] _englishVersions = { "en_v10", "en_v11", "en_v12" };
 
         [JsonProperty]
         public string Version { get; private set; }
@@ -53,6 +54,9 @@ namespace RopeSnake.Mother3
 
         [JsonIgnore]
         public bool IsJapanese => (Version == "jp");
+
+        [JsonIgnore]
+        public bool IsEnglish => _englishVersions.Contains(Version);
 
         public IEnumerable<int> GetReferences(string key)
         {

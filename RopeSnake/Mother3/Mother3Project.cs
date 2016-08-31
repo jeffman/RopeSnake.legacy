@@ -136,11 +136,14 @@ namespace RopeSnake.Mother3
             var projectSettings = jsonManager.ReadJson<Mother3ProjectSettings>(projectSettingsPath);
             var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigFile);
 
+            var binaryManager = new BinaryFileManager(fileSystem);
+            var baseRom = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile);
+
             if (modulesToLoad == null || modulesToLoad.Length == 0)
                 modulesToLoad = DefaultModules;
 
             var project = new Mother3Project(romConfig, projectSettings, modulesToLoad);
-            project.UpdateRomConfig(null);
+            project.UpdateRomConfig(baseRom);
 
             foreach (var module in project.Modules)
             {

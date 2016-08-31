@@ -77,10 +77,11 @@ namespace RopeSnake.Mother3.Maps
             _mapInfoKeys = null;
         }
 
-        public void UpdateNameHints(Text.TextModule textModule)
+        public override void UpdateNameHints(Text.TextModule textModule)
         {
-            for (int i = 0; i < MapInfo.Count; i++)
-                MapInfo[i].NameHint = textModule.RoomDescriptions[i];
+            base.UpdateNameHints(textModule);
+
+            UpdateNameHints(MapInfo, textModule.RoomDescriptions);
         }
     }
 }

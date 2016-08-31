@@ -222,6 +222,32 @@ namespace RopeSnake.Mother3
 
         public override string ToString() => Name;
 
+        public virtual void UpdateNameHints(TextModule textModule)
+        {
+
+        }
+
+        protected static void UpdateNameHints(IEnumerable<INameHint> values, IList<string> nameHints)
+        {
+            int index = 0;
+            foreach (var value in values)
+            {
+                try
+                {
+                    value.NameHint = nameHints[index];
+                }
+                catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException)
+                {
+                    // Name hints are totally optional and can fail for many reasons,
+                    // none of which are remotely fatal, so we can squash any index exceptions
+                }
+                finally
+                {
+                    index++;
+                }
+            }
+        }
+
         #region IModule implementation
 
         public abstract string Name { get; }

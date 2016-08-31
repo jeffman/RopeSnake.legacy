@@ -85,32 +85,13 @@ namespace RopeSnake.Mother3.Data
             return new ModuleSerializationResult(blocks, null);
         }
 
-        public void UpdateNameHints(Text.TextModule textModule)
+        public override void UpdateNameHints(Text.TextModule textModule)
         {
+            base.UpdateNameHints(textModule);
+
             UpdateNameHints(Psi, textModule.PsiNames);
             UpdateNameHints(Items, textModule.ItemNames);
             UpdateNameHints(Enemies, textModule.EnemyNames);
-        }
-
-        private static void UpdateNameHints(IEnumerable<INameHint> values, IList<string> nameHints)
-        {
-            int index = 0;
-            foreach (var value in values)
-            {
-                try
-                {
-                    value.NameHint = nameHints[index];
-                }
-                catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException)
-                {
-                    // Name hints are totally optional and can fail for many reasons,
-                    // none of which are remotely fatal, so we can squash any index exceptions
-                }
-                finally
-                {
-                    index++;
-                }
-            }
         }
     }
 }

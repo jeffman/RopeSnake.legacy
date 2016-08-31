@@ -5,10 +5,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using RopeSnake.Core;
+using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Mother3.Maps
 {
-    public sealed class MapInfo
+    public sealed class MapInfo : INameHint
     {
         public static readonly int FieldSize = 28;
 

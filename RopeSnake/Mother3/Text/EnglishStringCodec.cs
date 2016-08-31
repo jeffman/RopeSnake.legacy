@@ -247,38 +247,38 @@ namespace RopeSnake.Mother3.Text
             return true;
         }
 
-        public static void EncodeBlock(Block block, int allocatedPointer,
-            ScriptEncodingParameters encodingParameters)
+        public static void EncodeBlock(Block romData, int start, int size, ScriptEncodingParameters encodingParameters)
         {
             if (encodingParameters == null)
             {
                 return;
             }
 
-            allocatedPointer |= 0x8000000;
-            bool even = (allocatedPointer & 1) == 0;
+            int romPos = start | 0x8000000;
+            bool even = (romPos & 1) == 0;
             byte value;
 
-            for (int i = 0; i < block.Size; i++)
+            for (int i = 0; i < size; i++)
             {
-                value = block[i];
+                value = romData[start];
 
                 if (even)
                 {
-                    int delta = ((allocatedPointer >> 1) % encodingParameters.EvenPadModulus);
+                    int delta = ((romPos >> 1) % encodingParameters.EvenPadModulus);
                     byte pad = encodingParameters.EvenPad[delta];
                     byte encoded = (byte)(((value - encodingParameters.EvenOffset2) ^ pad) - encodingParameters.EvenOffset1);
-                    block[i] = encoded;
+                    romData[start] = encoded;
                 }
                 else
                 {
-                    int delta = ((allocatedPointer >> 1) % encodingParameters.OddPadModulus);
+                    int delta = ((romPos >> 1) % encodingParameters.OddPadModulus);
                     byte pad = encodingParameters.OddPad[delta];
                     byte encoded = (byte)(((value - encodingParameters.OddOffset2) ^ pad) - encodingParameters.OddOffset1);
-                    block[i] = encoded;
+                    romData[start] = encoded;
                 }
 
-                allocatedPointer++;
+                romPos++;
+                start++;
                 even = !even;
             }
         }

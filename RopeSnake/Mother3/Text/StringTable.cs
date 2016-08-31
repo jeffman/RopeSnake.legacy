@@ -31,8 +31,10 @@ namespace RopeSnake.Mother3.Text
             }
         }
 
+        [JsonIgnore]
         public int Count => Strings.Count;
 
+        [JsonIgnore]
         public bool IsReadOnly => false;
 
         public void Add(string item)

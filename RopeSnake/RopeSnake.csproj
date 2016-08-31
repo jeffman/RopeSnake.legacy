@@ -143,7 +143,12 @@
     <Compile Include="Mother3\Text\TextExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <ProjectReference Include="..\RopeSnake.Versions\RopeSnake.Versions.csproj">
+      <Project>{08c3e441-de81-43c7-8541-7b01aef51005}</Project>
+      <Name>RopeSnake.Versions</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>

@@ -237,7 +237,7 @@ namespace RopeSnake.Mother3.Text
                 if (block == null || pointer == 0)
                     continue;
 
-                EnglishStringCodec.EncodeBlock(romData, pointer, block.Size, RomConfig.ScriptEncodingParameters);
+                EnglishStringCodec.EncodeBlock(romData, pointer + 4, block.Size, RomConfig.ScriptEncodingParameters);
             }
         }
 

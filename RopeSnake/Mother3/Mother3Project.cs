@@ -247,7 +247,7 @@ namespace RopeSnake.Mother3
 
         private IEnumerable<string> GetStaleBlockKeys(IFileSystem fileSystem, IEnumerable<FileSystemPath> paths)
         {
-            return Modules.SelectMany(m => paths.SelectMany(p => m.GetBlockKeysForFile(fileSystem, p)));
+            return Modules.SelectMany(m => paths.SelectMany(p => m.GetStaleBlockKeys(fileSystem, p)));
         }
 
         private FileSystemState GetPreviousFileSystemState(IFileSystem fileSystem)

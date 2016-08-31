@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using Newtonsoft.Json.Serialization;
 
 namespace RopeSnake.Mother3.Text
 {
@@ -62,6 +63,16 @@ namespace RopeSnake.Mother3.Text
 
     public class ContextStringConverter : JsonConverter
     {
+        private class ContextStringContractResolver : DefaultContractResolver
+        {
+            protected override JsonConverter ResolveContractConverter(Type type)
+            {
+                if (type == typeof(ContextString))
+                    return null;
+                return base.ResolveContractConverter(type);
+            }
+        }
+
         public override bool CanConvert(Type objectType)
         {
             return objectType == typeof(ContextString);
@@ -93,7 +104,11 @@ namespace RopeSnake.Mother3.Text
             }
             else
             {
+                // Prevent self-referencing loops
+                var oldResolver = serializer.ContractResolver;
+                serializer.ContractResolver = new ContextStringContractResolver();
                 serializer.Serialize(writer, str);
+                serializer.ContractResolver = oldResolver;
             }
         }
     }

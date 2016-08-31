@@ -223,6 +223,24 @@ namespace RopeSnake.Mother3.Text
             return blockCollection;
         }
 
+        private void EncodeMainScript(AllocatedBlockCollection allocatedBlocks)
+        {
+            if (RomConfig.ScriptEncodingParameters == null)
+                return;
+
+            for (int i = 0; i < MainScript.Count; i++)
+            {
+                string dataKey = GetOffsetAndDataKeys($"{MainScriptKey}.{i}")[1];
+                var block = allocatedBlocks[dataKey];
+                int pointer = allocatedBlocks.GetAllocatedPointer(dataKey);
+
+                if (block == null || pointer == 0)
+                    continue;
+
+                EnglishStringCodec.EncodeBlock(block, pointer, RomConfig.ScriptEncodingParameters);
+            }
+        }
+
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             if (allocatedBlocks[TextBankKey] == null || allocatedBlocks[MainScriptKey] == null)
@@ -230,6 +248,8 @@ namespace RopeSnake.Mother3.Text
 
             WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
             WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
+
+            EncodeMainScript(allocatedBlocks);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);

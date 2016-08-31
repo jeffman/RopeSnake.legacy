@@ -7,11 +7,14 @@ using RopeSnake.Core;
 using RopeSnake.Gba;
 using RopeSnake.Mother3.Text;
 using Newtonsoft.Json;
+using NLog;
 
 namespace RopeSnake.Mother3
 {
     public sealed class Mother3RomConfig
     {
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+
         [JsonProperty]
         public string Version { get; private set; }
 
@@ -70,9 +73,12 @@ namespace RopeSnake.Mother3
             }
 
             if (offsets.Count != 1)
-                throw new Exception("Inconsistent offsets");
+                throw new Exception($"Inconsistent offsets for {key}: {string.Join(", ", offsets.Select(o => o.ToString("X")))}");
 
-            return offsets.First();
+            int onlyOffset = offsets.First();
+            _log.Debug($"Got offset for {key}: 0x{onlyOffset:X}");
+
+            return onlyOffset;
         }
 
         public T GetParameter<T>(string key)

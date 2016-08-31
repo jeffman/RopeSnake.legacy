@@ -5,15 +5,20 @@ using System.Text;
 using System.Threading.Tasks;
 using RopeSnake.Core;
 using RopeSnake.Mother3.IO;
+using NLog;
 
 namespace RopeSnake.Mother3.Text
 {
     public static class TextExtensions
     {
+        private static readonly Logger _log = LogManager.GetCurrentClassLogger();
+
         private static readonly int StringOffsetTableBufferSize = 256 * 1024;
 
         public static StringTable ReadStringTable(this BinaryStream stream, StringCodec codec)
         {
+            _log.Debug($"Reading string table at 0x{stream.Position:X}");
+
             ushort maxLength = stream.ReadUShort();
             int count = stream.ReadUShort();
 
@@ -58,6 +63,8 @@ namespace RopeSnake.Mother3.Text
         public static List<string> ReadStringOffsetTable(this BinaryStream stream, StringCodec codec,
             bool isScript, bool multiplyByTwo, int dataPointer)
         {
+            _log.Debug($"Reading string offset table at 0x{stream.Position:X} (data at 0x{dataPointer:X})");
+
             var strings = new List<string>();
 
             var offsetReader = new ShortOffsetTableReader(stream, dataPointer, multiplyByTwo);

@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RopeSnake")]
+[assembly: AssemblyTitle("RopeSnake.Versions")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("RopeSnake")]
+[assembly: AssemblyProduct("RopeSnake.Versions")]
 [assembly: AssemblyCopyright(RopeSnake.Versions.VersionInformation.Copyright)]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("642f9c65-84d4-4c07-8d29-876885e21c62")]
+[assembly: Guid("08c3e441-de81-43c7-8541-7b01aef51005")]
 
 // Version information for an assembly consists of the following four values:
 //

@@ -186,7 +186,7 @@ namespace RopeSnake.Mother3
             if (useCache)
             {
                 _log.Info("Reading cache");
-                var staleBlockKeys = GetStaleBlockKeys(GetChangedPaths(fileSystem));
+                var staleBlockKeys = GetStaleBlockKeys(fileSystem, GetChangedPaths(fileSystem));
                 cache = ReadCache(fileSystem, staleBlockKeys);
             }
             else
@@ -248,9 +248,9 @@ namespace RopeSnake.Mother3
             return success;
         }
 
-        private IEnumerable<string> GetStaleBlockKeys(IEnumerable<FileSystemPath> paths)
+        private IEnumerable<string> GetStaleBlockKeys(IFileSystem fileSystem, IEnumerable<FileSystemPath> paths)
         {
-            return Modules.SelectMany(m => paths.SelectMany(p => m.GetBlockKeysForFile(p)));
+            return Modules.SelectMany(m => paths.SelectMany(p => m.GetStaleBlockKeys(fileSystem, p)));
         }
 
         private FileSystemState GetPreviousFileSystemState(IFileSystem fileSystem)

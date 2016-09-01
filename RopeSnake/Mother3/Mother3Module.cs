@@ -284,7 +284,7 @@ namespace RopeSnake.Mother3
             return Validator.Object(this, path, Log);
         }
 
-        public virtual IEnumerable<string> GetBlockKeysForFile(FileSystemPath path)
+        public virtual IEnumerable<string> GetStaleBlockKeys(IFileSystem fileSystem, FileSystemPath path)
         {
             IEnumerable<string> keys;
             if (BlockKeysForFiles.TryGetValue(path, out keys))

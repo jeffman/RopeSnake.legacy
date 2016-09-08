@@ -141,19 +141,21 @@ namespace RopeSnake.Mother3.Text
     {
         private BinaryStream _stream;
         private int _basePosition;
-        private int _remaining;
+        private int _count;
+        private int _currentIndex;
         private bool _divideByTwo;
 
         public BxtOffsetTableWriter(BinaryStream stream, int count, int unknown, bool divideByTwo)
         {
             _stream = stream;
             _basePosition = stream.Position;
-            _remaining = count;
+            _count = count;
             _divideByTwo = divideByTwo;
 
             _stream.WriteString("bxt ", 4);
             _stream.WriteInt(unknown);
             _stream.WriteInt(count);
+            _stream.Position += (count * 2);
         }
 
         public override void AddNull()
@@ -164,7 +166,7 @@ namespace RopeSnake.Mother3.Text
 
         private void AddOffset(int offset)
         {
-            if (_remaining <= 0)
+            if (_currentIndex >= _count)
                 throw new InvalidOperationException("Exceeded length of table");
 
             if (offset < 0)
@@ -176,13 +178,18 @@ namespace RopeSnake.Mother3.Text
             if (offset > 0xFFFF)
                 throw new InvalidOperationException($"Offset out of range: 0x{offset:X}");
 
+            int position = _stream.Position;
+            _stream.Position = (_currentIndex * 2) + 12;
             _stream.WriteUShort((ushort)offset);
+            _stream.Position = position;
+
+            _currentIndex++;
         }
 
         public void Finish()
         {
-            if (_remaining != 0)
-                throw new InvalidOperationException($"Tried finishing a table with {_remaining} offsets still remaining to be written");
+            if (_currentIndex != _count)
+                throw new InvalidOperationException($"Tried finishing a table with {_count - _currentIndex} offsets still remaining to be written");
 
             _stream.WriteString("~bxt", 4);
         }

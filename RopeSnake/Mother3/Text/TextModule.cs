@@ -36,6 +36,7 @@ namespace RopeSnake.Mother3.Text
         private static readonly string MenusKey = "Text.Menus";
         private static readonly string MemosKey = "Text.Memos";
         private static readonly string EnemyDescriptionsKey = "Text.EnemyDescriptions";
+        private static readonly string MusicTitlesKey = "Text.MusicTitles";
 
         private static readonly string MenusBankAKey = "Menus.BankA";
         private static readonly string MenusBankBKey = "Menus.BankB";
@@ -59,6 +60,7 @@ namespace RopeSnake.Mother3.Text
         private static readonly FileSystemPath MenusPath = "/text/menus.json".ToPath();
         private static readonly FileSystemPath MemosPath = "/text/memos.json".ToPath();
         private static readonly FileSystemPath EnemyDescriptionsPath = "/text/enemy-descriptions.json".ToPath();
+        private static readonly FileSystemPath MusicTitlesPath = "/text/music-titles.json".ToPath();
 
         #endregion
 
@@ -81,6 +83,7 @@ namespace RopeSnake.Mother3.Text
         [NotNull] public List<string> Menus { get; set; }
         [NotNull] public List<string> Memos { get; set; }
         [NotNull] public List<string> EnemyDescriptions { get; set; }
+        [NotNull] public Bxt MusicTitles { get; set; }
 
         public StringTable EnemyNamesShort { get; set; }
         public List<string> ItemDescriptionsSpecial { get; set; }
@@ -116,6 +119,7 @@ namespace RopeSnake.Mother3.Text
             Menus = jsonManager.ReadJson<List<string>>(MenusPath);
             Memos = jsonManager.ReadJson<List<string>>(MemosPath);
             EnemyDescriptions = jsonManager.ReadJson<List<string>>(EnemyDescriptionsPath);
+            MusicTitles = jsonManager.ReadJson<Bxt>(MusicTitlesPath);
 
             AddBlockKeysForFile(RoomDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
             AddBlockKeysForFile(ItemNamesPath, TextBankKey, ItemNamesKey);
@@ -134,6 +138,7 @@ namespace RopeSnake.Mother3.Text
             AddBlockKeysForFile(MenusPath, GetOffsetAndDataKeys(MenusKey));
             AddBlockKeysForFile(MemosPath, GetOffsetAndDataKeys(MemosKey));
             AddBlockKeysForFile(EnemyDescriptionsPath, GetOffsetAndDataKeys(EnemyDescriptionsKey));
+            AddBlockKeysForFile(MusicTitlesPath, MusicTitlesKey);
 
             if (RomConfig.IsEnglish)
             {
@@ -168,6 +173,7 @@ namespace RopeSnake.Mother3.Text
             jsonManager.WriteJson(MenusPath, Menus);
             jsonManager.WriteJson(MemosPath, Memos);
             jsonManager.WriteJson(EnemyDescriptionsPath, EnemyDescriptions);
+            jsonManager.WriteJson(MusicTitlesPath, MusicTitles);
 
             if (RomConfig.IsEnglish)
             {
@@ -331,6 +337,9 @@ namespace RopeSnake.Mother3.Text
             Menus = offsetTableReader.ReadStringOffsetTable(codec, false);
             Memos = offsetTableReader.ReadStringOffsetTable(codec, false);
             EnemyDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
+
+            stream.Position = RomConfig.GetOffset(MusicTitlesKey, romData);
+            MusicTitles = stream.ReadBxt(codec, RomConfig.IsEnglish);
         }
 
         private LazyBlockCollection SerializeMiscText(StringCodec codec, List<List<string>> contiguousBlocks)
@@ -341,6 +350,7 @@ namespace RopeSnake.Mother3.Text
             blockCollection.AddStringOffsetTableBlocks(MenusKey, codec, Menus, false);
             blockCollection.AddStringOffsetTableBlocks(MemosKey, codec, Memos, false);
             blockCollection.AddStringOffsetTableBlocks(EnemyDescriptionsKey, codec, EnemyDescriptions, false);
+            blockCollection.Add(MusicTitlesKey, () => TextExtensions.SerializeBxt(MusicTitles, codec, RomConfig.IsEnglish));
 
             // No way to ensure contiguity with random access blocks within the menu banks,
             // but the string tables should themselves be contiguous always

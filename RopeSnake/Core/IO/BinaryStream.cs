@@ -182,5 +182,32 @@ namespace RopeSnake.Core
 
             return builder.ToString();
         }
+
+        public virtual void WriteString(string str)
+        {
+            foreach (char c in str)
+            {
+                WriteByte((byte)c);
+            }
+            WriteByte(0);
+        }
+
+        public virtual void WriteString(string str, int length)
+        {
+            if (str.Length > length)
+                throw new ArgumentException(nameof(str));
+
+            for (int i = 0; i < length; i++)
+            {
+                if (i < str.Length)
+                {
+                    WriteByte((byte)str[i]);
+                }
+                else
+                {
+                    WriteByte(0);
+                }
+            }
+        }
     }
 }

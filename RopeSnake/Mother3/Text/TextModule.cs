@@ -386,7 +386,7 @@ namespace RopeSnake.Mother3.Text
             UpdateMenuTables(romData, allocatedBlocks);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
-            UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);
+            UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey, MusicTitlesKey);
 
             EncodeMainScript(romData, allocatedBlocks);
 

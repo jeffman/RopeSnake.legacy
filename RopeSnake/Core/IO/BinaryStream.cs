@@ -137,5 +137,50 @@ namespace RopeSnake.Core
 
         public virtual void ReadBytes(byte[] dest, int destOffset, int count) => BaseStream.Read(dest, destOffset, count);
         public virtual void WriteBytes(byte[] source, int sourceOffset, int count) => BaseStream.Write(source, sourceOffset, count);
+
+        public virtual string ReadString()
+        {
+            var builder = new StringBuilder();
+
+            byte ch;
+            while ((ch = ReadByte()) != 0)
+            {
+                builder.Append((char)ch);
+            }
+
+            return builder.ToString();
+        }
+
+        public virtual string ReadString(int length)
+        {
+            if (length < 1)
+                throw new ArgumentException(nameof(length));
+
+            var builder = new StringBuilder(length, length);
+
+            byte ch;
+            int bytesRead = 0;
+
+            for (;;)
+            {
+                ch = ReadByte();
+                bytesRead++;
+
+                if (ch == 0 || bytesRead == length)
+                {
+                    break;
+                }
+
+                builder.Append((char)ch);
+            }
+
+            // Read out the remaining bytes: exactly length bytes should be read by this method
+            for (int i = bytesRead; i <= length; i++)
+            {
+                ReadByte();
+            }
+
+            return builder.ToString();
+        }
     }
 }

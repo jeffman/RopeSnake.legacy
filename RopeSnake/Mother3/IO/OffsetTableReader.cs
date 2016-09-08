@@ -38,5 +38,13 @@ namespace RopeSnake.Mother3.IO
 
             return Pointers[CurrentIndex++];
         }
+
+        public virtual void Skip(int count)
+        {
+            while (count-- > 0)
+            {
+                NextPointer();
+            }
+        }
     }
 }

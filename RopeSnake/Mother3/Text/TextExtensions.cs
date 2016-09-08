@@ -194,7 +194,7 @@ namespace RopeSnake.Mother3.Text
             return bxt;
         }
 
-        public static Block SerialzieBxt(Bxt bxt, StringCodec codec, bool divideByTwo)
+        public static Block SerializeBxt(Bxt bxt, StringCodec codec, bool divideByTwo)
         {
             var block = new Block(StringOffsetTableBufferSize);
             var stream = block.ToBinaryStream();

@@ -196,7 +196,7 @@ namespace RopeSnake.Mother3
 
         public static string[] GetOffsetAndDataKeys(string key)
         {
-            return new string[] { $"{key}.OffsetTable", $"{key}.Data" };
+            return new string[] { $"{key}.Offsets", $"{key}.Data" };
         }
 
         protected void AddBlockKeysForFile(FileSystemPath path, params object[] keys)

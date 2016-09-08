@@ -37,9 +37,12 @@ namespace RopeSnake.Mother3.Text
         private static readonly string MemosKey = "Text.Memos";
         private static readonly string EnemyDescriptionsKey = "Text.EnemyDescriptions";
         private static readonly string MusicTitlesKey = "Text.MusicTitles";
+        private static readonly string BattleKey = "Text.Battle";
+        private static readonly string MusicPlayerKey = "Text.MusicPlayer";
 
         private static readonly string MenusBankAKey = "Menus.BankA";
         private static readonly string MenusBankBKey = "Menus.BankB";
+        private static readonly string BattleBankKey = "Battle.Bank";
 
         private static readonly FileSystemPath RoomDescriptionsPath = "/text/room-descriptions.json".ToPath();
         private static readonly FileSystemPath ItemNamesPath = "/text/item-names.json".ToPath();
@@ -61,6 +64,8 @@ namespace RopeSnake.Mother3.Text
         private static readonly FileSystemPath MemosPath = "/text/memos.json".ToPath();
         private static readonly FileSystemPath EnemyDescriptionsPath = "/text/enemy-descriptions.json".ToPath();
         private static readonly FileSystemPath MusicTitlesPath = "/text/music-titles.json".ToPath();
+        private static readonly FileSystemPath BattlePath = "/text/battle.json".ToPath();
+        private static readonly FileSystemPath MusicPlayerPath = "/text/music-player.json".ToPath();
 
         #endregion
 
@@ -84,6 +89,8 @@ namespace RopeSnake.Mother3.Text
         [NotNull] public List<string> Memos { get; set; }
         [NotNull] public List<string> EnemyDescriptions { get; set; }
         [NotNull] public Bxt MusicTitles { get; set; }
+        [NotNull] public Bxt Battle { get; set; }
+        [NotNull] public Bxt MusicPlayer { get; set; }
 
         public StringTable EnemyNamesShort { get; set; }
         public List<string> ItemDescriptionsSpecial { get; set; }
@@ -120,6 +127,8 @@ namespace RopeSnake.Mother3.Text
             Memos = jsonManager.ReadJson<List<string>>(MemosPath);
             EnemyDescriptions = jsonManager.ReadJson<List<string>>(EnemyDescriptionsPath);
             MusicTitles = jsonManager.ReadJson<Bxt>(MusicTitlesPath);
+            Battle = jsonManager.ReadJson<Bxt>(BattlePath);
+            MusicPlayer = jsonManager.ReadJson<Bxt>(MusicPlayerPath);
 
             AddBlockKeysForFile(RoomDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
             AddBlockKeysForFile(ItemNamesPath, TextBankKey, ItemNamesKey);
@@ -139,6 +148,8 @@ namespace RopeSnake.Mother3.Text
             AddBlockKeysForFile(MemosPath, GetOffsetAndDataKeys(MemosKey));
             AddBlockKeysForFile(EnemyDescriptionsPath, GetOffsetAndDataKeys(EnemyDescriptionsKey));
             AddBlockKeysForFile(MusicTitlesPath, MusicTitlesKey);
+            AddBlockKeysForFile(BattlePath, BattleKey);
+            AddBlockKeysForFile(MusicPlayerPath, MusicPlayerKey);
 
             if (RomConfig.IsEnglish)
             {
@@ -174,6 +185,8 @@ namespace RopeSnake.Mother3.Text
             jsonManager.WriteJson(MemosPath, Memos);
             jsonManager.WriteJson(EnemyDescriptionsPath, EnemyDescriptions);
             jsonManager.WriteJson(MusicTitlesPath, MusicTitles);
+            jsonManager.WriteJson(BattlePath, Battle);
+            jsonManager.WriteJson(MusicPlayerPath, MusicPlayer);
 
             if (RomConfig.IsEnglish)
             {
@@ -325,11 +338,13 @@ namespace RopeSnake.Mother3.Text
 
         private void ReadMiscText(Block romData, StringCodec codec)
         {
+            // Menus A
             var stream = romData.ToBinaryStream(RomConfig.GetOffset(MenusBankAKey, romData));
             var offsetTableReader = new WideOffsetTableReader(stream);
             offsetTableReader.Skip(0x24);
             Outside = offsetTableReader.ReadStringOffsetTable(codec, false);
 
+            // Menus B
             stream.Position = RomConfig.GetOffset(MenusBankBKey, romData);
             offsetTableReader = new WideOffsetTableReader(stream);
             offsetTableReader.Skip(0x58);
@@ -338,8 +353,24 @@ namespace RopeSnake.Mother3.Text
             Memos = offsetTableReader.ReadStringOffsetTable(codec, false);
             EnemyDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
 
+            // Music titles
             stream.Position = RomConfig.GetOffset(MusicTitlesKey, romData);
             MusicTitles = stream.ReadBxt(codec, RomConfig.IsEnglish);
+
+            // Battle bank
+            stream.Position = RomConfig.GetOffset(BattleBankKey, romData);
+            var sarReader = new SarOffsetTableReader(stream);
+            sarReader.Skip(0x3A6);
+
+            if (!sarReader.Next())
+                throw new Exception("Encountered null pointer when trying to read battle text");
+
+            Battle = stream.ReadBxt(codec, RomConfig.IsEnglish);
+
+            if (!sarReader.Next())
+                throw new Exception("Encountered null pointer when trying to read music player text");
+
+            MusicPlayer = stream.ReadBxt(codec, RomConfig.IsEnglish);
         }
 
         private LazyBlockCollection SerializeMiscText(StringCodec codec, List<List<string>> contiguousBlocks)
@@ -351,6 +382,8 @@ namespace RopeSnake.Mother3.Text
             blockCollection.AddStringOffsetTableBlocks(MemosKey, codec, Memos, false);
             blockCollection.AddStringOffsetTableBlocks(EnemyDescriptionsKey, codec, EnemyDescriptions, false);
             blockCollection.Add(MusicTitlesKey, () => TextExtensions.SerializeBxt(MusicTitles, codec, RomConfig.IsEnglish));
+            blockCollection.Add(BattleKey, () => TextExtensions.SerializeBxt(Battle, codec, RomConfig.IsEnglish));
+            blockCollection.Add(MusicPlayerKey, () => TextExtensions.SerializeBxt(MusicPlayer, codec, RomConfig.IsEnglish));
 
             // No way to ensure contiguity with random access blocks within the menu banks,
             // but the string tables should themselves be contiguous always
@@ -379,11 +412,20 @@ namespace RopeSnake.Mother3.Text
                 menusBLocation, menusBLocation);
         }
 
+        private void UpdateBattleTables(Block romData, AllocatedBlockCollection allocatedBlocks)
+        {
+            int battleLocation = RomConfig.GetOffset(BattleBankKey, romData);
+            SarOffsetTableWriter.UpdateTableOffsets(romData, new[] { BattleKey, MusicPlayerKey }
+                .Select((k, i) => new IndexLocationSize(i + 0x3A6, allocatedBlocks.GetAllocatedPointer(k), allocatedBlocks[k].Size)),
+                battleLocation, battleLocation);
+        }
+
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             UpdateWideOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
             UpdateWideOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
             UpdateMenuTables(romData, allocatedBlocks);
+            UpdateBattleTables(romData, allocatedBlocks);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey, MusicTitlesKey);

@@ -9,14 +9,14 @@ namespace RopeSnake.Mother3.IO
 {
     public sealed class ShortOffsetTableReader : OffsetTableReader
     {
-        public ShortOffsetTableReader(BinaryStream stream, int dataPointer, bool multiplyByTwo)
+        public ShortOffsetTableReader(BinaryStream stream, int dataPointer)
             : base(stream)
         {
             ushort offset;
             var pointers = new List<int>();
             while ((offset = stream.ReadUShort()) != 0xFFFF)
             {
-                pointers.Add(dataPointer + (multiplyByTwo ? offset * 2 : offset));
+                pointers.Add(dataPointer + offset);
             }
             Pointers = pointers.ToArray();
         }

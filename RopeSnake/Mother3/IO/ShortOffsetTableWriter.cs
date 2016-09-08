@@ -7,7 +7,7 @@ using RopeSnake.Core;
 
 namespace RopeSnake.Mother3.IO
 {
-    public sealed class ShortOffsetTableWriter
+    public sealed class ShortOffsetTableWriter : OffsetTableWriter
     {
         private BinaryStream _dataStream;
         private int _baseDataPosition;
@@ -28,13 +28,13 @@ namespace RopeSnake.Mother3.IO
         public static Block CreateOffsetTable(int count)
             => new Block(count * 2);
 
-        public void AddCurrentOffset()
-            => AddPointer(_dataStream.Position);
+        public override void AddNull()
+            => AddOffset(0);
 
-        public void AddPointer(int pointer)
+        public override void AddPointer(int pointer)
             => AddOffset(pointer - _baseDataPosition);
 
-        public void AddOffset(int offset)
+        private void AddOffset(int offset)
         {
             if (_currentIndex >= _offsets.Length)
                 throw new InvalidOperationException("Exceeded the end of the table");
@@ -42,7 +42,7 @@ namespace RopeSnake.Mother3.IO
             _offsets[_currentIndex++] = offset;
         }
 
-        public void UpdateOffsetTable(Block offsetTable, bool divideByTwo)
+        public void UpdateOffsetTable(Block offsetTable)
         {
             if (_currentIndex != _offsets.Length)
                 throw new InvalidOperationException("Not all offsets have been added to the table");
@@ -53,18 +53,8 @@ namespace RopeSnake.Mother3.IO
             {
                 int offset = _offsets[i];
 
-                if (divideByTwo)
-                {
-                    if ((offset & 1) != 0)
-                        throw new Exception("Offsets must be even-valued when dividing by two");
-
-                    offset /= 2;
-                }
-
                 if (offset > 0xFFFF)
-                {
                     throw new Exception($"Offset out of range: 0x{offset:X}");
-                }
 
                 offsetStream.WriteUShort((ushort)offset);
             }

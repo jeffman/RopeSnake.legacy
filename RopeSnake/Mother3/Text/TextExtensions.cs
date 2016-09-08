@@ -61,13 +61,13 @@ namespace RopeSnake.Mother3.Text
         }
 
         public static List<string> ReadStringOffsetTable(this BinaryStream stream, StringCodec codec,
-            bool isScript, bool multiplyByTwo, int dataPointer)
+            bool isScript, int dataPointer)
         {
-            _log.Debug($"Reading string offset table at 0x{stream.Position:X} (data at 0x{dataPointer:X})");
+            //_log.Debug($"Reading string offset table at 0x{stream.Position:X} (data at 0x{dataPointer:X})");
 
             var strings = new List<string>();
 
-            var offsetReader = new ShortOffsetTableReader(stream, dataPointer, multiplyByTwo);
+            var offsetReader = new ShortOffsetTableReader(stream, dataPointer);
             while (!offsetReader.EndOfTable)
             {
                 if (offsetReader.Next())
@@ -83,20 +83,33 @@ namespace RopeSnake.Mother3.Text
             return strings;
         }
 
-        public static Block WriteStringOffsetTable(this BinaryStream stream, StringCodec codec,
-            IEnumerable<string> strings, bool isScript, bool divideByTwo)
+        public static Block WriteStringShortOffsetTable(this BinaryStream stream, IEnumerable<string> strings,
+            StringCodec codec, bool isScript)
         {
             int count = strings.Count();
+            var cache = new Dictionary<string, int> { [""] = stream.Position };
             var offsetWriter = new ShortOffsetTableWriter(stream, count);
             var offsetTable = ShortOffsetTableWriter.CreateOffsetTable(count);
-            var cache = new Dictionary<string, int>();
+
+            stream.WriteStringOffsetTable(strings, offsetWriter, codec, isScript, cache);
+
+            offsetWriter.UpdateOffsetTable(offsetTable);
+            return offsetTable;
+        }
+
+        public static void WriteStringOffsetTable(this BinaryStream stream, IEnumerable<string> strings,
+            OffsetTableWriter offsetWriter, StringCodec codec, bool isScript, Dictionary<string, int> cache = null)
+        {
+            if (cache == null)
+            {
+                cache = new Dictionary<string, int>();
+            }
 
             foreach (string str in strings)
             {
-                if (string.IsNullOrEmpty(str))
+                if (str == null)
                 {
-                    // There is already an 0xFFFF at position 0
-                    offsetWriter.AddOffset(0);
+                    offsetWriter.AddNull();
                 }
                 else
                 {
@@ -107,7 +120,7 @@ namespace RopeSnake.Mother3.Text
                     else
                     {
                         cache.Add(str, stream.Position);
-                        offsetWriter.AddCurrentOffset();
+                        offsetWriter.AddPointer(stream.Position);
 
                         if (isScript)
                         {
@@ -120,26 +133,23 @@ namespace RopeSnake.Mother3.Text
                     }
                 }
             }
-
-            offsetWriter.UpdateOffsetTable(offsetTable, divideByTwo);
-            return offsetTable;
         }
 
         public static Block[] SerializeStringOffsetTable(StringCodec codec,
-            IEnumerable<string> strings, bool isScript, bool divideByTwo)
+            IEnumerable<string> strings, bool isScript)
         {
             if (strings == null)
                 return new Block[] { null, null };
 
             var dataBlock = new Block(StringOffsetTableBufferSize);
             var dataStream = dataBlock.ToBinaryStream();
-            var offsetTable = dataStream.WriteStringOffsetTable(codec, strings, isScript, divideByTwo);
+            var offsetTable = dataStream.WriteStringShortOffsetTable(strings, codec, isScript);
             dataBlock.Resize(dataStream.Position);
             return new Block[] { offsetTable, dataBlock };
         }
 
         public static List<string> ReadStringOffsetTable(this WideOffsetTableReader offsetTableReader, StringCodec codec,
-            bool isScript, bool multiplyByTwo)
+            bool isScript)
         {
             int offsetPointer = offsetTableReader.NextPointer();
             int dataPointer = offsetTableReader.NextPointer();
@@ -148,7 +158,7 @@ namespace RopeSnake.Mother3.Text
             if (offsetPointer != 0 && dataPointer != 0)
             {
                 stream.Position = offsetPointer;
-                return stream.ReadStringOffsetTable(codec, isScript, multiplyByTwo, dataPointer);
+                return stream.ReadStringOffsetTable(codec, isScript, dataPointer);
             }
             else
             {
@@ -157,11 +167,44 @@ namespace RopeSnake.Mother3.Text
         }
 
         public static void AddStringOffsetTableBlocks(this LazyBlockCollection blockCollection, string key,
-            StringCodec codec, IEnumerable<string> strings,
-            bool isScript, bool divideByTwo)
+            StringCodec codec, IEnumerable<string> strings, bool isScript)
         {
             string[] keys = Mother3Module.GetOffsetAndDataKeys(key);
-            blockCollection.AddRange(keys, () => SerializeStringOffsetTable(codec, strings, isScript, divideByTwo));
+            blockCollection.AddRange(keys, () => SerializeStringOffsetTable(codec, strings, isScript));
+        }
+
+        public static Bxt ReadBxt(this BinaryStream stream, StringCodec codec, bool multiplyByTwo)
+        {
+            var bxt = new Bxt();
+            var offsetTableReader = new BxtOffsetTableReader(stream, multiplyByTwo);
+
+            bxt.Unknown = offsetTableReader.Unknown;
+            while (!offsetTableReader.EndOfTable)
+            {
+                if (offsetTableReader.Next())
+                {
+                    bxt.Add(codec.ReadCodedString(stream));
+                }
+                else
+                {
+                    bxt.Add(null);
+                }
+            }
+
+            return bxt;
+        }
+
+        public static Block SerialzieBxt(Bxt bxt, StringCodec codec, bool divideByTwo)
+        {
+            var block = new Block(StringOffsetTableBufferSize);
+            var stream = block.ToBinaryStream();
+            var offsetWriter = new BxtOffsetTableWriter(stream, bxt.Count, bxt.Unknown, divideByTwo);
+
+            stream.WriteStringOffsetTable(bxt, offsetWriter, codec, false);
+
+            offsetWriter.Finish();
+            block.Resize(stream.Position);
+            return block;
         }
     }
 }

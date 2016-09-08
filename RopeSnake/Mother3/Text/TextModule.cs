@@ -190,18 +190,18 @@ namespace RopeSnake.Mother3.Text
             var stream = romData.ToBinaryStream(RomConfig.GetOffset(TextBankKey, romData));
             var offsetTableReader = new WideOffsetTableReader(stream);
 
-            RoomDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            RoomDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
             ItemNames = offsetTableReader.ReadStringTable(codec);
-            ItemDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            ItemDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
             CharNames = offsetTableReader.ReadStringTable(codec);
             PartyCharNames = offsetTableReader.ReadStringTable(codec);
             EnemyNames = offsetTableReader.ReadStringTable(codec);
             PsiNames = offsetTableReader.ReadStringTable(codec);
-            PsiDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            PsiDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
             Statuses = offsetTableReader.ReadStringTable(codec);
             DefaultCharNames = offsetTableReader.ReadStringTable(codec);
             Skills = offsetTableReader.ReadStringTable(codec);
-            SkillDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            SkillDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
 
             if (RomConfig.IsEnglish)
             {
@@ -211,7 +211,7 @@ namespace RopeSnake.Mother3.Text
                 var itemDescKeys = GetOffsetAndDataKeys(ItemDescriptionsSpecialKey);
                 var itemDescPositions = itemDescKeys.Select(k => RomConfig.GetOffset(k, romData)).ToArray();
                 stream.Position = itemDescPositions[0];
-                ItemDescriptionsSpecial = stream.ReadStringOffsetTable(codec, false, false, itemDescPositions[1]);
+                ItemDescriptionsSpecial = stream.ReadStringOffsetTable(codec, false, itemDescPositions[1]);
             }
         }
 
@@ -220,25 +220,25 @@ namespace RopeSnake.Mother3.Text
             var blockCollection = new LazyBlockCollection();
 
             blockCollection.Add(TextBankKey, () => WideOffsetTableWriter.CreateOffsetTable(16));
-            blockCollection.AddStringOffsetTableBlocks(RoomDescriptionsKey, codec, RoomDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(RoomDescriptionsKey, codec, RoomDescriptions, false);
             blockCollection.Add(ItemNamesKey, () => TextExtensions.SerializeStringTable(codec, ItemNames));
-            blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsKey, codec, ItemDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsKey, codec, ItemDescriptions, false);
             blockCollection.Add(CharNamesKey, () => TextExtensions.SerializeStringTable(codec, CharNames));
             blockCollection.Add(PartyCharNamesKey, () => TextExtensions.SerializeStringTable(codec, PartyCharNames));
             blockCollection.Add(EnemyNamesKey, () => TextExtensions.SerializeStringTable(codec, EnemyNames));
             blockCollection.Add(PsiNamesKey, () => TextExtensions.SerializeStringTable(codec, PsiNames));
-            blockCollection.AddStringOffsetTableBlocks(PsiDescriptionsKey, codec, PsiDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(PsiDescriptionsKey, codec, PsiDescriptions, false);
             blockCollection.Add(StatusesKey, () => TextExtensions.SerializeStringTable(codec, Statuses));
             blockCollection.Add(DefaultCharNamesKey, () => TextExtensions.SerializeStringTable(codec, DefaultCharNames));
             blockCollection.Add(SkillsKey, () => TextExtensions.SerializeStringTable(codec, Skills));
-            blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false);
 
             _textKeys = blockCollection.Keys.Skip(1).ToArray();
 
             if (RomConfig.IsEnglish)
             {
                 blockCollection.Add(EnemyNamesShortKey, () => TextExtensions.SerializeStringTable(codec, EnemyNamesShort));
-                blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false, false);
+                blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false);
                 contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(ItemDescriptionsSpecialKey)));
             }
 
@@ -266,7 +266,7 @@ namespace RopeSnake.Mother3.Text
             var offsetTableReader = new WideOffsetTableReader(stream);
             while (!offsetTableReader.EndOfTable)
             {
-                MainScript.Add(offsetTableReader.ReadStringOffsetTable(codec, true, false));
+                MainScript.Add(offsetTableReader.ReadStringOffsetTable(codec, true));
             }
         }
 
@@ -277,7 +277,7 @@ namespace RopeSnake.Mother3.Text
             blockCollection.Add(MainScriptKey, () => WideOffsetTableWriter.CreateOffsetTable(MainScript.Count * 2));
             for (int i = 0; i < MainScript.Count; i++)
             {
-                blockCollection.AddStringOffsetTableBlocks($"{MainScriptKey}.{i}", codec, MainScript[i], true, false);
+                blockCollection.AddStringOffsetTableBlocks($"{MainScriptKey}.{i}", codec, MainScript[i], true);
             }
 
             _mainScriptKeys = blockCollection.Keys.Skip(1).ToArray();
@@ -322,25 +322,25 @@ namespace RopeSnake.Mother3.Text
             var stream = romData.ToBinaryStream(RomConfig.GetOffset(MenusBankAKey, romData));
             var offsetTableReader = new WideOffsetTableReader(stream);
             offsetTableReader.Skip(0x24);
-            Outside = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            Outside = offsetTableReader.ReadStringOffsetTable(codec, false);
 
             stream.Position = RomConfig.GetOffset(MenusBankBKey, romData);
             offsetTableReader = new WideOffsetTableReader(stream);
             offsetTableReader.Skip(0x58);
 
-            Menus = offsetTableReader.ReadStringOffsetTable(codec, false, false);
-            Memos = offsetTableReader.ReadStringOffsetTable(codec, false, false);
-            EnemyDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            Menus = offsetTableReader.ReadStringOffsetTable(codec, false);
+            Memos = offsetTableReader.ReadStringOffsetTable(codec, false);
+            EnemyDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false);
         }
 
         private LazyBlockCollection SerializeMiscText(StringCodec codec, List<List<string>> contiguousBlocks)
         {
             var blockCollection = new LazyBlockCollection();
 
-            blockCollection.AddStringOffsetTableBlocks(OutsideKey, codec, Outside, false, false);
-            blockCollection.AddStringOffsetTableBlocks(MenusKey, codec, Menus, false, false);
-            blockCollection.AddStringOffsetTableBlocks(MemosKey, codec, Memos, false, false);
-            blockCollection.AddStringOffsetTableBlocks(EnemyDescriptionsKey, codec, EnemyDescriptions, false, false);
+            blockCollection.AddStringOffsetTableBlocks(OutsideKey, codec, Outside, false);
+            blockCollection.AddStringOffsetTableBlocks(MenusKey, codec, Menus, false);
+            blockCollection.AddStringOffsetTableBlocks(MemosKey, codec, Memos, false);
+            blockCollection.AddStringOffsetTableBlocks(EnemyDescriptionsKey, codec, EnemyDescriptions, false);
 
             // No way to ensure contiguity with random access blocks within the menu banks,
             // but the string tables should themselves be contiguous always

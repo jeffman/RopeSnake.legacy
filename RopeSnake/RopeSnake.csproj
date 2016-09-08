@@ -118,6 +118,8 @@
     <Compile Include="Mother3\Data\Item.cs" />
     <Compile Include="Mother3\Data\Psi.cs" />
     <Compile Include="Core\Validation\INameHint.cs" />
+    <Compile Include="Mother3\IO\IndexLocation.cs" />
+    <Compile Include="Mother3\IO\LocationSize.cs" />
     <Compile Include="Mother3\IO\OffsetTableReader.cs" />
     <Compile Include="Mother3\IO\ShortOffsetTableReader.cs" />
     <Compile Include="Mother3\IO\ShortOffsetTableWriter.cs" />

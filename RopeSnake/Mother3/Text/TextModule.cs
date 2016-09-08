@@ -205,7 +205,7 @@ namespace RopeSnake.Mother3.Text
             blockCollection.Add(SkillsKey, () => TextExtensions.SerializeStringTable(codec, Skills));
             blockCollection.AddStringOffsetTableBlocks(SkillDescriptionsKey, codec, SkillDescriptions, false, false);
 
-            _textKeys = blockCollection.Keys.ToArray();
+            _textKeys = blockCollection.Keys.Skip(1).ToArray();
 
             if (RomConfig.IsEnglish)
             {
@@ -243,7 +243,7 @@ namespace RopeSnake.Mother3.Text
                 blockCollection.AddStringOffsetTableBlocks($"{MainScriptKey}.{i}", codec, MainScript[i], true, false);
             }
 
-            _mainScriptKeys = blockCollection.Keys.ToArray();
+            _mainScriptKeys = blockCollection.Keys.Skip(1).ToArray();
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
@@ -282,11 +282,8 @@ namespace RopeSnake.Mother3.Text
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            if (allocatedBlocks[TextBankKey] == null || allocatedBlocks[MainScriptKey] == null)
-                throw new Exception("One or more offset tables were null.");
-
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
+            UpdateWideOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
+            UpdateWideOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);

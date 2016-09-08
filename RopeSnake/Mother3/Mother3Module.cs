@@ -181,20 +181,17 @@ namespace RopeSnake.Mother3
             return block;
         }
 
-        protected static SerializeDummyTableResult SerializeDummyTable<T>(List<T> list, int fieldSize, string key, Action<BinaryStream, T> elementWriter)
+        protected static Block SerializeDummyTable<T>(IList<T> table, int fieldSize, Action<BinaryStream, T> elementWriter)
         {
-            string[] keys = { key, $"{key}.Table" };
-            var blocks = new LazyBlockCollection();
-            blocks.Add(key, () => WideOffsetTableWriter.CreateOffsetTable(1));
-            blocks.Add(keys[1], () => SerializeTable(list, fieldSize, elementWriter));
-            return new SerializeDummyTableResult(blocks, keys);
-        }
+            var block = WideOffsetTableWriter.CreateDummyTable(fieldSize, table.Count);
+            var stream = block.ToBinaryStream(12);
 
-        protected static string[] AddDummyResults(SerializeDummyTableResult result, LazyBlockCollection blocks, List<List<string>> contiguousKeys)
-        {
-            blocks.AddRange(result.Blocks);
-            contiguousKeys.Add(new List<string>(result.Keys));
-            return result.Keys;
+            foreach (T element in table)
+            {
+                elementWriter(stream, element);
+            }
+
+            return block;
         }
 
         public static string[] GetOffsetAndDataKeys(string key)
@@ -228,16 +225,22 @@ namespace RopeSnake.Mother3
             BlockKeysForFiles.Add(path, keySet);
         }
 
-        protected class SerializeDummyTableResult
+        protected static void UpdateWideOffsetTable(AllocatedBlockCollection allocatedBlocks, string tableKey, string[] blockKeys)
         {
-            public LazyBlockCollection Blocks { get; private set; }
-            public string[] Keys { get; private set; }
+            if (!allocatedBlocks.ContainsKey(tableKey))
+                throw new Exception($"Table key was not present: {tableKey}");
 
-            public SerializeDummyTableResult(LazyBlockCollection blocks, string[] keys)
-            {
-                Blocks = blocks;
-                Keys = keys;
-            }
+            var offsetTable = allocatedBlocks[tableKey];
+
+            if (offsetTable == null)
+                throw new Exception($"Offset table was null: {tableKey}");
+
+            int offsetTableBase = allocatedBlocks.GetAllocatedPointer(tableKey);
+            var newLocations = blockKeys.Select((k, i) => new IndexLocation(i, allocatedBlocks.GetAllocatedPointer(k)));
+            int newCount = blockKeys.Length;
+
+            WideOffsetTableWriter.UpdateTableOffsets(offsetTable, newLocations, offsetTableBase);
+            WideOffsetTableWriter.UpdateTableCount(offsetTable, newCount);
         }
 
         #endregion

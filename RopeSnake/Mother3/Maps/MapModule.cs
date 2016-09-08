@@ -59,17 +59,14 @@ namespace RopeSnake.Mother3.Maps
             var blocks = new LazyBlockCollection();
             var contiguousKeys = new List<List<string>>();
 
-            _mapInfoKeys = AddDummyResults(SerializeDummyTable(MapInfo, Maps.MapInfo.FieldSize, MapInfoKey, MapExtensions.WriteMapInfo), blocks, contiguousKeys);
+            blocks.Add(MapInfoKey, () => SerializeDummyTable(MapInfo, Maps.MapInfo.FieldSize, MapExtensions.WriteMapInfo));
 
             return new ModuleSerializationResult(blocks, contiguousKeys);
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
-            if (allocatedBlocks[MapInfoKey] == null)
-                throw new Exception("One or more offset tables were null.");
-
-            WideOffsetTableWriter.UpdateOffsetTable(allocatedBlocks, MapInfoKey, _mapInfoKeys);
+            UpdateWideOffsetTable(allocatedBlocks, MapInfoKey, _mapInfoKeys);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, MapInfoKey);

@@ -101,6 +101,13 @@ namespace RopeSnake.Mother3.Text
             ref int currentWrittenLength, int? maxLength, ref int startingIndex,
             ReverseLookup reverseCharLookup)
         {
+            Action<string, int> throwException = (msg, i) =>
+            {
+                throw new Exception($"{msg} at position {i}:" + Environment.NewLine +
+                    $"    {str}" + Environment.NewLine +
+                    $"    {new string('-', i)}^");
+            };
+
             // Check for opening bracket
             if (str[startingIndex] == '[')
             {
@@ -112,7 +119,7 @@ namespace RopeSnake.Mother3.Text
 
                 if ((closingIndex < 0) || (openingIndex >= 0 && openingIndex < closingIndex))
                 {
-                    throw new Exception("Opening bracket without subsequent closing bracket");
+                    throwException("Opening bracket without subsequent closing bracket", startingIndex);
                 }
 
                 // Get the tokens inside the brackets
@@ -124,7 +131,7 @@ namespace RopeSnake.Mother3.Text
 
                 if (tokens.Length == 0)
                 {
-                    throw new Exception("Empty brackets");
+                    throwException("Empty brackets", startingIndex);
                 }
 
                 // Check for a matching control code by tag
@@ -149,7 +156,7 @@ namespace RopeSnake.Mother3.Text
                     // Check for correct number of arguments
                     if (tokens.Length != (code.Arguments + 1))
                     {
-                        throw new Exception("Wrong number of arguments");
+                        throwException($"Wrong number of arguments (expected {code.Arguments}, got {tokens.Length - 1})", startingIndex);
                     }
 
                     // Parse the arguments as hex
@@ -161,7 +168,7 @@ namespace RopeSnake.Mother3.Text
 
                         if (!short.TryParse(tokens[i + 1], NumberStyles.HexNumber, null, out arg))
                         {
-                            throw new Exception("Could not parse argument as a hex number");
+                            throwException("Could not parse argument as a hex number", startingIndex);
                         }
 
                         args[i] = arg;
@@ -170,7 +177,7 @@ namespace RopeSnake.Mother3.Text
                     // Write
                     if (maxLength.HasValue && (currentWrittenLength + code.Arguments + 1) > maxLength)
                     {
-                        throw new Exception("Max length exceeded");
+                        throwException("Max length exceeded", startingIndex);
                     }
 
                     stream.WriteShort(code.Code);
@@ -223,7 +230,7 @@ namespace RopeSnake.Mother3.Text
                             // Write
                             if (maxLength.HasValue && (currentWrittenLength + args.Length + 1) > maxLength)
                             {
-                                throw new Exception("Max length exceeded");
+                                throwException("Max length exceeded", startingIndex);
                             }
 
                             stream.WriteShort(hexCode);
@@ -248,13 +255,20 @@ namespace RopeSnake.Mother3.Text
 
             if (stringMatch == null)
             {
-                throw new Exception("Could not parse character");
+                if (str[startingIndex] == '[')
+                {
+                    throwException("Invalid control code", startingIndex);
+                }
+                else
+                {
+                    throwException("Could not parse character/string", startingIndex);
+                }
             }
 
             // Write
             if (maxLength.HasValue && currentWrittenLength >= maxLength)
             {
-                throw new Exception("Max length exceeded");
+                throwException("Max length exceeded", startingIndex);
             }
 
             stream.WriteShort(stringMatch.Value);

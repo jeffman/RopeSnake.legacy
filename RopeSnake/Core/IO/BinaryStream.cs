@@ -166,16 +166,21 @@ namespace RopeSnake.Core
                 ch = ReadByte();
                 bytesRead++;
 
-                if (ch == 0 || bytesRead == length)
+                if (ch == 0)
                 {
                     break;
                 }
 
                 builder.Append((char)ch);
+
+                if (bytesRead == length)
+                {
+                    break;
+                }
             }
 
             // Read out the remaining bytes: exactly length bytes should be read by this method
-            for (int i = bytesRead; i <= length; i++)
+            for (int i = bytesRead; i < length; i++)
             {
                 ReadByte();
             }

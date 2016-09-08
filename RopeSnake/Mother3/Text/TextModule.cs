@@ -211,11 +211,20 @@ namespace RopeSnake.Mother3.Text
             {
                 blockCollection.Add(EnemyNamesShortKey, () => TextExtensions.SerializeStringTable(codec, EnemyNamesShort));
                 blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false, false);
+                contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(ItemDescriptionsSpecialKey)));
             }
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
                 contiguousBlocks.Add(new List<string>(_textKeys));
+            }
+            else
+            {
+                // String offset tables should always be contiguous regardless
+                contiguousBlocks.Add(new List<string> { _textKeys[0], _textKeys[1] }); // Room descriptions
+                contiguousBlocks.Add(new List<string> { _textKeys[3], _textKeys[4] }); // Item descriptions
+                contiguousBlocks.Add(new List<string> { _textKeys[9], _textKeys[10] }); // PSI descriptions
+                contiguousBlocks.Add(new List<string> { _textKeys[14], _textKeys[15] }); // Skill descriptions
             }
 
             return blockCollection;

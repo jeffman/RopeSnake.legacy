@@ -32,6 +32,13 @@ namespace RopeSnake.Mother3.Text
         private static readonly string MainScriptKey = "Text.MainScript";
         private static readonly string EnemyNamesShortKey = "Text.EnemyNamesShort";
         private static readonly string ItemDescriptionsSpecialKey = "Text.ItemDescriptionsSpecial";
+        private static readonly string OutsideKey = "Text.Outside";
+        private static readonly string MenusKey = "Text.Menus";
+        private static readonly string MemosKey = "Text.Memos";
+        private static readonly string EnemyDescriptionsKey = "Text.EnemyDescriptions";
+
+        private static readonly string MenusBankAKey = "Menus.BankA";
+        private static readonly string MenusBankBKey = "Menus.BankB";
 
         private static readonly FileSystemPath RoomDescriptionsPath = "/text/room-descriptions.json".ToPath();
         private static readonly FileSystemPath ItemNamesPath = "/text/item-names.json".ToPath();
@@ -48,6 +55,10 @@ namespace RopeSnake.Mother3.Text
         private static readonly FileSystemPath MainScriptPath = "/text/main-script.json".ToPath();
         private static readonly FileSystemPath EnemyNamesShortPath = "/text/enemy-names-short.json".ToPath();
         private static readonly FileSystemPath ItemDescriptionsSpecialPath = "/text/item-descriptions-special.json".ToPath();
+        private static readonly FileSystemPath OutsidePath = "/text/outside.json".ToPath();
+        private static readonly FileSystemPath MenusPath = "/text/menus.json".ToPath();
+        private static readonly FileSystemPath MemosPath = "/text/memos.json".ToPath();
+        private static readonly FileSystemPath EnemyDescriptionsPath = "/text/enemy-descriptions.json".ToPath();
 
         #endregion
 
@@ -66,6 +77,10 @@ namespace RopeSnake.Mother3.Text
         [NotNull] public StringTable Skills { get; set; }
         [NotNull] public List<string> SkillDescriptions { get; set; }
         [NotNull] public List<List<string>> MainScript { get; set; }
+        [NotNull] public List<string> Outside { get; set; }
+        [NotNull] public List<string> Menus { get; set; }
+        [NotNull] public List<string> Memos { get; set; }
+        [NotNull] public List<string> EnemyDescriptions { get; set; }
 
         public StringTable EnemyNamesShort { get; set; }
         public List<string> ItemDescriptionsSpecial { get; set; }
@@ -97,6 +112,10 @@ namespace RopeSnake.Mother3.Text
             Skills = jsonManager.ReadJson<StringTable>(SkillsPath);
             SkillDescriptions = jsonManager.ReadJson<List<string>>(SkillDescriptionsPath);
             MainScript = jsonManager.ReadJson<List<List<string>>>(MainScriptPath);
+            Outside = jsonManager.ReadJson<List<string>>(OutsidePath);
+            Menus = jsonManager.ReadJson<List<string>>(MenusPath);
+            Memos = jsonManager.ReadJson<List<string>>(MemosPath);
+            EnemyDescriptions = jsonManager.ReadJson<List<string>>(EnemyDescriptionsPath);
 
             AddBlockKeysForFile(RoomDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(RoomDescriptionsKey));
             AddBlockKeysForFile(ItemNamesPath, TextBankKey, ItemNamesKey);
@@ -111,6 +130,10 @@ namespace RopeSnake.Mother3.Text
             AddBlockKeysForFile(SkillsPath, TextBankKey, SkillsKey);
             AddBlockKeysForFile(SkillDescriptionsPath, TextBankKey, GetOffsetAndDataKeys(SkillDescriptionsKey));
             AddBlockKeysForFile(MainScriptPath, MainScriptKey, MainScript.SelectMany((s, i) => GetOffsetAndDataKeys($"{MainScriptKey}.{i}")));
+            AddBlockKeysForFile(OutsidePath, GetOffsetAndDataKeys(OutsideKey));
+            AddBlockKeysForFile(MenusPath, GetOffsetAndDataKeys(MenusKey));
+            AddBlockKeysForFile(MemosPath, GetOffsetAndDataKeys(MemosKey));
+            AddBlockKeysForFile(EnemyDescriptionsPath, GetOffsetAndDataKeys(EnemyDescriptionsKey));
 
             if (RomConfig.IsEnglish)
             {
@@ -141,6 +164,10 @@ namespace RopeSnake.Mother3.Text
             jsonManager.WriteJson(SkillsPath, Skills);
             jsonManager.WriteJson(SkillDescriptionsPath, SkillDescriptions);
             jsonManager.WriteJson(MainScriptPath, MainScript);
+            jsonManager.WriteJson(OutsidePath, Outside);
+            jsonManager.WriteJson(MenusPath, Menus);
+            jsonManager.WriteJson(MemosPath, Memos);
+            jsonManager.WriteJson(EnemyDescriptionsPath, EnemyDescriptions);
 
             if (RomConfig.IsEnglish)
             {
@@ -155,6 +182,7 @@ namespace RopeSnake.Mother3.Text
 
             ReadTextBank(romData, codec);
             ReadMainScript(romData, codec);
+            ReadMiscText(romData, codec);
         }
 
         private void ReadTextBank(Block romData, StringCodec codec)
@@ -289,10 +317,63 @@ namespace RopeSnake.Mother3.Text
             }
         }
 
+        private void ReadMiscText(Block romData, StringCodec codec)
+        {
+            var stream = romData.ToBinaryStream(RomConfig.GetOffset(MenusBankAKey, romData));
+            var offsetTableReader = new WideOffsetTableReader(stream);
+            offsetTableReader.Skip(0x24);
+            Outside = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+
+            stream.Position = RomConfig.GetOffset(MenusBankBKey, romData);
+            offsetTableReader = new WideOffsetTableReader(stream);
+            offsetTableReader.Skip(0x58);
+
+            Menus = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            Memos = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+            EnemyDescriptions = offsetTableReader.ReadStringOffsetTable(codec, false, false);
+        }
+
+        private LazyBlockCollection SerializeMiscText(StringCodec codec, List<List<string>> contiguousBlocks)
+        {
+            var blockCollection = new LazyBlockCollection();
+
+            blockCollection.AddStringOffsetTableBlocks(OutsideKey, codec, Outside, false, false);
+            blockCollection.AddStringOffsetTableBlocks(MenusKey, codec, Menus, false, false);
+            blockCollection.AddStringOffsetTableBlocks(MemosKey, codec, Memos, false, false);
+            blockCollection.AddStringOffsetTableBlocks(EnemyDescriptionsKey, codec, EnemyDescriptions, false, false);
+
+            // No way to ensure contiguity with random access blocks within the menu banks,
+            // but the string tables should themselves be contiguous always
+            contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(OutsideKey)));
+            contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(MenusKey)));
+            contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(MemosKey)));
+            contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(EnemyDescriptionsKey)));
+
+            return blockCollection;
+        }
+
+        private void UpdateMenuTables(Block romData, AllocatedBlockCollection allocatedBlocks)
+        {
+            int menusALocation = RomConfig.GetOffset(MenusBankAKey, romData);
+            WideOffsetTableWriter.UpdateTableOffsets(romData,
+                GetOffsetAndDataKeys(OutsideKey)
+                    .Select((k, i) => new IndexLocation(i + 0x24, allocatedBlocks.GetAllocatedPointer(k))),
+                menusALocation, menusALocation);
+
+            int menusBLocation = RomConfig.GetOffset(MenusBankBKey, romData);
+            WideOffsetTableWriter.UpdateTableOffsets(romData,
+                GetOffsetAndDataKeys(MenusKey)
+                    .Concat(GetOffsetAndDataKeys(MemosKey))
+                    .Concat(GetOffsetAndDataKeys(EnemyDescriptionsKey))
+                    .Select((k, i) => new IndexLocation(i + 0x58, allocatedBlocks.GetAllocatedPointer(k))),
+                menusBLocation, menusBLocation);
+        }
+
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             UpdateWideOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
             UpdateWideOffsetTable(allocatedBlocks, MainScriptKey, _mainScriptKeys);
+            UpdateMenuTables(romData, allocatedBlocks);
 
             WriteAllocatedBlocks(romData, allocatedBlocks);
             UpdateRomReferences(romData, allocatedBlocks, TextBankKey, MainScriptKey);
@@ -316,6 +397,7 @@ namespace RopeSnake.Mother3.Text
 
             blocks.AddRange(SerializeTextBank(codec, contiguousKeys));
             blocks.AddRange(SerializeMainScript(codec, contiguousKeys));
+            blocks.AddRange(SerializeMiscText(codec, contiguousKeys));
 
             return new ModuleSerializationResult(blocks, contiguousKeys);
         }

@@ -128,7 +128,7 @@ namespace RopeSnake.Mother3
         }
 
         public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath,
-            params string[] modulesToLoad)
+            IProgress<ProgressPercent> progress, params string[] modulesToLoad)
         {
             _log.Info($"Loading project \"{projectSettingsPath.Path}\" with modules {string.Join(", ", modulesToLoad)}");
 
@@ -147,6 +147,7 @@ namespace RopeSnake.Mother3
 
             foreach (var module in project.Modules)
             {
+                module.Progress = progress;
                 _log.Info($"Loading module: {module.Name}");
                 module.ReadFromFiles(fileSystem);
             }

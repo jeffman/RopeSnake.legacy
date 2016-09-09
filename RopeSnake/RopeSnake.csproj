@@ -122,6 +122,7 @@
     <Compile Include="Mother3\IO\OffsetTableWriter.cs" />
     <Compile Include="Mother3\IO\SarOffsetTableReader.cs" />
     <Compile Include="Mother3\IO\SarOffsetTableWriter.cs" />
+    <Compile Include="Mother3\Maps\GraphicsInfo.cs" />
     <Compile Include="Mother3\Text\Bxt.cs" />
     <Compile Include="Mother3\IO\IndexLocation.cs" />
     <Compile Include="Mother3\IO\LocationSize.cs" />

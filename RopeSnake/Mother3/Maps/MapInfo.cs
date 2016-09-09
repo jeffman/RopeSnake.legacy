@@ -9,6 +9,7 @@ using RopeSnake.Core.Validation;
 
 namespace RopeSnake.Mother3.Maps
 {
+    [Validate]
     public sealed class MapInfo : INameHint
     {
         public static readonly int FieldSize = 28;
@@ -16,13 +17,14 @@ namespace RopeSnake.Mother3.Maps
         [JsonProperty(Order = -1, DefaultValueHandling = DefaultValueHandling.IgnoreAndPopulate)]
         public string NameHint { get; set; }
 
-        [JsonProperty]
+        [JsonProperty, NotNull, CountEquals(2)]
         public byte[] Alpha { get; private set; } = new byte[2];
-        [JsonProperty]
+
+        [JsonProperty, NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection), CountEquals(3), Validate(Flags = ValidateFlags.Collection)]
         public LayerInfo[] Layers { get; private set; } = new LayerInfo[3];
         public uint UnknownFields { get; set; }
 
-        [JsonProperty]
+        [JsonProperty, NotNull, CountEquals(12)]
         public byte[] Unknown { get; private set; } = new byte[12];
     }
 }

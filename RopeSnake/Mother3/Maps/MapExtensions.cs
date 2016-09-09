@@ -53,5 +53,27 @@ namespace RopeSnake.Mother3.Maps
             for (int i = 0; i < 3; i++)
                 stream.WriteLayerInfo(info.Layers[i]);
         }
+
+        public static GraphicsInfo ReadGraphicsInfo(this BinaryStream stream)
+        {
+            var info = new GraphicsInfo();
+            for (int i = 0; i < 12; i++)
+            {
+                info.TileSets[i] = stream.ReadShort();
+            }
+            info.Palette = stream.ReadShort();
+            return info;
+        }
+
+        public static void WriteGraphicsInfo(this BinaryStream stream, GraphicsInfo info)
+        {
+            for (int i = 0; i < 12; i++)
+            {
+                stream.WriteShort(info.TileSets[i]);
+            }
+            stream.WriteShort(info.Palette);
+        }
+
+
     }
 }

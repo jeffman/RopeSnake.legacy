@@ -31,7 +31,7 @@ namespace RopeSnake.Core
         private T ReadFileInternal<T>(FileSystemPath path) where T : IBinarySerializable, new()
         {
             var value = new T();
-            ReadFile(path, value);
+            ReadFileInternal(path, value);
             return value;
         }
 

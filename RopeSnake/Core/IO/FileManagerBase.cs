@@ -20,8 +20,8 @@ namespace RopeSnake.Core
         protected IFileSystem FileSystem { get { return _fileSystem; } }
         protected IndexTotal CurrentIndex { get; set; }
 
-        protected string CountFile { get; } = "count.txt";
-        protected string KeysFile { get; } = "keys.txt";
+        public static readonly string CountFile = "count.txt";
+        public static readonly string KeysFile = "keys.txt";
 
         public ISet<object> StaleObjects { get; set; }
         public event FileEventDelegate FileRead;
@@ -92,7 +92,11 @@ namespace RopeSnake.Core
             }
         }
 
-        protected List<T> ReadFileListAction<T>(FileSystemPath directory, string extension, Func<FileSystemPath, T> action)
+        public abstract IEnumerable<Tuple<FileSystemPath, int>> EnumerateFileListPaths(int count, FileSystemPath directory);
+
+        public abstract IEnumerable<Tuple<FileSystemPath, string>> EnumerateFileDictionaryPaths(IEnumerable<string> keys, FileSystemPath directory);
+
+        protected List<T> ReadFileListAction<T>(FileSystemPath directory, Func<FileSystemPath, T> action)
         {
             if (!directory.IsDirectory)
                 throw new ArgumentException(nameof(directory));
@@ -119,10 +123,12 @@ namespace RopeSnake.Core
                     }
                 });
 
-                for (int i = 0; i < count; i++)
+                foreach (var pathItem in EnumerateFileListPaths(count, directory))
                 {
+                    int i = pathItem.Item2;
+
                     CurrentIndex = new IndexTotal(i + 1, count);
-                    var path = directory.AppendFile($"{i}.{extension}");
+                    var path = pathItem.Item1;
 
                     if (FileSystem.Exists(path))
                     {
@@ -138,7 +144,7 @@ namespace RopeSnake.Core
             return list;
         }
 
-        protected void CreateFileListAction<T>(FileSystemPath directory, string extension, IList<T> list, Action<FileSystemPath, T> action)
+        protected void CreateFileListAction<T>(FileSystemPath directory, IList<T> list, Action<FileSystemPath, T> action)
         {
             if (!directory.IsDirectory)
                 throw new ArgumentException(nameof(directory));
@@ -152,10 +158,12 @@ namespace RopeSnake.Core
                         writer.Write(list.Count.ToString());
                 });
 
-                for (int i = 0; i < list.Count; i++)
+                foreach (var pathItem in EnumerateFileListPaths(list.Count, directory))
                 {
+                    int i = pathItem.Item2;
+
                     CurrentIndex = new IndexTotal(i + 1, list.Count);
-                    var path = directory.AppendFile($"{i}.{extension}");
+                    var path = pathItem.Item1;
 
                     T value = list[i];
                     if (value != null)
@@ -170,7 +178,7 @@ namespace RopeSnake.Core
             }
         }
 
-        protected Dictionary<string, T> ReadFileDictionaryAction<T>(FileSystemPath directory, string extension,
+        protected Dictionary<string, T> ReadFileDictionaryAction<T>(FileSystemPath directory,
             IEnumerable<string> keysToIgnore, Func<FileSystemPath, T> action)
         {
             if (!directory.IsDirectory)
@@ -200,11 +208,12 @@ namespace RopeSnake.Core
                     }
                 });
 
-                for (int i = 0; i < keys.Count; i++)
+                int index = 0;
+                foreach (var pathItem in EnumerateFileDictionaryPaths(keys, directory))
                 {
-                    string key = keys[i];
-                    CurrentIndex = new IndexTotal(i + 1, keys.Count);
-                    var path = directory.AppendFile($"{key}.{extension}");
+                    string key = pathItem.Item2;
+                    CurrentIndex = new IndexTotal(index + 1, keys.Count);
+                    var path = pathItem.Item1;
 
                     if (FileSystem.Exists(path))
                     {
@@ -214,13 +223,15 @@ namespace RopeSnake.Core
                     {
                         dict.Add(key, default(T));
                     }
+
+                    index++;
                 }
             }
 
             return dict;
         }
 
-        protected void CreateFileDictionaryAction<T>(FileSystemPath directory, string extension, IEnumerable<KeyValuePair<string, T>> dict,
+        protected void CreateFileDictionaryAction<T>(FileSystemPath directory, IDictionary<string, T> dict,
             Action<FileSystemPath, T> action)
         {
             if (!directory.IsDirectory)
@@ -243,16 +254,16 @@ namespace RopeSnake.Core
                 });
 
                 int i = 0;
-                foreach (var kv in dict)
+                foreach (var pathItem in EnumerateFileDictionaryPaths(dict.Keys, directory))
                 {
-                    string key = kv.Key;
+                    string key = pathItem.Item2;
                     CurrentIndex = new IndexTotal(i + 1, count);
-                    var path = directory.AppendFile($"{key}.{extension}");
+                    var path = pathItem.Item1;
 
-                    T value = kv.Value;
+                    T value = dict[key];
                     if (value != null)
                     {
-                        action(path, kv.Value);
+                        action(path, value);
                     }
                     else
                     {

@@ -32,14 +32,36 @@ namespace RopeSnake.Core
             }
         }
 
+        public override IEnumerable<Tuple<FileSystemPath, int>> EnumerateFileListPaths(int count, FileSystemPath directory)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            for (int i = 0; i < count; i++)
+            {
+                yield return Tuple.Create(directory.AppendFile($"{i}.{JsonExtension}"), i);
+            }
+        }
+
+        public override IEnumerable<Tuple<FileSystemPath, string>> EnumerateFileDictionaryPaths(IEnumerable<string> keys, FileSystemPath directory)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            foreach (string key in keys)
+            {
+                yield return Tuple.Create(directory.AppendFile($"{key}.{JsonExtension}"), key);
+            }
+        }
+
         public List<T> ReadJsonList<T>(FileSystemPath directory)
         {
-            return ReadFileListAction(directory, JsonExtension, ReadJsonInternal<T>);
+            return ReadFileListAction(directory, ReadJsonInternal<T>);
         }
 
         public Dictionary<string, T> ReadJsonDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
         {
-            return ReadFileDictionaryAction(directory, JsonExtension, keysToIgnore, ReadJsonInternal<T>);
+            return ReadFileDictionaryAction(directory, keysToIgnore, ReadJsonInternal<T>);
         }
 
         private T ReadJsonInternal<T>(FileSystemPath path)
@@ -72,12 +94,12 @@ namespace RopeSnake.Core
 
         public void WriteJsonList<T>(FileSystemPath directory, IList<T> list)
         {
-            CreateFileListAction(directory, JsonExtension, list, (p, e) => WriteJsonInternal(p, e));
+            CreateFileListAction(directory, list, (p, e) => WriteJsonInternal(p, e));
         }
 
-        public void WriteFileDictionary<T>(FileSystemPath directory, IEnumerable<KeyValuePair<string, T>> dict)
+        public void WriteFileDictionary<T>(FileSystemPath directory, IDictionary<string, T> dict)
         {
-            CreateFileDictionaryAction(directory, JsonExtension, dict, (p, e) => WriteJsonInternal(p, e));
+            CreateFileDictionaryAction(directory, dict, (p, e) => WriteJsonInternal(p, e));
         }
 
         private void WriteJsonInternal(FileSystemPath path, object value)

@@ -44,15 +44,37 @@ namespace RopeSnake.Core
             }
         }
 
+        public override IEnumerable<Tuple<FileSystemPath, int>> EnumerateFileListPaths(int count, FileSystemPath directory)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            for (int i = 0; i < count; i++)
+            {
+                yield return Tuple.Create(directory.AppendFile($"{i}.{BinExtension}"), i);
+            }
+        }
+
+        public override IEnumerable<Tuple<FileSystemPath, string>> EnumerateFileDictionaryPaths(IEnumerable<string> keys, FileSystemPath directory)
+        {
+            if (!directory.IsDirectory)
+                throw new ArgumentException(nameof(directory));
+
+            foreach (string key in keys)
+            {
+                yield return Tuple.Create(directory.AppendFile($"{key}.{BinExtension}"), key);
+            }
+        }
+
         public List<T> ReadFileList<T>(FileSystemPath directory) where T : IBinarySerializable, new()
         {
-            return ReadFileListAction(directory, BinExtension, ReadFileInternal<T>);
+            return ReadFileListAction(directory, ReadFileInternal<T>);
         }
 
         public Dictionary<string, T> ReadFileDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
             where T : IBinarySerializable, new()
         {
-            return ReadFileDictionaryAction(directory, BinExtension, keysToIgnore, ReadFileInternal<T>);
+            return ReadFileDictionaryAction(directory, keysToIgnore, ReadFileInternal<T>);
         }
 
         private void ReadFileInternal(FileSystemPath path, IBinarySerializable value)
@@ -71,12 +93,12 @@ namespace RopeSnake.Core
 
         public void WriteFileList<T>(FileSystemPath directory, IList<T> list) where T : IBinarySerializable
         {
-            CreateFileListAction(directory, BinExtension, list, (p, e) => WriteFileInternal(p, e));
+            CreateFileListAction(directory, list, (p, e) => WriteFileInternal(p, e));
         }
 
-        public void WriteFileDictionary<T>(FileSystemPath directory, IEnumerable<KeyValuePair<string, T>> dict) where T : IBinarySerializable
+        public void WriteFileDictionary<T>(FileSystemPath directory, IDictionary<string, T> dict) where T : IBinarySerializable
         {
-            CreateFileDictionaryAction(directory, BinExtension, dict, (p, e) => WriteFileInternal(p, e));
+            CreateFileDictionaryAction(directory, dict, (p, e) => WriteFileInternal(p, e));
         }
 
         private void WriteFileInternal(FileSystemPath path, IBinarySerializable value)

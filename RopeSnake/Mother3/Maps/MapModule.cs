@@ -60,6 +60,10 @@ namespace RopeSnake.Mother3.Maps
             MapInfo = jsonManager.ReadJson<List<MapInfo>>(MapInfoPath);
             GraphicsInfo = jsonManager.ReadJson<List<GraphicsInfo>>(GraphicsInfoPath);
             Tilesets = binaryManager.ReadFileList<GbaTileset>(TilesetsFolder);
+
+            AddBlockKeysForFile(MapInfoPath, MapInfoKey);
+            AddBlockKeysForFile(GraphicsInfoPath, GraphicsInfoKey);
+            AddBlockKeysForFileList(binaryManager, TilesetsFolder, GetDataKeys(TilesetsKey, Tilesets.Count));
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
@@ -92,8 +96,7 @@ namespace RopeSnake.Mother3.Maps
             blocks.Add(MapInfoKey, () => SerializeDummyTable(MapInfo, Maps.MapInfo.FieldSize, MapExtensions.WriteMapInfo));
             blocks.Add(GraphicsInfoKey, () => SerializeDummyTable(GraphicsInfo, Maps.GraphicsInfo.FieldSize, MapExtensions.WriteGraphicsInfo));
 
-            blocks.AddRange(_tilesetKeys = GetDataKeys(TilesetsKey, Tilesets.Count),
-                () => SerializeWideOffsetTable(Tilesets, TilesetBufferSize, (s, v) => s.WriteCompressedTileset(v, true)));
+            _tilesetKeys = AddWideOffsetTable(blocks, Tilesets, TilesetsKey, TilesetBufferSize, (s, v) => s.WriteCompressedTileset(v, true));
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
@@ -110,6 +113,8 @@ namespace RopeSnake.Mother3.Maps
             WriteAllocatedBlocks(romData, allocatedBlocks);
 
             UpdateRomReferences(romData, allocatedBlocks, MapInfoKey, GraphicsInfoKey, TilesetsKey);
+
+            _tilesetKeys = null;
         }
 
         public override void UpdateNameHints(Text.TextModule textModule)

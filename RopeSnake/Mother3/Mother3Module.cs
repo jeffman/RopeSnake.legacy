@@ -225,6 +225,15 @@ namespace RopeSnake.Mother3
             BlockKeysForFiles.Add(path, keySet);
         }
 
+        protected void AddBlockKeysForFileList(FileManagerBase fileManager, FileSystemPath directory, string[] allKeys)
+        {
+            AddBlockKeysForFile(directory.AppendFile(FileManagerBase.CountFile), allKeys[0]);
+            foreach (var pathItem in fileManager.EnumerateFileListPaths(allKeys.Length - 1, directory))
+            {
+                AddBlockKeysForFile(pathItem.Item1, allKeys[0], allKeys[pathItem.Item2 + 1]);
+            }
+        }
+
         protected static void UpdateWideOffsetTable(AllocatedBlockCollection allocatedBlocks, string[] allKeys)
             => UpdateWideOffsetTable(allocatedBlocks, allKeys[0], allKeys.Skip(1).ToArray());
 
@@ -267,28 +276,32 @@ namespace RopeSnake.Mother3
             return list;
         }
 
-        protected Block[] SerializeWideOffsetTable<T>(IEnumerable<T> values, int bufferSize, Action<BinaryStream, T> elementWriter)
+        protected Func<Block>[] SerializeWideOffsetTable<T>(IEnumerable<T> values, int bufferSize, Action<BinaryStream, T> elementWriter)
         {
             int count = values.Count();
-            var offsetTable = WideOffsetTableWriter.CreateOffsetTable(count);
-            var allBlocks = new Block[count + 1];
+            Func<Block> offsetTable = () => WideOffsetTableWriter.CreateOffsetTable(count);
+            var allBlocks = new Func<Block>[count + 1];
             allBlocks[0] = offsetTable;
 
             int index = 0;
             foreach (T value in values)
             {
-                Block dataBlock;
+                Func<Block> dataBlock;
 
                 if (value != null)
                 {
-                    dataBlock = new Block(bufferSize);
-                    var dataStream = dataBlock.ToBinaryStream();
-                    elementWriter(dataStream, value);
-                    dataBlock.Resize(dataStream.Position);
+                    dataBlock = () =>
+                    {
+                        var block = new Block(bufferSize);
+                        var dataStream = block.ToBinaryStream();
+                        elementWriter(dataStream, value);
+                        block.Resize(dataStream.Position);
+                        return block;
+                    };
                 }
                 else
                 {
-                    dataBlock = null;
+                    dataBlock = () => null;
                 }
 
                 allBlocks[index + 1] = dataBlock;
@@ -296,6 +309,15 @@ namespace RopeSnake.Mother3
             }
 
             return allBlocks;
+        }
+
+        protected string[] AddWideOffsetTable<T>(LazyBlockCollection blockCollection, IEnumerable<T> values, string tableKey,
+            int bufferSize, Action<BinaryStream, T> elementWriter)
+        {
+            var keys = GetDataKeys(tableKey, values.Count());
+            var lazyBlocks = SerializeWideOffsetTable(values, bufferSize, elementWriter);
+            blockCollection.AddRange(keys.Zip(lazyBlocks, (k, f) => new KeyValuePair<string, Func<Block>>(k, f)));
+            return keys;
         }
 
         protected static string[] GetDataKeys(string key, int count)

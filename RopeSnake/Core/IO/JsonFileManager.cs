@@ -37,7 +37,7 @@ namespace RopeSnake.Core
             return ReadFileListAction(directory, JsonExtension, ReadJsonInternal<T>);
         }
 
-        public Dictionary<string, T> ReadFileDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
+        public Dictionary<string, T> ReadJsonDictionary<T>(FileSystemPath directory, IEnumerable<string> keysToIgnore = null)
         {
             return ReadFileDictionaryAction(directory, JsonExtension, keysToIgnore, ReadJsonInternal<T>);
         }

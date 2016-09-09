@@ -225,6 +225,9 @@ namespace RopeSnake.Mother3
             BlockKeysForFiles.Add(path, keySet);
         }
 
+        protected static void UpdateWideOffsetTable(AllocatedBlockCollection allocatedBlocks, string[] allKeys)
+            => UpdateWideOffsetTable(allocatedBlocks, allKeys[0], allKeys.Skip(1).ToArray());
+
         protected static void UpdateWideOffsetTable(AllocatedBlockCollection allocatedBlocks, string tableKey, string[] blockKeys)
         {
             if (!allocatedBlocks.ContainsKey(tableKey))
@@ -241,6 +244,63 @@ namespace RopeSnake.Mother3
 
             WideOffsetTableWriter.UpdateTableOffsets(offsetTable, newLocations, offsetTableBase);
             WideOffsetTableWriter.UpdateTableCount(offsetTable, newCount);
+        }
+
+        protected List<T> ReadWideOffsetTable<T>(Block romData, string tableKey, Func<BinaryStream, T> elementReader)
+        {
+            var list = new List<T>();
+            var stream = romData.ToBinaryStream(RomConfig.GetOffset(tableKey, romData));
+            var offsetTableReader = new WideOffsetTableReader(stream);
+
+            while (!offsetTableReader.EndOfTable)
+            {
+                if (offsetTableReader.Next())
+                {
+                    list.Add(elementReader(stream));
+                }
+                else
+                {
+                    list.Add(default(T));
+                }
+            }
+
+            return list;
+        }
+
+        protected Block[] SerializeWideOffsetTable<T>(IEnumerable<T> values, int bufferSize, Action<BinaryStream, T> elementWriter)
+        {
+            int count = values.Count();
+            var offsetTable = WideOffsetTableWriter.CreateOffsetTable(count);
+            var allBlocks = new Block[count + 1];
+            allBlocks[0] = offsetTable;
+
+            int index = 0;
+            foreach (T value in values)
+            {
+                Block dataBlock;
+
+                if (value != null)
+                {
+                    dataBlock = new Block(bufferSize);
+                    var dataStream = dataBlock.ToBinaryStream();
+                    elementWriter(dataStream, value);
+                    dataBlock.Resize(dataStream.Position);
+                }
+                else
+                {
+                    dataBlock = null;
+                }
+
+                allBlocks[index + 1] = dataBlock;
+                index++;
+            }
+
+            return allBlocks;
+        }
+
+        protected static string[] GetDataKeys(string key, int count)
+        {
+            return Enumerable.Repeat(key, 1).Concat(Enumerable.Range(0, count).Select(i => $"{key}.{i}")).ToArray();
         }
 
         #endregion

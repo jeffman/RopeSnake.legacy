@@ -2,14 +2,23 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RopeSnake.Core;
 using RopeSnake.Graphics;
 
 namespace RopeSnake.Gba
 {
-    public static class StreamExtensions
+    public static class GbaExtensions
     {
+        private static readonly int CompressionBufferSize = 128 * 1024;
+        private static readonly ThreadLocal<Block> CompressionBuffers;
+
+        static GbaExtensions()
+        {
+            CompressionBuffers = new ThreadLocal<Block>(() => new Block(CompressionBufferSize));
+        }
+
         public static int ReadGbaPointer(this BinaryStream stream)
         {
             return stream.ReadInt() & 0x1FFFFFF;
@@ -77,7 +86,7 @@ namespace RopeSnake.Gba
             return decompressed;
         }
 
-        public static int WriteCompressed(this BinaryStream stream, Block uncompressed, bool vram)
+        public static int WriteCompressed(this BinaryStream stream, Block uncompressed, int count, bool vram)
         {
             LinkedList<int>[] lookup = new LinkedList<int>[256];
             for (int i = 0; i < 256; i++)
@@ -85,7 +94,6 @@ namespace RopeSnake.Gba
 
             int start = stream.Position;
             int current = 0;
-            int count = uncompressed.Size;
 
             List<byte> temp = new List<byte>();
             int control = 0;
@@ -202,6 +210,20 @@ namespace RopeSnake.Gba
             return stream.Position - start;
         }
 
+        public static T ReadCompressed<T>(this BinaryStream stream, Func<BinaryStream, int, T> readAction)
+        {
+            var decompressed = stream.ReadCompressed();
+            return readAction(decompressed.ToBinaryStream(), decompressed.Size);
+        }
+
+        public static int WriteCompressed<T>(this BinaryStream stream, T value, bool vram, Action<BinaryStream> writeAction)
+        {
+            var buffer = CompressionBuffers.Value;
+            var bufferStream = buffer.ToBinaryStream();
+            writeAction(bufferStream);
+            return stream.WriteCompressed(buffer, bufferStream.Position, vram);
+        }
+
         public static GbaTile ReadTile(this BinaryStream stream, int bitDepth)
         {
             var tile = new GbaTile();
@@ -224,6 +246,9 @@ namespace RopeSnake.Gba
             return tileset;
         }
 
+        public static GbaTileset ReadCompressedTileset(this BinaryStream stream, int bitDepth)
+            => stream.ReadCompressed((s, l) => s.ReadTileset(l / (bitDepth * 8), bitDepth));
+
         public static void WriteTileset(this BinaryStream stream, GbaTileset tileset, int bitDepth)
         {
             for (int i = 0; i < tileset.Count; i++)
@@ -231,6 +256,9 @@ namespace RopeSnake.Gba
                 stream.WriteTile(tileset[i], bitDepth);
             }
         }
+
+        public static int WriteCompressedTileset(this BinaryStream stream, GbaTileset tileset, bool vram)
+            => stream.WriteCompressed(tileset, vram, s => s.WriteTileset(tileset, tileset.BitDepth));
 
         public static Color ReadColor(this BinaryStream stream)
         {

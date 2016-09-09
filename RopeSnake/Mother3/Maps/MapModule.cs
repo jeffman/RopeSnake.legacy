@@ -8,21 +8,27 @@ using Newtonsoft.Json;
 using RopeSnake.Core;
 using RopeSnake.Mother3.IO;
 using RopeSnake.Core.Validation;
+using RopeSnake.Gba;
+using RopeSnake.Graphics;
 
 namespace RopeSnake.Mother3.Maps
 {
     [Validate]
     public sealed class MapModule : Mother3Module
     {
+        private static readonly int TilesetBufferSize = 128 * 1024;
+
         public override string Name => "Maps";
 
         #region Static strings
 
         private static readonly string MapInfoKey = "Maps.Info";
         private static readonly string GraphicsInfoKey = "Maps.GraphicsInfo";
+        private static readonly string TilesetsKey = "Maps.Tilesets";
 
         private static readonly FileSystemPath MapInfoPath = "/maps/map-info.json".ToPath();
         private static readonly FileSystemPath GraphicsInfoPath = "/maps/graphics-info.json".ToPath();
+        private static readonly FileSystemPath TilesetsFolder = "/maps/tilesets/".ToPath();
 
         #endregion
 
@@ -31,6 +37,11 @@ namespace RopeSnake.Mother3.Maps
 
         [NotNull(Flags = ValidateFlags.Instance | ValidateFlags.Collection), Validate(Flags = ValidateFlags.Collection)]
         public List<GraphicsInfo> GraphicsInfo { get; set; }
+
+        [NotNull]
+        public List<GbaTileset> Tilesets { get; set; }
+
+        private string[] _tilesetKeys;
 
         public MapModule(Mother3RomConfig romConfig, Mother3ProjectSettings projectSettings)
             : base(romConfig, projectSettings)
@@ -43,8 +54,12 @@ namespace RopeSnake.Mother3.Maps
             var jsonManager = new JsonFileManager(fileSystem);
             RegisterFileManagerProgress(jsonManager);
 
+            var binaryManager = new BinaryFileManager(fileSystem);
+            RegisterFileManagerProgress(binaryManager);
+
             MapInfo = jsonManager.ReadJson<List<MapInfo>>(MapInfoPath);
             GraphicsInfo = jsonManager.ReadJson<List<GraphicsInfo>>(GraphicsInfoPath);
+            Tilesets = binaryManager.ReadFileList<GbaTileset>(TilesetsFolder);
         }
 
         public override void WriteToFiles(IFileSystem fileSystem, ISet<object> staleObjects)
@@ -53,14 +68,20 @@ namespace RopeSnake.Mother3.Maps
             RegisterFileManagerProgress(jsonManager);
             jsonManager.StaleObjects = staleObjects;
 
+            var binaryManager = new BinaryFileManager(fileSystem);
+            RegisterFileManagerProgress(binaryManager);
+            binaryManager.StaleObjects = staleObjects;
+
             jsonManager.WriteJson(MapInfoPath, MapInfo);
             jsonManager.WriteJson(GraphicsInfoPath, GraphicsInfo);
+            binaryManager.WriteFileList(TilesetsFolder, Tilesets);
         }
 
         public override void ReadFromRom(Block romData)
         {
             MapInfo = ReadDummyTable(romData, MapInfoKey, MapExtensions.ReadMapInfo);
             GraphicsInfo = ReadDummyTable(romData, GraphicsInfoKey, MapExtensions.ReadGraphicsInfo);
+            Tilesets = ReadWideOffsetTable(romData, TilesetsKey, s => s.ReadCompressedTileset(4));
         }
 
         public override ModuleSerializationResult Serialize()
@@ -71,13 +92,24 @@ namespace RopeSnake.Mother3.Maps
             blocks.Add(MapInfoKey, () => SerializeDummyTable(MapInfo, Maps.MapInfo.FieldSize, MapExtensions.WriteMapInfo));
             blocks.Add(GraphicsInfoKey, () => SerializeDummyTable(GraphicsInfo, Maps.GraphicsInfo.FieldSize, MapExtensions.WriteGraphicsInfo));
 
+            blocks.AddRange(_tilesetKeys = GetDataKeys(TilesetsKey, Tilesets.Count),
+                () => SerializeWideOffsetTable(Tilesets, TilesetBufferSize, (s, v) => s.WriteCompressedTileset(v, true)));
+
+            if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
+            {
+                contiguousKeys.Add(new List<string>(_tilesetKeys));
+            }
+
             return new ModuleSerializationResult(blocks, contiguousKeys);
         }
 
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
+            UpdateWideOffsetTable(allocatedBlocks, _tilesetKeys);
+
             WriteAllocatedBlocks(romData, allocatedBlocks);
-            UpdateRomReferences(romData, allocatedBlocks, MapInfoKey, GraphicsInfoKey);
+
+            UpdateRomReferences(romData, allocatedBlocks, MapInfoKey, GraphicsInfoKey, TilesetsKey);
         }
 
         public override void UpdateNameHints(Text.TextModule textModule)

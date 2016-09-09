@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -96,19 +97,24 @@ namespace RopeSnake.Core
         private IAllocator _allocator;
         private IEnumerable<IModule> _modules;
         private BlockCollection _blockCache;
+        private ParallelOptions _parallelOptions;
 
         public int AllocationAlignment { get; set; } = 1;
 
         private Compiler() { }
 
         public static Compiler Create(Block romData, IAllocator allocator, IEnumerable<IModule> modules,
-            BlockCollection blockCache)
+            BlockCollection blockCache, int maxThreads = 1)
         {
+            if (maxThreads < 1)
+                throw new ArgumentException(nameof(maxThreads));
+
             Compiler compiler = new Compiler();
             compiler._romData = romData;
             compiler._allocator = allocator;
             compiler._modules = modules;
             compiler._blockCache = new BlockCollection(blockCache);
+            compiler._parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = maxThreads };
             return compiler;
         }
 
@@ -154,21 +160,23 @@ namespace RopeSnake.Core
         {
             var resolvedBlocks = new BlockCollection();
             var updatedKeys = new List<string>();
+            var dict = new ConcurrentDictionary<string, Block>();
 
-            foreach (string key in lazyBlocks.Keys)
+            Parallel.ForEach(lazyBlocks.Keys, _parallelOptions, key =>
             {
                 if (blockCache != null && blockCache.ContainsKey(key))
                 {
-                    resolvedBlocks.Add(key, blockCache[key]);
+                    dict.TryAdd(key, blockCache[key]);
                 }
                 else
                 {
                     var updatedBlock = lazyBlocks[key]();
-                    resolvedBlocks.Add(key, updatedBlock);
+                    dict.TryAdd(key, updatedBlock);
                     updatedKeys.Add(key);
                 }
-            }
+            });
 
+            resolvedBlocks.AddRange(dict);
             return new ResolveSerializedBlocksResult(resolvedBlocks, updatedKeys);
         }
 

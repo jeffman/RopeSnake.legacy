@@ -19,8 +19,9 @@ namespace RopeSnake.Core
         {
             // There are multiple keys and blocks, but the blocks are all created at once
             // We only want multipleBlockCreator to run once
-            int wasCreated = 0;
+            bool wasCreated = false;
             Block[] createdBlocks = null;
+            var lockObj = new object();
 
             for (int i = 0; i < keys.Length; i++)
             {
@@ -28,9 +29,16 @@ namespace RopeSnake.Core
 
                 Func<Block> blockCreator = () =>
                 {
-                    if (Interlocked.CompareExchange(ref wasCreated, 1, 0) == 0)
+                    if (!wasCreated)
                     {
-                        createdBlocks = multipleBlockCreator();
+                        lock (lockObj)
+                        {
+                            if (!wasCreated)
+                            {
+                                createdBlocks = multipleBlockCreator();
+                                wasCreated = true;
+                            }
+                        }
                     }
                     return createdBlocks[iCopy];
                 };

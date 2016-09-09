@@ -195,7 +195,7 @@ namespace RopeSnake.Mother3
             }
 
             _log.Info("Executing compiler");
-            var compiler = Compiler.Create(outputRomData, allocator, Modules, cache);
+            var compiler = Compiler.Create(outputRomData, allocator, Modules, cache, ProjectSettings.MaxThreads);
             compiler.AllocationAlignment = 4;
             var compilationResult = compiler.Compile();
 

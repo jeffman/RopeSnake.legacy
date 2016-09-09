@@ -24,6 +24,8 @@ namespace RopeSnake.Mother3
         [JsonProperty, JsonConverter(typeof(StringEnumConverter))]
         public OffsetTableMode OffsetTableMode { get; set; }
 
+        public int MaxThreads { get; set; }
+
         public static Mother3ProjectSettings CreateDefault()
         {
             return new Mother3ProjectSettings
@@ -31,7 +33,8 @@ namespace RopeSnake.Mother3
                 BaseRomFile = "/base.gba".ToPath(),
                 OutputRomFile = "/test.gba".ToPath(),
                 RomConfigFile = "/rom.config.json".ToPath(),
-                OffsetTableMode = OffsetTableMode.Fragmented
+                OffsetTableMode = OffsetTableMode.Fragmented,
+                MaxThreads = 1
             };
         }
     }

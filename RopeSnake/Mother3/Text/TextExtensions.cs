@@ -63,7 +63,7 @@ namespace RopeSnake.Mother3.Text
         public static List<string> ReadStringOffsetTable(this BinaryStream stream, StringCodec codec,
             bool isScript, int dataPointer)
         {
-            //_log.Debug($"Reading string offset table at 0x{stream.Position:X} (data at 0x{dataPointer:X})");
+            _log.Debug($"Reading string offset table at 0x{stream.Position:X} (data at 0x{dataPointer:X})");
 
             var strings = new List<string>();
 

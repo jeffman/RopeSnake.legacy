@@ -28,7 +28,7 @@ namespace RopeSnake.Core
     public class PatchCollection : ICollection<Patch>
     {
         [JsonProperty(PropertyName = "Chunks")]
-        private List<Patch> _patches;
+        private List<Patch> _patches = new List<Patch>();
 
         public string Description { get; set; }
 

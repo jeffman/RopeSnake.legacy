@@ -67,7 +67,7 @@ namespace RopeSnake.Mother3
             }
             else
             {
-                message = $"{action} {e.Path.Path} {e.Index}]";
+                message = $"{action} {e.Path.Path} {e.Index}";
             }
 
             Progress.Report(new ProgressPercent(message, e.Index.ToPercent()));

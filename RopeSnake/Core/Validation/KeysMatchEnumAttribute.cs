@@ -10,7 +10,6 @@ namespace RopeSnake.Core.Validation
 {
     public class KeysMatchEnumAttribute : ValidateRuleBaseAttribute
     {
-        private Type _enumType;
         private HashSet<object> _keys;
 
         public KeysMatchEnumAttribute(Type enumType)

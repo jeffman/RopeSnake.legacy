@@ -27,7 +27,7 @@ namespace RopeSnake.Mother3.Data
         public PsiTarget Target { get; set; }
         public ushort LowAmount { get; set; }
         public ushort HighAmount { get; set; }
-        [JsonConverter(typeof(StringEnumConverter)), IsValidEnum(typeof(AilmentType), Warn = true)]
+        [JsonConverter(typeof(StringEnumConverter))]
         public AilmentType? AfflictionType { get; set; }
         public byte AfflictionChance { get; set; }
 

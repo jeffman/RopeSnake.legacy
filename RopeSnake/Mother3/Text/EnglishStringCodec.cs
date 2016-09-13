@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using RopeSnake.Core;
 using System.Globalization;
@@ -10,15 +11,20 @@ namespace RopeSnake.Mother3.Text
 {
     public sealed class EnglishStringCodec : StringCodec
     {
-        private Block _writeStringBuffer = new Block(64 * 1024);
-        private BinaryStream _writeStringBufferReader;
-        private BinaryStream _writeStringBufferWriter;
+        private static ThreadLocal<Block> _writeStringBuffer = new ThreadLocal<Block>(() => new Block(64 * 1024));
+        private static ThreadLocal<BinaryStream> _writeStringBufferReader;
+        private static ThreadLocal<BinaryStream> _writeStringBufferWriter;
+
+        static EnglishStringCodec()
+        {
+            _writeStringBufferReader = new ThreadLocal<BinaryStream>(() => _writeStringBuffer.Value.ToBinaryStream());
+            _writeStringBufferWriter = new ThreadLocal<BinaryStream>(() => _writeStringBuffer.Value.ToBinaryStream());
+        }
 
         public EnglishStringCodec(Mother3RomConfig romConfig)
             : base(romConfig)
         {
-            _writeStringBufferReader = _writeStringBuffer.ToBinaryStream();
-            _writeStringBufferWriter = _writeStringBuffer.ToBinaryStream();
+
         }
 
         public override string ReadCodedString(BinaryStream stream)
@@ -41,14 +47,17 @@ namespace RopeSnake.Mother3.Text
 
         public override void WriteScriptString(BinaryStream stream, string str)
         {
-            _writeStringBufferWriter.Position = 0;
-            WriteCodedString(_writeStringBufferWriter, str);
+            var writer = _writeStringBufferWriter.Value;
+            var reader = _writeStringBufferReader.Value;
 
-            _writeStringBufferReader.Position = 0;
+            writer.Position = 0;
+            WriteCodedString(writer, str);
 
-            while (_writeStringBufferReader.Position < _writeStringBufferWriter.Position)
+            reader.Position = 0;
+
+            while (reader.Position < writer.Position)
             {
-                short ch = _writeStringBufferReader.ReadShort();
+                short ch = reader.ReadShort();
 
                 ControlCode code = ControlCodes.FirstOrDefault(c => c.Code == ch);
 
@@ -58,7 +67,7 @@ namespace RopeSnake.Mother3.Text
                     {
                         // Hotsprings code is coded specially
                         stream.WriteByte(0xFE);
-                        stream.WriteShort(_writeStringBufferReader.ReadShort());
+                        stream.WriteShort(reader.ReadShort());
                     }
                     else if (code.Code == -1)
                     {
@@ -73,7 +82,7 @@ namespace RopeSnake.Mother3.Text
 
                         for (int i = 0; i < code.Arguments; i++)
                         {
-                            stream.WriteShort(_writeStringBufferReader.ReadShort());
+                            stream.WriteShort(reader.ReadShort());
                         }
                     }
                 }

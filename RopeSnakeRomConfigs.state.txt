@@ -4,5 +4,6 @@ repository at the time that this commit was made.
 Refer to this file to see exactly which version (by commit hash) of each ROM
 config file existed at the time of this commit.
 
-653bf5acf8bd14cff104fa186d89b6dc18d57516 refs/heads/mother3-english-v10
+4575ea016c636abdad0f824fe2a3de5b65928fa6 refs/heads/mother3-english-v10
+98ba7e437545936d4a458c2262b91db72cddacf9 refs/heads/mother3-english-v11
 f1293fa9ea207d885f026880683ecfca50516066 refs/heads/mother3-jp

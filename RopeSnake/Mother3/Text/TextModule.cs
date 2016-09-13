@@ -254,16 +254,9 @@ namespace RopeSnake.Mother3.Text
 
             _textKeys = blockCollection.Keys.Skip(1).ToArray();
 
-            if (RomConfig.IsEnglish)
-            {
-                blockCollection.Add(EnemyNamesShortKey, () => TextExtensions.SerializeStringTable(codec, EnemyNamesShort));
-                blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false);
-                contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(ItemDescriptionsSpecialKey)));
-            }
-
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                contiguousBlocks.Add(new List<string>(_textKeys));
+                contiguousBlocks.Add(new List<string>(blockCollection.Keys));
             }
             else
             {
@@ -272,6 +265,13 @@ namespace RopeSnake.Mother3.Text
                 contiguousBlocks.Add(new List<string> { _textKeys[3], _textKeys[4] }); // Item descriptions
                 contiguousBlocks.Add(new List<string> { _textKeys[9], _textKeys[10] }); // PSI descriptions
                 contiguousBlocks.Add(new List<string> { _textKeys[14], _textKeys[15] }); // Skill descriptions
+            }
+
+            if (RomConfig.IsEnglish)
+            {
+                blockCollection.Add(EnemyNamesShortKey, () => TextExtensions.SerializeStringTable(codec, EnemyNamesShort));
+                blockCollection.AddStringOffsetTableBlocks(ItemDescriptionsSpecialKey, codec, ItemDescriptionsSpecial, false);
+                contiguousBlocks.Add(new List<string>(GetOffsetAndDataKeys(ItemDescriptionsSpecialKey)));
             }
 
             return blockCollection;
@@ -303,7 +303,7 @@ namespace RopeSnake.Mother3.Text
 
             if (ProjectSettings.OffsetTableMode == OffsetTableMode.Contiguous)
             {
-                contiguousBlocks.Add(new List<string>(_mainScriptKeys));
+                contiguousBlocks.Add(new List<string>(blockCollection.Keys));
             }
             else
             {

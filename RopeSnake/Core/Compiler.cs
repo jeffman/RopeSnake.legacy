@@ -176,7 +176,7 @@ namespace RopeSnake.Core
                 }
             });
 
-            resolvedBlocks.AddRange(dict);
+            resolvedBlocks.AddRange(dict.OrderBy(kv => kv.Key));
             return new ResolveSerializedBlocksResult(resolvedBlocks, updatedKeys);
         }
 

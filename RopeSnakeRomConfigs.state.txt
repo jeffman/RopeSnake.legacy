@@ -6,4 +6,5 @@ config file existed at the time of this commit.
 
 4575ea016c636abdad0f824fe2a3de5b65928fa6 refs/heads/mother3-english-v10
 98ba7e437545936d4a458c2262b91db72cddacf9 refs/heads/mother3-english-v11
+70625966f238861e85d820d14f0a68314cd3b7b9 refs/heads/mother3-english-v12
 f1293fa9ea207d885f026880683ecfca50516066 refs/heads/mother3-jp

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using NLog;
+using System.Threading;
 
 namespace RopeSnake.Core
 {
@@ -294,6 +295,34 @@ namespace RopeSnake.Core
             }
 
             return false;
+        }
+
+        public static void FileReadEventProgressHandler(object sender, FileEventArgs e, IProgress<ProgressPercent> progress)
+        {
+            FileEventProgressHandlerInternal(sender, e, "Reading", progress);
+        }
+
+        public static void FileWriteEventProgressHandler(object sender, FileEventArgs e, IProgress<ProgressPercent> progress)
+        {
+            FileEventProgressHandlerInternal(sender, e, "Writing", progress);
+        }
+
+        public static void FileEventProgressHandlerInternal(object sender, FileEventArgs e, string action, IProgress<ProgressPercent> progress)
+        {
+            if (progress == null)
+                return;
+
+            string message;
+            if (e.Index == IndexTotal.Single)
+            {
+                message = $"{action} {e.Path.Path}";
+            }
+            else
+            {
+                message = $"{action} {e.Path.Path} {e.Index}";
+            }
+
+            progress.Report(new ProgressPercent(message, e.Index.ToPercent()));
         }
     }
 }

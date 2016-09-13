@@ -16,6 +16,7 @@ namespace RopeSnake.Core
         private object _lockObj = new object();
 
         public bool WriteByteArraysAsArrays { get; set; } = true;
+        public JsonSerializerSettings SerializerSettings { get; set; }
 
         public JsonFileManager(IFileSystem fileSystem)
             : base(fileSystem)
@@ -74,7 +75,7 @@ namespace RopeSnake.Core
                 {
                     using (var jsonReader = new JsonTextReader(textReader))
                     {
-                        var serializer = new JsonSerializer();
+                        var serializer = JsonSerializer.Create(SerializerSettings);
                         returnValue = serializer.Deserialize<T>(jsonReader);
                     }
                 }
@@ -110,7 +111,7 @@ namespace RopeSnake.Core
                 {
                     using (var jsonWriter = new JsonTextWriter(textWriter))
                     {
-                        var serializer = new JsonSerializer();
+                        var serializer = JsonSerializer.Create(SerializerSettings);
                         serializer.Formatting = Formatting.Indented;
                         if (WriteByteArraysAsArrays)
                         {

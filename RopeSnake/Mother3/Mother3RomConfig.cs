@@ -8,6 +8,7 @@ using RopeSnake.Gba;
 using RopeSnake.Mother3.Text;
 using Newtonsoft.Json;
 using NLog;
+using SharpFileSystem;
 
 namespace RopeSnake.Mother3
 {
@@ -16,28 +17,28 @@ namespace RopeSnake.Mother3
         private static readonly Logger _log = LogManager.GetCurrentClassLogger();
         private static readonly string[] _englishVersions = { "en_v10", "en_v11", "en_v12" };
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public string Version { get; private set; }
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public Dictionary<string, HashSet<int>> References { get; private set; }
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public Dictionary<string, List<Range>> FreeRanges { get; private set; }
 
         [JsonProperty]
         public ScriptEncodingParameters ScriptEncodingParameters { get; private set; }
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public List<ControlCode> ControlCodes { get; private set; }
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public Dictionary<short, ContextString> CharLookup { get; private set; }
 
         [JsonProperty]
         public Dictionary<short, ContextString> SaturnLookup { get; private set; }
 
-        [JsonProperty]
+        [JsonProperty(Required = Required.Always)]
         public Dictionary<string, object> Parameters { get; private set; }
 
         [JsonProperty]
@@ -57,6 +58,17 @@ namespace RopeSnake.Mother3
 
         [JsonIgnore]
         public bool IsEnglish => _englishVersions.Contains(Version);
+
+        public static Mother3RomConfig Create(IFileSystem fileSystem, FileSystemPath path)
+        {
+            var jsonManager = new JsonFileManager(fileSystem);
+            var config = jsonManager.ReadJson<Mother3RomConfig>(path);
+
+            if (config.IsJapanese && config.SaturnLookup == null)
+                throw new Exception("A Japanese ROM configuration must have SaturnLookup defined.");
+
+            return config;
+        }
 
         public IEnumerable<int> GetReferences(string key)
         {

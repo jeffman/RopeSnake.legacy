@@ -11,24 +11,19 @@ using RopeSnake.Mother3.Data;
 using System.Diagnostics;
 using NLog;
 using File = System.IO.File;
+using Newtonsoft.Json;
 
 namespace RopeSnake.Mother3
 {
     public sealed class Mother3Project
     {
-        private static readonly string[] DefaultModules =
-        {
-            "Data",
-            "Text",
-            "Maps"
-        };
-
         private static readonly Logger _log = LogManager.GetLogger(nameof(Mother3Project));
 
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
         private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("keys.txt");
         private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("state.json");
         private static readonly FileSystemPath CompilationReportLog = "/compile.log".ToPath();
+        public static readonly FileSystemPath DefaultProjectFile = "/project.json".ToPath();
 
         public Mother3RomConfig RomConfig { get; private set; }
         public Mother3ProjectSettings ProjectSettings { get; private set; }
@@ -41,16 +36,12 @@ namespace RopeSnake.Mother3
             RomConfig = romConfig;
             ProjectSettings = projectSettings;
             Modules = new Mother3ModuleCollection(romConfig, projectSettings, modulesToLoad);
-            StaleObjects = new HashSet<object>();
         }
 
         private void UpdateRomConfig(Block romData)
         {
             if (romData != null)
             {
-                if (RomConfig.IsJapanese)
-                    RomConfig.AddJapaneseCharsToLookup(romData);
-
                 if (RomConfig.ScriptEncodingParameters != null)
                     RomConfig.ReadEncodingPadData(romData);
             }
@@ -58,7 +49,8 @@ namespace RopeSnake.Mother3
             RomConfig.UpdateLookups();
         }
 
-        public static Mother3Project CreateNew(string romDataPath, string romConfigPath, string outputDirectory)
+        public static Mother3Project CreateNew(string romDataPath, string romConfigPath, string outputDirectory,
+            IProgress<ProgressPercent> progress = null)
         {
             foreach (var filePath in new[] { romDataPath, romConfigPath })
             {
@@ -71,78 +63,35 @@ namespace RopeSnake.Mother3
 
             _log.Info($"Creating new project with ROM file \"{romDataPath}\" and config file \"{romConfigPath}\"");
 
-            Block romData;
-            var romDataFileInfo = new FileInfo(romDataPath);
-            using (var disk = new PhysicalFileSystemWrapper(romDataFileInfo.DirectoryName))
-            {
-                var binaryManager = new BinaryFileManager(disk);
-                romData = binaryManager.ReadFile<Block>(romDataFileInfo.Name.ToPath());
-            }
-
-            Mother3RomConfig romConfig;
-            var romConfigFileInfo = new FileInfo(romConfigPath);
-            using (var disk = new PhysicalFileSystemWrapper(romConfigFileInfo.DirectoryName))
-            {
-                var jsonManager = new JsonFileManager(disk);
-                romConfig = jsonManager.ReadJson<Mother3RomConfig>(romConfigFileInfo.Name.ToPath());
-            }
-
-            if (romConfig.Patches != null)
-            {
-                foreach (var patchCollection in romConfig.Patches)
-                {
-                    _log.Info($"Applying patch: {patchCollection.Description}");
-                    foreach (var patch in patchCollection)
-                    {
-                        patch.Apply(romData);
-                    }
-                }
-            }
-
+            var romData = new Block(File.ReadAllBytes(romDataPath));
+            var romConfig = JsonConvert.DeserializeObject<Mother3RomConfig>(File.ReadAllText(romConfigPath));
             var projectSettings = Mother3ProjectSettings.CreateDefault();
-            var project = new Mother3Project(romConfig, projectSettings, DefaultModules);
+
+            var project = new Mother3Project(romConfig, projectSettings, Mother3ProjectSettings.DefaultModules);
             project.UpdateRomConfig(romData);
 
-            foreach (var module in project.Modules)
-            {
-                _log.Info($"Reading module from ROM: {module.Name}");
-                module.ReadFromRom(romData);
-            }
-
-            project.Modules.Data.UpdateNameHints(project.Modules.Text);
-            project.Modules.Maps.UpdateNameHints(project.Modules.Text);
-
-            // When we initially create a project, we want *all* files written, so we need to
-            // set project.StaleObject to null
-            project.StaleObjects = null;
-            using (var disk = new PhysicalFileSystemWrapper(outputDirectory))
-            {
-                project.Save(disk, "/project.json".ToPath());
-            }
+            if (romConfig.IsJapanese)
+                romConfig.AddJapaneseCharsToLookup(romData);
 
             _log.Info("Copying base ROM to output directory");
-            File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.EntityName), true);
+            File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.ToPath().EntityName), true);
 
             _log.Info("Finished creating project");
             return project;
         }
 
         public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath,
-            IProgress<ProgressPercent> progress, params string[] modulesToLoad)
+            IProgress<ProgressPercent> progress)
         {
-            _log.Info($"Loading project \"{projectSettingsPath.Path}\" with modules {string.Join(", ", modulesToLoad)}");
+            _log.Info($"Loading project \"{projectSettingsPath.Path}\"");
 
-            var jsonManager = new JsonFileManager(fileSystem);
-            var projectSettings = jsonManager.ReadJson<Mother3ProjectSettings>(projectSettingsPath);
-            var romConfig = jsonManager.ReadJson<Mother3RomConfig>(projectSettings.RomConfigFile);
+            var projectSettings = Mother3ProjectSettings.Create(fileSystem, projectSettingsPath);
+            var romConfig = Mother3RomConfig.Create(fileSystem, projectSettings.RomConfigFile.ToPath());
 
             var binaryManager = new BinaryFileManager(fileSystem);
-            var baseRom = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile);
+            var baseRom = binaryManager.ReadFile<Block>(projectSettings.BaseRomFile.ToPath());
 
-            if (modulesToLoad == null || modulesToLoad.Length == 0)
-                modulesToLoad = DefaultModules;
-
-            var project = new Mother3Project(romConfig, projectSettings, modulesToLoad);
+            var project = new Mother3Project(romConfig, projectSettings, Mother3ProjectSettings.DefaultModules);
             project.UpdateRomConfig(baseRom);
 
             foreach (var module in project.Modules)
@@ -151,6 +100,8 @@ namespace RopeSnake.Mother3
                 _log.Info($"Loading module: {module.Name}");
                 module.ReadFromFiles(fileSystem);
             }
+
+            _log.Info("Finished loading project");
 
             return project;
         }
@@ -168,10 +119,45 @@ namespace RopeSnake.Mother3
 
             var jsonManager = new JsonFileManager(fileSystem);
             jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
-            jsonManager.WriteJson(ProjectSettings.RomConfigFile, RomConfig);
+            jsonManager.WriteJson(ProjectSettings.RomConfigFile.ToPath(), RomConfig);
         }
 
-        public void Compile(IFileSystemWrapper fileSystem, bool useCache)
+        public void Decompile(IFileSystem fileSystem, IProgress<ProgressPercent> progress = null)
+        {
+            _log.Info("Decompiling project");
+
+            _log.Info($"Reading base ROM from {ProjectSettings.BaseRomFile}");
+            var binaryManager = new BinaryFileManager(fileSystem);
+            var baseRom = binaryManager.ReadFile<Block>(ProjectSettings.BaseRomFile.ToPath());
+            UpdateRomConfig(baseRom);
+
+            if (RomConfig.Patches != null)
+            {
+                foreach (var patchCollection in RomConfig.Patches)
+                {
+                    _log.Info($"Applying patch: {patchCollection.Description}");
+                    foreach (var patch in patchCollection)
+                    {
+                        patch.Apply(baseRom);
+                    }
+                }
+            }
+
+            foreach (var module in Modules)
+            {
+                _log.Info($"Reading module from ROM: {module.Name}");
+                module.Progress = progress;
+                module.ReadFromRom(baseRom);
+            }
+
+            Modules.Data.UpdateNameHints(Modules.Text);
+            //Modules.Maps.UpdateNameHints(Modules.Text);
+
+            _log.Info("Finished decompiling project");
+        }
+
+        public void Compile(IFileSystemWrapper fileSystem, bool useCache, int maxThreads = 1,
+            IProgress<ProgressPercent> progress = null)
         {
             _log.Info("Compiling project");
 
@@ -180,7 +166,7 @@ namespace RopeSnake.Mother3
             var allocator = new RangeAllocator(freeRanges);
 
             var binaryManager = new BinaryFileManager(fileSystem);
-            var baseRom = binaryManager.ReadFile<Block>(ProjectSettings.BaseRomFile);
+            var baseRom = binaryManager.ReadFile<Block>(ProjectSettings.BaseRomFile.ToPath());
             var outputRomData = new Block(baseRom);
 
             BlockCollection cache;
@@ -188,7 +174,7 @@ namespace RopeSnake.Mother3
             {
                 _log.Info("Reading cache");
                 var staleBlockKeys = GetStaleBlockKeys(fileSystem, GetChangedPaths(fileSystem));
-                cache = ReadCache(fileSystem, staleBlockKeys);
+                cache = ReadCache(fileSystem, staleBlockKeys, progress);
             }
             else
             {
@@ -196,20 +182,20 @@ namespace RopeSnake.Mother3
             }
 
             _log.Info("Executing compiler");
-            var compiler = Compiler.Create(outputRomData, allocator, Modules, cache, ProjectSettings.MaxThreads);
+            var compiler = Compiler.Create(outputRomData, allocator, Modules, cache, maxThreads);
             compiler.AllocationAlignment = 4;
-            var compilationResult = compiler.Compile();
+            var compilationResult = compiler.Compile(progress);
 
             _log.Debug("Filling free ranges with 0xFF");
             FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
 
-            _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile.Path}");
-            binaryManager.WriteFile(ProjectSettings.OutputRomFile, outputRomData);
+            _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile}");
+            binaryManager.WriteFile(ProjectSettings.OutputRomFile.ToPath(), outputRomData);
 
             if (useCache)
             {
                 _log.Info("Writing cache");
-                WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys);
+                WriteCache(fileSystem, compilationResult.WrittenBlocks, compilationResult.UpdatedKeys, progress);
 
                 var jsonManager = new JsonFileManager(fileSystem);
                 jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
@@ -219,11 +205,16 @@ namespace RopeSnake.Mother3
             _log.Info("Finished compiling");
         }
 
-        public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys)
+        public BlockCollection ReadCache(IFileSystem fileSystem, IEnumerable<string> staleBlockKeys,
+            IProgress<ProgressPercent> progress = null)
         {
             if (fileSystem.Exists(CachePath))
             {
                 var binaryManager = new BinaryFileManager(fileSystem);
+
+                if (progress != null)
+                    binaryManager.FileRead += (s, e) => FileManagerBase.FileReadEventProgressHandler(s, e, progress);
+
                 return new BlockCollection(binaryManager.ReadFileDictionary<Block>(CachePath, staleBlockKeys));
             }
             else
@@ -232,9 +223,14 @@ namespace RopeSnake.Mother3
             }
         }
 
-        public void WriteCache(IFileSystem fileSystem, BlockCollection cache, IEnumerable<string> updatedKeys)
+        public void WriteCache(IFileSystem fileSystem, BlockCollection cache, IEnumerable<string> updatedKeys,
+            IProgress<ProgressPercent> progress = null)
         {
             var binaryManager = new BinaryFileManager(fileSystem);
+
+            if (progress != null)
+                binaryManager.FileWrite += (s, e) => FileManagerBase.FileWriteEventProgressHandler(s, e, progress);
+
             binaryManager.StaleObjects = new HashSet<object>(updatedKeys.Select(k => cache[k]));
             binaryManager.WriteFileDictionary(CachePath, cache);
         }
@@ -244,8 +240,10 @@ namespace RopeSnake.Mother3
             bool success = true;
             foreach (var module in Modules)
             {
+                _log.Info($"Validating module {module.Name}...");
                 success &= module.Validate(new LazyString(module.Name));
             }
+            _log.Info("Finished validating modules");
             return success;
         }
 

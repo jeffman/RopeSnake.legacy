@@ -35,42 +35,14 @@ namespace RopeSnake.Mother3
 
         protected void RegisterFileManagerProgress(FileManagerBase fileManager)
         {
-            fileManager.FileRead += FileReadEventHandler;
-            fileManager.FileWrite += FileWriteEventHandler;
+            fileManager.FileRead += (s, e) => FileManagerBase.FileReadEventProgressHandler(s, e, Progress);
+            fileManager.FileWrite += (s, e) => FileManagerBase.FileWriteEventProgressHandler(s, e, Progress);
         }
 
         protected void UnregisterFileManagerProgress(FileManagerBase fileManager)
         {
-            fileManager.FileRead -= FileReadEventHandler;
-            fileManager.FileWrite -= FileWriteEventHandler;
-        }
-
-        private void FileReadEventHandler(object sender, FileEventArgs e)
-        {
-            FileEventHandlerInternal(sender, e, "Reading");
-        }
-
-        private void FileWriteEventHandler(object sender, FileEventArgs e)
-        {
-            FileEventHandlerInternal(sender, e, "Writing");
-        }
-
-        private void FileEventHandlerInternal(object sender, FileEventArgs e, string action)
-        {
-            if (Progress == null)
-                return;
-
-            string message;
-            if (e.Index == IndexTotal.Single)
-            {
-                message = $"{action} {e.Path.Path}";
-            }
-            else
-            {
-                message = $"{action} {e.Path.Path} {e.Index}";
-            }
-
-            Progress.Report(new ProgressPercent(message, e.Index.ToPercent()));
+            fileManager.FileRead -= (s, e) => FileManagerBase.FileReadEventProgressHandler(s, e, Progress);
+            fileManager.FileWrite -= (s, e) => FileManagerBase.FileWriteEventProgressHandler(s, e, Progress);
         }
 
         protected void UpdateRomReferences(Block romData, string key, int value)
@@ -149,6 +121,10 @@ namespace RopeSnake.Mother3
             for (int i = 0; i < count; i++)
             {
                 Log.Trace($"Reading element {i} at 0x{stream.Position:X} from table {key}");
+
+                Progress?.Report(new ProgressPercent($"Reading {key} [{i + 1} / {count}]",
+                    i * 100f / count));
+
                 list.Add(elementReader(stream));
             }
             return list;
@@ -263,6 +239,9 @@ namespace RopeSnake.Mother3
 
             while (!offsetTableReader.EndOfTable)
             {
+                Progress?.Report(new ProgressPercent($"Reading {tableKey} [{offsetTableReader.CurrentIndex + 1}/{offsetTableReader.Count}]",
+                    offsetTableReader.CurrentIndex * 100f / offsetTableReader.Count));
+
                 if (offsetTableReader.Next())
                 {
                     list.Add(elementReader(stream));
@@ -339,19 +318,12 @@ namespace RopeSnake.Mother3
             int index = 0;
             foreach (var value in values)
             {
-                try
-                {
+                if (index < nameHints.Count)
                     value.NameHint = nameHints[index];
-                }
-                catch (Exception ex) when (ex is IndexOutOfRangeException || ex is ArgumentOutOfRangeException)
-                {
-                    // Name hints are totally optional and can fail for many reasons,
-                    // none of which are remotely fatal, so we can squash any index exceptions
-                }
-                finally
-                {
-                    index++;
-                }
+                else
+                    break;
+
+                index++;
             }
         }
 

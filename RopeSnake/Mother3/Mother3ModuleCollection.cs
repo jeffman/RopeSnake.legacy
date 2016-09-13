@@ -16,7 +16,7 @@ namespace RopeSnake.Mother3
     {
         public DataModule Data { get; private set; }
         public TextModule Text { get; private set; }
-        public MapModule Maps { get; private set; }
+        //public MapModule Maps { get; private set; }
 
         #region Reflection wasteland
 

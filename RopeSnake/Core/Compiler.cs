@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace RopeSnake.Core
 {
@@ -118,7 +119,7 @@ namespace RopeSnake.Core
             return compiler;
         }
 
-        public CompilationResult Compile()
+        public CompilationResult Compile(IProgress<ProgressPercent> progress = null)
         {
             var writtenBlocks = new BlockCollection();
             var updatedKeys = new HashSet<string>();
@@ -130,7 +131,7 @@ namespace RopeSnake.Core
             foreach (var module in _modules)
             {
                 var serializationResult = module.Serialize();
-                var resolvedBlocks = ResolveSerializedBlocks(serializationResult.Blocks, _blockCache);
+                var resolvedBlocks = ResolveSerializedBlocks(serializationResult.Blocks, _blockCache, progress);
                 var allFragments = GetAllFragments(resolvedBlocks.Blocks, serializationResult.ContiguousKeys);
                 allocationRequests.Add(module, GetAllocationRequests(resolvedBlocks.Blocks, allFragments));
 
@@ -156,24 +157,33 @@ namespace RopeSnake.Core
             return new CompilationResult(writtenBlocks, updatedKeys, allocationResults);
         }
 
-        private ResolveSerializedBlocksResult ResolveSerializedBlocks(LazyBlockCollection lazyBlocks, BlockCollection blockCache)
+        private ResolveSerializedBlocksResult ResolveSerializedBlocks(LazyBlockCollection lazyBlocks, BlockCollection blockCache,
+            IProgress<ProgressPercent> progress = null)
         {
             var resolvedBlocks = new BlockCollection();
             var updatedKeys = new List<string>();
             var dict = new ConcurrentDictionary<string, Block>();
+            int total = lazyBlocks.Count;
+            int currentIndex = 1;
 
             Parallel.ForEach(lazyBlocks.Keys, _parallelOptions, key =>
             {
                 if (blockCache != null && blockCache.ContainsKey(key))
                 {
+                    progress?.Report(new ProgressPercent($"Retrieving {key} from cache", currentIndex * 100f / total));
+
                     dict.TryAdd(key, blockCache[key]);
                 }
                 else
                 {
+                    progress?.Report(new ProgressPercent($"Serializing {key}", currentIndex * 100f / total));
+
                     var updatedBlock = lazyBlocks[key]();
                     dict.TryAdd(key, updatedBlock);
                     updatedKeys.Add(key);
                 }
+
+                Interlocked.Increment(ref currentIndex);
             });
 
             resolvedBlocks.AddRange(dict.OrderBy(kv => kv.Key));

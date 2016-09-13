@@ -1,0 +1,74 @@
+﻿<UserControl x:Class="RopeSnake.UI.Common.LogViewer"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RopeSnake.UI.Common"
+             mc:Ignorable="d" 
+             x:Name="lv"
+             d:DesignHeight="300" d:DesignWidth="300">
+
+    <UserControl.Resources>
+        <Style TargetType="TextBox">
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="IsReadOnly" Value="True" />
+            <Setter Property="FontFamily" Value="Courier New" />
+            <Setter Property="Padding" Value="3,3,3,3" />
+            <Setter Property="Background" Value="Transparent" />
+        </Style>
+        
+        <CollectionViewSource x:Key="collectionViewSource"
+                          Source="{Binding Path=Target.Logs, ElementName=lv}"
+                          Filter="collectionViewSource_Filter" />
+    </UserControl.Resources>
+
+    <Grid>
+        <DataGrid Name="grid"
+                  ItemsSource="{Binding Source={StaticResource collectionViewSource}}"
+                  AutoGenerateColumns="False"
+                  HeadersVisibility="Column"
+                  CanUserAddRows="False"
+                  CanUserDeleteRows="False"
+                  HorizontalGridLinesBrush="LightGray"
+                  VerticalGridLinesBrush="LightGray"
+                  ScrollViewer.CanContentScroll="False"
+                  SelectionUnit="FullRow">
+
+            <DataGrid.Resources>
+                <SolidColorBrush x:Key="{x:Static SystemColors.HighlightBrushKey}"
+                                 Color="LightBlue" />
+            </DataGrid.Resources>
+            
+            <DataGrid.Columns>
+
+                <DataGridTemplateColumn Header=""
+                                        Width="18"
+                                        CanUserResize="False">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <local:LogLevelIcon Level="{Binding Level}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
+                <DataGridTemplateColumn Header="Time"
+                                        Width="120">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding TimeStamp, StringFormat=\{0:HH:mm:ss.fff\}}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+                
+                <DataGridTemplateColumn Header="Message"
+                                        Width="*">
+                    <DataGridTemplateColumn.CellTemplate>
+                        <DataTemplate>
+                            <TextBox Text="{Binding Message}" />
+                        </DataTemplate>
+                    </DataGridTemplateColumn.CellTemplate>
+                </DataGridTemplateColumn>
+            </DataGrid.Columns>
+        </DataGrid>
+    </Grid>
+</UserControl>

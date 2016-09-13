@@ -1,0 +1,19 @@
+﻿<UserControl x:Class="RopeSnake.UI.Common.FilePicker"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RopeSnake.UI.Common"
+             mc:Ignorable="d"
+             d:DesignWidth="200">
+    
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBox Height="26" Grid.Column="0" Margin="0,0,3,0" Name="fileBox" VerticalContentAlignment="Center" />
+        <Button Height="26" Grid.Column="1" Name="dialogButton" Width="26" Click="dialogButton_Click">...</Button>
+    </Grid>
+</UserControl>

@@ -1,0 +1,63 @@
+﻿<UserControl x:Class="RopeSnake.UI.ProjectManager.ProjectSettingsEditor"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RopeSnake.UI.ProjectManager"
+             xmlns:common="clr-namespace:RopeSnake.UI.Common;assembly=RopeSnake.UI.Common"
+             mc:Ignorable="d"
+             d:DesignWidth="300"
+             x:Name="pse">
+
+    <UserControl.Resources>
+        <Style TargetType="Label">
+            <Setter Property="HorizontalAlignment" Value="Right" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="TextBox">
+            <Setter Property="Margin" Value="3,3,3,3" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <Style TargetType="ComboBox">
+            <Setter Property="Margin" Value="3,3,3,3" />
+            <Setter Property="Height" Value="26" />
+            <Setter Property="VerticalContentAlignment" Value="Center" />
+        </Style>
+        <common:NullCheckConverter x:Key="NullConverter" />
+    </UserControl.Resources>
+
+    <Grid IsEnabled="{Binding Settings, ElementName=pse, Converter={StaticResource NullConverter}}">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="150" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0">Base ROM</Label>
+        <TextBox Grid.Row="0" Grid.Column="1" Name="baseRomBox"
+                 Text="{Binding Settings.BaseRomFile, ElementName=pse}" />
+
+        <Label Grid.Row="1" Grid.Column="0">Output ROM</Label>
+        <TextBox Grid.Row="1" Grid.Column="1" Name="outputRomBox"
+                 Text="{Binding Settings.OutputRomFile, ElementName=pse}" />
+
+        <Label Grid.Row="2" Grid.Column="0">ROM config</Label>
+        <TextBox Grid.Row="2" Grid.Column="1" Name="romConfigBox"
+                 Text="{Binding Settings.RomConfigFile, ElementName=pse}" />
+
+        <Label Grid.Row="3" Grid.Column="0">Offset table mode</Label>
+        <ComboBox Grid.Row="3" Grid.Column="1" Name="offsetModeBox"
+                  SelectedValue="{Binding Settings.OffsetTableMode, ElementName=pse}" />
+
+        <Button Grid.Row="4" Grid.ColumnSpan="2" Width="120" Height="26" HorizontalAlignment="Right"
+                Margin="3,3,3,3" Name="applyButton" Click="applyButton_Click" VerticalAlignment="Bottom">Apply changes</Button>
+    </Grid>
+</UserControl>

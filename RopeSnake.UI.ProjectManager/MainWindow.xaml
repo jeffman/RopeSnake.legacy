@@ -1,0 +1,180 @@
+﻿<Window x:Class="RopeSnake.UI.ProjectManager.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:RopeSnake.UI.ProjectManager"
+        xmlns:common="clr-namespace:RopeSnake.UI.Common;assembly=RopeSnake.UI.Common"
+        xmlns:System="clr-namespace:System;assembly=mscorlib"
+        mc:Ignorable="d"
+        MinHeight="450" MinWidth="625" Icon="Resources/ropesnake.ico" WindowStartupLocation="CenterScreen"
+        Height="450" Width="625"
+        ResizeMode="CanResizeWithGrip">
+
+    <Window.CommandBindings>
+        <CommandBinding Command="common:CommonCommands.Open"
+                        Executed="OpenCommand_Executed"
+                        CanExecute="OpenCommand_CanExecute" />
+        <CommandBinding Command="common:CommonCommands.Close"
+                        Executed="CloseCommand_Executed"
+                        CanExecute="CloseCommand_CanExecute" />
+    </Window.CommandBindings>
+
+    <Window.InputBindings>
+        <KeyBinding Key="O" Modifiers="Ctrl" Command="common:CommonCommands.Open" />
+    </Window.InputBindings>
+
+    <Window.Resources>
+        <common:NullCheckConverter x:Key="NullConverter" />
+        <common:InverseBooleanConverter x:Key="InverseConverter" />
+        <common:BoolVisibilityConverter x:Key="BoolVisibilityConverter" />
+        <common:MultiBooleanConverter x:Key="MultiAndConverter" Mode="And" />
+        <common:MultiBooleanConverter x:Key="MultiOrConverter" Mode="Or" />
+        <common:MultiBooleanConverter x:Key="MultiNorConverter" Mode="Or" InvertResult="True" />
+    </Window.Resources>
+    
+    <Grid>
+        <DockPanel>
+            <Menu DockPanel.Dock="Top" Foreground="Black">
+                <MenuItem Header="_Project" Height="26">
+                    <MenuItem Header="_Open project..."
+                              Command="common:CommonCommands.Open"
+                              InputGestureText="Ctrl+O"
+                              Name="openMenu">
+                        <MenuItem.IsEnabled>
+                            <MultiBinding Converter="{StaticResource MultiNorConverter}">
+                                <Binding Path="IsBusy" ElementName="compilerControl" />
+                                <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                <Binding Path="IsLoading" />
+                                <Binding Path="IsSaving" />
+                            </MultiBinding>
+                        </MenuItem.IsEnabled>
+                    </MenuItem>
+                    <MenuItem Header="_Close project"
+                              Command="common:CommonCommands.Close"
+                              Name="closeMenu">
+                        <MenuItem.IsEnabled>
+                            <MultiBinding Converter="{StaticResource MultiNorConverter}">
+                                <Binding Path="Project" Converter="{StaticResource NullConverter}" ConverterParameter="Invert" />
+                                <Binding Path="IsBusy" ElementName="compilerControl" />
+                                <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                <Binding Path="IsLoading" />
+                                <Binding Path="IsSaving" />
+                            </MultiBinding>
+                        </MenuItem.IsEnabled>
+                    </MenuItem>
+                </MenuItem>
+                <MenuItem Header="_View" Height="26">
+                    <MenuItem Header="Clear log" Click="ClearLogMenu_Clicked" />
+                    <MenuItem Header="Log filters" Name="logFiltersMenu" />
+                </MenuItem>
+                <MenuItem Header="_About" Height="26" Name="aboutMenu" Click="aboutMenu_Click" />
+            </Menu>
+
+            <StatusBar DockPanel.Dock="Bottom">
+                <StatusBar.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </StatusBar.ItemsPanel>
+
+                <StatusBarItem Grid.Column="0">
+                    <Label Name="statusLabel" Padding="0,0,0,0">
+                        <Label.Visibility>
+                            <MultiBinding Converter="{StaticResource MultiOrConverter}" ConverterParameter="{StaticResource BoolVisibilityConverter}">
+                                <Binding Path="IsBusy" ElementName="compilerControl" />
+                                <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                <Binding Path="IsLoading" />
+                                <Binding Path="IsSaving" />
+                            </MultiBinding>
+                        </Label.Visibility>
+                    </Label>
+                </StatusBarItem>
+
+                <StatusBarItem Grid.Column="1">
+                    <DockPanel>
+                        <ResizeGrip DockPanel.Dock="Right" Visibility="Hidden" />
+                        <ProgressBar Name="progressBar"
+                                 Width="150"
+                                 Height="20"
+                                 Minimum="0"
+                                 Maximum="100">
+                            <ProgressBar.Visibility>
+                                <MultiBinding Converter="{StaticResource MultiOrConverter}" ConverterParameter="{StaticResource BoolVisibilityConverter}">
+                                    <Binding Path="IsBusy" ElementName="compilerControl" />
+                                    <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                    <Binding Path="IsLoading" />
+                                    <Binding Path="IsSaving" />
+                                </MultiBinding>
+                            </ProgressBar.Visibility>
+                        </ProgressBar>
+                    </DockPanel>
+                </StatusBarItem>
+            </StatusBar>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="200" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                
+                <TabControl Grid.Row="0" Name="mainTabs">
+                    <TabItem Header="Decompile">
+                        <Grid>
+                            <local:DecompilerControl x:Name="decompilerControl"
+                                                     Project="{Binding Project, Mode=OneWayToSource}"
+                                                     FileSystem="{Binding FileSystem, Mode=OneWayToSource}"
+                                                     ProjectPath="{Binding ProjectPath, Mode=OneWayToSource}"
+                                                     Decompiled="decompilerControl_Decompiled">
+                                <local:DecompilerControl.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource MultiNorConverter}">
+                                        <Binding Path="IsBusy" ElementName="compilerControl" />
+                                        <Binding Path="IsLoading" />
+                                        <Binding Path="IsSaving" />
+                                    </MultiBinding>
+                                </local:DecompilerControl.IsEnabled>
+                            </local:DecompilerControl>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Compile" Name="compileTab">
+                        <Grid>
+                            <local:CompilerControl Project="{Binding Project}"
+                                                   FileSystem="{Binding FileSystem}"
+                                                   x:Name="compilerControl">
+                                <local:CompilerControl.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource MultiNorConverter}">
+                                        <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                        <Binding Path="IsLoading" />
+                                        <Binding Path="IsSaving" />
+                                    </MultiBinding>
+                                </local:CompilerControl.IsEnabled>
+                            </local:CompilerControl>
+                        </Grid>
+                    </TabItem>
+                    <TabItem Header="Settings">
+                        <Grid>
+                            <local:ProjectSettingsEditor Settings="{Binding Project.ProjectSettings}"
+                                                         SettingsApplied="ProjectSettingsApplied">
+                                <local:ProjectSettingsEditor.IsEnabled>
+                                    <MultiBinding Converter="{StaticResource MultiNorConverter}">
+                                        <Binding Path="IsBusy" ElementName="compilerControl" />
+                                        <Binding Path="IsBusy" ElementName="decompilerControl" />
+                                        <Binding Path="IsLoading" />
+                                        <Binding Path="IsSaving" />
+                                    </MultiBinding>
+                                </local:ProjectSettingsEditor.IsEnabled>
+                            </local:ProjectSettingsEditor>
+                        </Grid>
+                    </TabItem>
+                </TabControl>
+
+                <common:LogViewer Grid.Row="1" Filters="{Binding LogFilters}" Name="logViewer" />
+            </Grid>
+        </DockPanel>
+    </Grid>
+</Window>

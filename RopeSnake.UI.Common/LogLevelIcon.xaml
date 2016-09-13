@@ -1,0 +1,17 @@
+﻿<UserControl x:Class="RopeSnake.UI.Common.LogLevelIcon"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:RopeSnake.UI.Common"
+             mc:Ignorable="d"
+             x:Name="lli">
+
+    <UserControl.Resources>
+        <local:LevelIconConverter x:Key="LevelIconConverter" />
+    </UserControl.Resources>
+    
+    <Image Source="{Binding Level, ElementName=lli, TargetNullValue={x:Null}, Converter={StaticResource LevelIconConverter}}"
+           Stretch="None"
+           ToolTip="{Binding Level, ElementName=lli}" />
+</UserControl>

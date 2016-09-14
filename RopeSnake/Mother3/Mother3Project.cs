@@ -11,6 +11,7 @@ using RopeSnake.Mother3.Data;
 using System.Diagnostics;
 using NLog;
 using File = System.IO.File;
+using Directory = System.IO.Directory;
 using Newtonsoft.Json;
 
 namespace RopeSnake.Mother3
@@ -73,6 +74,10 @@ namespace RopeSnake.Mother3
             if (romConfig.IsJapanese)
                 romConfig.AddJapaneseCharsToLookup(romData);
 
+            var fileSystem = new PhysicalFileSystemWrapper(outputDirectory);
+            fileSystem.CreateDirectory(FileSystemPath.Root);
+            project.SaveProject(fileSystem, DefaultProjectFile);
+
             _log.Info("Copying base ROM to output directory");
             File.Copy(romDataPath, Path.Combine(outputDirectory, projectSettings.BaseRomFile.ToPath().EntityName), true);
 
@@ -106,20 +111,24 @@ namespace RopeSnake.Mother3
             return project;
         }
 
-        public void Save(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
+        public void SaveProject(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
         {
             _log.Info($"Saving project \"{projectSettingsPath.Path}\"");
 
+            var jsonManager = new JsonFileManager(fileSystem);
+            jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
+            jsonManager.WriteJson(ProjectSettings.RomConfigFile.ToPath(), RomConfig);
+        }
+
+        public void WriteToFiles(IFileSystem fileSystem, FileSystemPath projectSettingsPath)
+        {
+            _log.Info("Writing modules to disk");
             foreach (var module in Modules)
             {
                 _log.Info($"Writing module {module.Name}");
                 module.WriteToFiles(fileSystem, StaleObjects);
             }
             _log.Info("Finished writing modules");
-
-            var jsonManager = new JsonFileManager(fileSystem);
-            jsonManager.WriteJson(projectSettingsPath, ProjectSettings);
-            jsonManager.WriteJson(ProjectSettings.RomConfigFile.ToPath(), RomConfig);
         }
 
         public void Decompile(IFileSystem fileSystem, IProgress<ProgressPercent> progress = null)

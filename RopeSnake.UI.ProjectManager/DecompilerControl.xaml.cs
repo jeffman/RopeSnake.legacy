@@ -99,7 +99,7 @@ namespace RopeSnake.UI.ProjectManager
                 await Task.Run(() => project.Decompile(fileSystem, progress));
 
                 var projectPath = Mother3Project.DefaultProjectFile;
-                await Task.Run(() => project.Save(fileSystem, projectPath));
+                await Task.Run(() => project.WriteToFiles(fileSystem, projectPath));
 
                 Project = project;
                 FileSystem = fileSystem;

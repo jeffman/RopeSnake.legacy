@@ -295,7 +295,9 @@ namespace RopeSnake.UI.ProjectManager
 
         private void aboutMenu_Click(object sender, RoutedEventArgs e)
         {
-            (new AboutWindow()).ShowDialog();
+            var aboutWindow = new AboutWindow();
+            aboutWindow.Owner = this;
+            aboutWindow.ShowDialog();
         }
     }
 }

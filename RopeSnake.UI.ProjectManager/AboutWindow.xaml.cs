@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Shapes;
+using System.Reflection;
 
 namespace RopeSnake.UI.ProjectManager
 {
@@ -41,6 +42,16 @@ namespace RopeSnake.UI.ProjectManager
         {
             _thirdPartyList = new ObservableCollection<ThirdPartyInfo>();
 
+            foreach(var type in new[] {
+                typeof(NLog.Logger),
+                typeof(Newtonsoft.Json.JsonConvert),
+                typeof(SharpFileSystem.FileSystemPath),
+                typeof(Xceed.Wpf.Toolkit.NumericUpDown<>),
+                typeof(Ookii.Dialogs.Wpf.VistaOpenFileDialog) })
+            {
+                _thirdPartyList.Add(new ThirdPartyInfo(type));
+            }
+
             _thirdPartyList.Add(new ThirdPartyInfo(
                 "Fugue Icons", "(c) 2015 Yusuke Kamiyamane", "3.5.6", "http://p.yusukekamiyamane.com/", "Creative Commons Attribution License 3.0"));
 
@@ -50,6 +61,12 @@ namespace RopeSnake.UI.ProjectManager
         private void closeButton_Click(object sender, RoutedEventArgs e)
         {
             Close();
+        }
+
+        public static IEnumerable<AssemblyName> GetAssemblyNames(params Type[] types)
+        {
+            foreach (var type in types)
+                yield return Assembly.GetAssembly(type).GetName();
         }
     }
 
@@ -70,6 +87,16 @@ namespace RopeSnake.UI.ProjectManager
             Version = version;
             Url = url;
             License = license;
+        }
+
+        public ThirdPartyInfo(Type typeFromAssembly)
+        {
+            var assembly = typeFromAssembly.Assembly;
+            var assemblyName = assembly.GetName();
+
+            Title = assemblyName.Name;
+            Version = assemblyName.Version.ToString();
+            Copyright = assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright;
         }
 
         private string GenerateDescription()

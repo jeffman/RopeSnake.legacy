@@ -254,3 +254,5 @@ paket-files/
 
 RopeSnake.sln
 RopeSnakeSandbox/
+release.ps1
+RopeSnake*.zip

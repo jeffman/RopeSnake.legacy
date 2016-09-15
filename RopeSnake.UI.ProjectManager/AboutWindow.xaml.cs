@@ -42,12 +42,13 @@ namespace RopeSnake.UI.ProjectManager
         {
             _thirdPartyList = new ObservableCollection<ThirdPartyInfo>();
 
-            foreach(var type in new[] {
-                typeof(NLog.Logger),
-                typeof(Newtonsoft.Json.JsonConvert),
-                typeof(SharpFileSystem.FileSystemPath),
-                typeof(Xceed.Wpf.Toolkit.NumericUpDown<>),
-                typeof(Ookii.Dialogs.Wpf.VistaOpenFileDialog) })
+            foreach (var type in new[] {
+                new ThirdPartyTypeInfo(typeof(NLog.Logger).AssemblyQualifiedName, "http://nlog-project.org/", "BSD License"),
+                new ThirdPartyTypeInfo(typeof(Newtonsoft.Json.JsonConvert).AssemblyQualifiedName, "http://www.newtonsoft.com/json", "MIT License"),
+                new ThirdPartyTypeInfo(typeof(SharpFileSystem.FileSystemPath).AssemblyQualifiedName, "https://github.com/bobvanderlinden/sharpfilesystem", "MIT License"),
+                new ThirdPartyTypeInfo(typeof(Xceed.Wpf.Toolkit.NumericUpDown<>).AssemblyQualifiedName, "http://wpftoolkit.codeplex.com/", "Microsoft Public License"),
+                new ThirdPartyTypeInfo(typeof(Ookii.Dialogs.Wpf.VistaOpenFileDialog).AssemblyQualifiedName, "http://www.ookii.org/software/dialogs/", "BSD License"),
+                new ThirdPartyTypeInfo(typeof(CommandLine.Parser).AssemblyQualifiedName, "https://github.com/gsscoder/commandline", "MIT License") })
             {
                 _thirdPartyList.Add(new ThirdPartyInfo(type));
             }
@@ -89,14 +90,17 @@ namespace RopeSnake.UI.ProjectManager
             License = license;
         }
 
-        public ThirdPartyInfo(Type typeFromAssembly)
+        public ThirdPartyInfo(ThirdPartyTypeInfo typeInfo)
         {
-            var assembly = typeFromAssembly.Assembly;
+            var type = Type.GetType(typeInfo.TypeName);
+            var assembly = type.Assembly;
             var assemblyName = assembly.GetName();
 
             Title = assemblyName.Name;
             Version = assemblyName.Version.ToString();
             Copyright = assembly.GetCustomAttribute<AssemblyCopyrightAttribute>().Copyright;
+            Url = typeInfo.Url;
+            License = typeInfo.License;
         }
 
         private string GenerateDescription()
@@ -121,6 +125,20 @@ namespace RopeSnake.UI.ProjectManager
                 sb.AppendLine(Url);
 
             return sb.ToString();
+        }
+    }
+
+    class ThirdPartyTypeInfo
+    {
+        public string TypeName { get; }
+        public string Url { get; }
+        public string License { get; }
+
+        public ThirdPartyTypeInfo(string typeName, string url, string license)
+        {
+            TypeName = typeName;
+            Url = url;
+            License = license;
         }
     }
 }

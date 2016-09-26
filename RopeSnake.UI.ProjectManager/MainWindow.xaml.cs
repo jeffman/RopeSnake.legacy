@@ -291,13 +291,13 @@ namespace RopeSnake.UI.ProjectManager
             SelectTab(compileTab);
         }
 
-        #endregion
-
         private void aboutMenu_Click(object sender, RoutedEventArgs e)
         {
             var aboutWindow = new AboutWindow();
             aboutWindow.Owner = this;
             aboutWindow.ShowDialog();
         }
+
+        #endregion
     }
 }

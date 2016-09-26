@@ -21,7 +21,7 @@ namespace RopeSnake.Graphics
         public BitmapRenderer(Bitmap bitmap)
         {
             if (bitmap.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new ArgumentException("Must use PixelFormat.Format32bppArgb");
+                throw new NotSupportedException("Must use PixelFormat.Format32bppArgb");
 
             _bitmap = bitmap;
             _bData = bitmap.LockBits();
@@ -36,8 +36,8 @@ namespace RopeSnake.Graphics
 
         public uint GetPixel(int x, int y)
         {
-            uint* destination = _scanStart + (y * _bData.Stride / 4) + x;
-            return *destination;
+            uint* source = _scanStart + (y * _bData.Stride / 4) + x;
+            return *source;
         }
 
         public void Dispose()

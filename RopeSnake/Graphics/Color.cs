@@ -39,7 +39,7 @@ namespace RopeSnake.Graphics
 
         public override int GetHashCode()
         {
-            return R.GetHashCode() ^ G.GetHashCode() ^ B.GetHashCode();
+            return (int)Argb;
         }
 
         public static bool operator ==(Color first, Color second) => first.Equals(second);

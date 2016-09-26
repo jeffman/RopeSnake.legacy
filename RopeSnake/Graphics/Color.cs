@@ -45,5 +45,10 @@ namespace RopeSnake.Graphics
         public static bool operator ==(Color first, Color second) => first.Equals(second);
 
         public static bool operator !=(Color first, Color second) => !(first == second);
+
+        public override string ToString()
+        {
+            return $"R: {R}, G: {G}, B: {B}";
+        }
     }
 }

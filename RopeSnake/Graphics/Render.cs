@@ -1,38 +1,40 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using System.Drawing;
-using System.Drawing.Imaging;
 using Color = RopeSnake.Graphics.Color;
 
 namespace RopeSnake.Graphics
 {
-    public static unsafe class Render
+    public static class Render
     {
-        private delegate void DrawPixelAction(uint* currentPixel, uint color);
+        private delegate void RenderPixelAction(IRenderer renderer, int x, int y, uint color);
 
-        public static Bitmap Tilemap(ITilemap<TileInfo> tilemap, ITileset<Tile> tileset, Palette palette,
-            TransparencyMode transparency)
+        public static void Tilemap(
+            IRenderer renderer,
+            int x,
+            int y,
+            Tilemap<TileInfo> tilemap,
+            ITileset<Tile> tileset,
+            Palette palette,
+            TransparencyMode transparency = TransparencyMode.DontDraw)
         {
-            CheckConsistentTileSizes(tilemap, tileset);
-            var bitmap = new Bitmap(tilemap.Width * tilemap.TileWidth, tilemap.Height * tilemap.TileHeight,
-                PixelFormat.Format32bppArgb);
-            Tilemap(tilemap, tileset, palette, bitmap, 0, 0, new Rectangle(0, 0, bitmap.Width, bitmap.Height), transparency);
-            return bitmap;
+            var region = new Region();
+            region.MakeInfinite();
+            Tilemap(renderer, x, y, tilemap, tileset, palette, region, transparency);
         }
 
-        public static void Tilemap(ITilemap<TileInfo> tilemap, ITileset<Tile> tileset, Palette palette,
-            Bitmap bitmap, int x, int y, Rectangle clippingRegion, TransparencyMode transparency)
-        {
-            var canvas = bitmap.LockBits();
-            Tilemap(tilemap, tileset, palette, canvas, x, y, clippingRegion, transparency);
-            bitmap.UnlockBits(canvas);
-        }
-
-        public static void Tilemap(ITilemap<TileInfo> tilemap, ITileset<Tile> tileset, Palette palette,
-            BitmapData canvas, int x, int y, Rectangle clippingRegion, TransparencyMode transparency)
+        public static void Tilemap(
+            IRenderer renderer,
+            int x,
+            int y,
+            Tilemap<TileInfo> tilemap,
+            ITileset<Tile> tileset,
+            Palette palette,
+            Region clippingRegion,
+            TransparencyMode transparency = TransparencyMode.DontDraw)
         {
             CheckConsistentTileSizes(tilemap, tileset);
 
@@ -45,27 +47,31 @@ namespace RopeSnake.Graphics
 
                     var tileRect = new Rectangle(pixelX, pixelY, tilemap.TileWidth, tilemap.TileHeight);
 
-                    if (clippingRegion.IntersectsWith(tileRect))
+                    if (clippingRegion.IsVisible(tileRect))
                     {
                         var tileInfo = tilemap[tileX, tileY];
                         var tile = tileset[tileInfo.TileIndex];
 
-                        Tile(tile, palette, tileInfo.PaletteIndex, tileInfo.FlipX, tileInfo.FlipY,
-                            pixelX, pixelY, canvas, transparency);
+                        Tile(renderer, pixelX, pixelY, tile, palette, clippingRegion,
+                            tileInfo.PaletteIndex, tileInfo.FlipX, tileInfo.FlipY,
+                            transparency);
                     }
                 }
             }
         }
 
-        public static void Tile(Tile tile, Palette palette, int subPaletteIndex, bool flipX, bool flipY,
-            int x, int y, BitmapData canvas, TransparencyMode transparency)
+        public static void Tile(
+            IRenderer renderer,
+            int x,
+            int y,
+            Tile tile,
+            Palette palette,
+            Region clippingRegion,
+            int subPaletteIndex = 0,
+            bool flipX = false,
+            bool flipY = false,
+            TransparencyMode transparency = TransparencyMode.DontDraw)
         {
-            if (canvas.PixelFormat != PixelFormat.Format32bppArgb)
-                throw new InvalidOperationException("PixelFormat");
-
-            uint* startPixel = (uint*)(canvas.Scan0) + (y * canvas.Stride / sizeof(uint)) + x;
-            uint* currentPixel = startPixel;
-
             var drawTransparentPixelAction = CreateDrawTransparentPixelAction(transparency);
 
             int startIndexX = flipX ? tile.Width - 1 : 0;
@@ -74,33 +80,33 @@ namespace RopeSnake.Graphics
             int indexIncrementX = flipX ? -1 : 1;
             int indexIncrementY = flipY ? -1 : 1;
 
-            int currentIndexY = startIndexY;
+            int sourceIndexY = startIndexY;
 
-            for (int pixelY = 0; (pixelY < tile.Height) && (y + pixelY < canvas.Height); pixelY++)
+            for (int destY = y; (destY < y + tile.Height) && (destY < renderer.Height); destY++)
             {
-                if (y + pixelY >= 0)
+                int sourceIndexX = startIndexX;
+
+                for (int destX = x; (destX < x + tile.Width) && (destX < renderer.Width); destX++)
                 {
-                    currentPixel = startPixel;
-                    int currentIndexX = startIndexX;
-
-                    for (int pixelX = 0; (pixelX < tile.Width) && (x + pixelX < canvas.Width); pixelX++)
+                    if (clippingRegion.IsVisible(destX, destY))
                     {
-                        if (x + pixelX >= 0)
-                        {
-                            byte colorIndex = tile[currentIndexX, currentIndexY];
-                            uint color = palette[subPaletteIndex, colorIndex].Argb;
+                        int colorIndex = tile[sourceIndexX, sourceIndexY];
+                        uint color = palette[subPaletteIndex, colorIndex].Argb;
 
-                            if (colorIndex == 0)
-                                drawTransparentPixelAction(currentPixel, color);
-                            else
-                                *currentPixel = color;
+                        if (colorIndex == 0)
+                        {
+                            drawTransparentPixelAction(renderer, destX, destY, color);
                         }
-                        currentIndexX += indexIncrementX;
-                        currentPixel++;
+                        else
+                        {
+                            renderer.SetPixel(destX, destY, color);
+                        }
                     }
+
+                    sourceIndexX += indexIncrementX;
                 }
-                currentIndexY += indexIncrementY;
-                startPixel += (canvas.Stride / sizeof(uint));
+
+                sourceIndexY += indexIncrementX;
             }
         }
 
@@ -113,18 +119,18 @@ namespace RopeSnake.Graphics
                     $"{nameof(tilemap)}.{nameof(tilemap.TileWidth)} in size");
         }
 
-        private static DrawPixelAction CreateDrawTransparentPixelAction(TransparencyMode transparency)
+        private static RenderPixelAction CreateDrawTransparentPixelAction(TransparencyMode transparency)
         {
             switch (transparency)
             {
                 case TransparencyMode.DontDraw:
-                    return (c, p) => { };
+                    return (r, x, y, p) => { };
 
                 case TransparencyMode.DrawSolid:
-                    return (c, p) => *c = p;
+                    return (r, x, y, p) => r.SetPixel(x, y, p);
 
                 case TransparencyMode.DrawTransparent:
-                    return (c, p) => *c = 0;
+                    return (r, x, y, p) => r.SetPixel(x, y, r.Transparent);
 
                 default:
                     throw new ArgumentException(nameof(transparency));

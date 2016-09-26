@@ -102,8 +102,10 @@
     <Compile Include="Gba\GbaTilemap.cs" />
     <Compile Include="Gba\GbaTileset.cs" />
     <Compile Include="Gba\GbaExtensions.cs" />
+    <Compile Include="Graphics\BitmapRenderer.cs" />
     <Compile Include="Graphics\Color.cs" />
     <Compile Include="Graphics\Extensions.cs" />
+    <Compile Include="Graphics\IRenderer.cs" />
     <Compile Include="Graphics\ITilemap.cs" />
     <Compile Include="Graphics\ITileset.cs" />
     <Compile Include="Graphics\Palette.cs" />

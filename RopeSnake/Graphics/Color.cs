@@ -3,9 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
 
 namespace RopeSnake.Graphics
 {
+    [JsonConverter(typeof(ColorConverter))]
     public struct Color : IEquatable<Color>
     {
         public readonly byte R;
@@ -51,6 +54,50 @@ namespace RopeSnake.Graphics
         public override string ToString()
         {
             return $"R: {R}, G: {G}, B: {B}";
+        }
+    }
+
+    public sealed class ColorConverter : JsonConverter
+    {
+        public override bool CanConvert(Type objectType)
+        {
+            return objectType == typeof(Color);
+        }
+
+        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        {
+            if (reader.TokenType == JsonToken.StartArray)
+            {
+                byte[] channels = new byte[3];
+                for (int i = 0; i < 3; i++)
+                {
+                    if (!reader.Read())
+                        throw new JsonException($"Reader ended unexpectedly: {reader.Path}");
+
+                    if (reader.TokenType != JsonToken.Integer)
+                        throw new JsonException($"Expected integer value: {reader.Path}");
+
+                    channels[i] = Convert.ToByte(reader.Value);
+                }
+
+                if (!reader.Read())
+                    throw new JsonException($"Reader ended unexpectedly: {reader.Path}");
+
+                if (reader.TokenType != JsonToken.EndArray)
+                    throw new JsonException($"Expected end of array after 3 elements: {reader.Path}");
+
+                return new Color(channels[0], channels[1], channels[2]);
+            }
+            else
+            {
+                throw new JsonException($"Could not parse color: {reader.Path}");
+            }
+        }
+
+        public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+        {
+            var color = (Color)value;
+            writer.WriteRawValue($"[{color.R}, {color.G}, {color.B}]");
         }
     }
 }

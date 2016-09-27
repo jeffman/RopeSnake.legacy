@@ -232,6 +232,9 @@ namespace RopeSnake.Mother3
         }
 
         protected List<T> ReadWideOffsetTable<T>(Block romData, string tableKey, Func<BinaryStream, T> elementReader)
+            => ReadWideOffsetTable(romData, tableKey, (s, i) => elementReader(s));
+
+        protected List<T> ReadWideOffsetTable<T>(Block romData, string tableKey, Func<BinaryStream, int, T> elementReader)
         {
             var list = new List<T>();
             var stream = romData.ToBinaryStream(RomConfig.GetOffset(tableKey, romData));
@@ -239,12 +242,14 @@ namespace RopeSnake.Mother3
 
             while (!offsetTableReader.EndOfTable)
             {
+                int index = offsetTableReader.CurrentIndex;
+
                 Progress?.Report(new ProgressPercent($"Reading {tableKey} [{offsetTableReader.CurrentIndex + 1}/{offsetTableReader.Count}]",
-                    offsetTableReader.CurrentIndex * 100f / offsetTableReader.Count));
+                    index * 100f / offsetTableReader.Count));
 
                 if (offsetTableReader.Next())
                 {
-                    list.Add(elementReader(stream));
+                    list.Add(elementReader(stream, index));
                 }
                 else
                 {

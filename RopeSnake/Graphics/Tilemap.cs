@@ -42,6 +42,10 @@ namespace RopeSnake.Graphics
                 throw new ArgumentException(nameof(newHeight));
 
             _tileInfo = new T[newWidth, newHeight];
+
+            for (int y = 0; y < newHeight; y++)
+                for (int x = 0; x < newWidth; x++)
+                    _tileInfo[x, y] = new T();
         }
 
         public virtual IEnumerator<T> GetEnumerator()
@@ -88,7 +92,6 @@ namespace RopeSnake.Graphics
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    this[x, y] = new T();
                     this[x, y].Deserialize(stream, fileSize);
                 }
             }

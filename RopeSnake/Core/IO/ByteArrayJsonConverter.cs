@@ -42,7 +42,7 @@ namespace RopeSnake.Core
                             break;
 
                         default:
-                            throw new Exception($"Unexpected token: {reader.Path}");
+                            throw new JsonException($"Unexpected token: {reader.Path}");
                     }
                 }
             }

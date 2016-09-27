@@ -11,6 +11,8 @@ namespace RopeSnake.Graphics
         public readonly byte R;
         public readonly byte G;
         public readonly byte B;
+
+        [JsonIgnore]
         public readonly uint Argb;
         
         public Color(byte r, byte g, byte b)

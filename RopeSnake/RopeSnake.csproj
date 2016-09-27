@@ -83,6 +83,7 @@
     <Compile Include="Core\ProgressPercent.cs" />
     <Compile Include="Core\Range.cs" />
     <Compile Include="Core\RangeAllocator.cs" />
+    <Compile Include="Core\Validation\ArrayLengthAttribute.cs" />
     <Compile Include="Core\Validation\ComparableAttribute.cs" />
     <Compile Include="Core\Validation\CountEqualsAttribute.cs" />
     <Compile Include="Core\Validation\GreaterThanAttribute.cs" />
@@ -124,7 +125,10 @@
     <Compile Include="Mother3\IO\OffsetTableWriter.cs" />
     <Compile Include="Mother3\IO\SarOffsetTableReader.cs" />
     <Compile Include="Mother3\IO\SarOffsetTableWriter.cs" />
+    <Compile Include="Mother3\Maps\Bigtile.cs" />
+    <Compile Include="Mother3\Maps\BigtileSet.cs" />
     <Compile Include="Mother3\Maps\GraphicsInfo.cs" />
+    <Compile Include="Mother3\Maps\Minitile.cs" />
     <Compile Include="Mother3\Text\Bxt.cs" />
     <Compile Include="Mother3\IO\IndexLocation.cs" />
     <Compile Include="Mother3\IO\LocationSize.cs" />

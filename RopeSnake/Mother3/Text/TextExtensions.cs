@@ -100,11 +100,6 @@ namespace RopeSnake.Mother3.Text
         public static void WriteStringOffsetTable(this BinaryStream stream, IEnumerable<string> strings,
             OffsetTableWriter offsetWriter, StringCodec codec, bool isScript, Dictionary<string, int> cache = null)
         {
-            if (cache == null)
-            {
-                cache = new Dictionary<string, int>();
-            }
-
             foreach (string str in strings)
             {
                 if (str == null)
@@ -113,13 +108,13 @@ namespace RopeSnake.Mother3.Text
                 }
                 else
                 {
-                    if (cache.ContainsKey(str))
+                    if (cache?.ContainsKey(str) == true)
                     {
                         offsetWriter.AddPointer(cache[str]);
                     }
                     else
                     {
-                        cache.Add(str, stream.Position);
+                        cache?.Add(str, stream.Position);
                         offsetWriter.AddPointer(stream.Position);
 
                         if (isScript)

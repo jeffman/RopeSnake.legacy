@@ -8,6 +8,7 @@ using SharpFileSystem;
 using RopeSnake.Core;
 using RopeSnake.Core.Validation;
 using RopeSnake.Mother3.IO;
+using RopeSnake.Gba;
 
 namespace RopeSnake.Mother3.Text
 {
@@ -420,6 +421,19 @@ namespace RopeSnake.Mother3.Text
                 battleLocation, battleLocation);
         }
 
+        private void UpdateAsmReferences(Block romData, AllocatedBlockCollection allocatedBlocks)
+        {
+            int enemyNamesLocation = allocatedBlocks.GetAllocatedPointer(EnemyNamesKey);
+            var asmRefs = RomConfig.GetReferences("Text.EnemyNames.AsmRefs");
+
+            var stream = romData.ToBinaryStream();
+            foreach (var asmRef in asmRefs)
+            {
+                stream.Position = asmRef;
+                stream.WriteGbaPointer(enemyNamesLocation + 4);
+            }
+        }
+
         public override void WriteToRom(Block romData, AllocatedBlockCollection allocatedBlocks)
         {
             UpdateWideOffsetTable(allocatedBlocks, TextBankKey, _textKeys);
@@ -435,6 +449,7 @@ namespace RopeSnake.Mother3.Text
             if (RomConfig.IsEnglish)
             {
                 UpdateRomReferences(romData, allocatedBlocks, EnemyNamesShortKey, GetOffsetAndDataKeys(ItemDescriptionsSpecialKey));
+                UpdateAsmReferences(romData, allocatedBlocks);
             }
 
             _textKeys = null;

@@ -38,7 +38,7 @@ namespace RopeSnake.Cli
                 string fileName = Path.GetFileName(fullPath);
 
                 var fileSystem = new PhysicalFileSystemWrapper(directory);
-                var project = Mother3Project.Load(fileSystem, fileName.ToPath(), null);
+                var project = Mother3Project.Load(fileSystem, fileName.ToPath(), null, directory);
 
                 project.Validate();
 
@@ -50,12 +50,13 @@ namespace RopeSnake.Cli
             }
 
             var decompileOptions = invokedVerbInstance as DecompileOptions;
+            string Out=decompileOptions.Output;
             if (decompileOptions != null)
             {
                 var project = Mother3Project.CreateNew(decompileOptions.Rom, decompileOptions.Config, decompileOptions.Output);
                 var fileSystem = new PhysicalFileSystemWrapper(decompileOptions.Output);
 
-                project.Decompile(fileSystem);
+                project.Decompile(Out,fileSystem);
                 project.WriteToFiles(fileSystem, Mother3Project.DefaultProjectFile);
 
                 return;

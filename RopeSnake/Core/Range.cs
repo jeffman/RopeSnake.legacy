@@ -29,7 +29,7 @@ namespace RopeSnake.Core
         /// </summary>
         public int Size { get { return End - Start + 1; } }
 
-        private Range(int start, int end)
+        public Range(int start, int end)
         {
             if (start < 0 || end < 0)
                 throw new Exception("Locations may not be negative");

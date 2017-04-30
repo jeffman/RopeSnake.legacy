@@ -17,7 +17,7 @@ namespace RopeSnake.Core
             set { _data[index] = value; }
         }
 
-        internal byte[] Data => _data;
+        public byte[] Data => _data;
 
         public virtual int Size => Data.Length;
 
@@ -55,6 +55,10 @@ namespace RopeSnake.Core
         internal void CopyFrom(byte[] source, int sourceOffset, int destinationOffset, int length)
         {
             Array.Copy(source, sourceOffset, _data, destinationOffset, length);
+        }
+        internal void CopyFrom(byte[] source)
+        {
+            Array.Copy(source, 0, _data, 0, source.Length);
         }
 
         public void Resize(int newSize)

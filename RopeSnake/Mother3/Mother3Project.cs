@@ -13,13 +13,14 @@ using NLog;
 using File = System.IO.File;
 using Directory = System.IO.Directory;
 using Newtonsoft.Json;
+using RopeSnake.Mother3.Enemy_Graphics;
 
 namespace RopeSnake.Mother3
 {
     public sealed class Mother3Project
     {
         private static readonly Logger _log = LogManager.GetLogger(nameof(Mother3Project));
-
+        public  static string outputO;
         private static readonly FileSystemPath CachePath = "/.cache/".ToPath();
         private static readonly FileSystemPath CacheKeysFile = CachePath.AppendFile("keys.txt");
         private static readonly FileSystemPath FileSystemStatePath = CachePath.AppendFile("state.json");
@@ -86,10 +87,9 @@ namespace RopeSnake.Mother3
         }
 
         public static Mother3Project Load(IFileSystem fileSystem, FileSystemPath projectSettingsPath,
-            IProgress<ProgressPercent> progress)
+            IProgress<ProgressPercent> progress, string Out)
         {
             _log.Info($"Loading project \"{projectSettingsPath.Path}\"");
-
             var projectSettings = Mother3ProjectSettings.Create(fileSystem, projectSettingsPath);
             var romConfig = Mother3RomConfig.Create(fileSystem, projectSettings.RomConfigFile.ToPath());
 
@@ -105,7 +105,7 @@ namespace RopeSnake.Mother3
                 _log.Info($"Loading module: {module.Name}");
                 module.ReadFromFiles(fileSystem);
             }
-
+            outputO = Out;
             _log.Info("Finished loading project");
 
             return project;
@@ -131,7 +131,7 @@ namespace RopeSnake.Mother3
             _log.Info("Finished writing modules");
         }
 
-        public void Decompile(IFileSystem fileSystem, IProgress<ProgressPercent> progress = null)
+        public void Decompile(string output, IFileSystem fileSystem, IProgress<ProgressPercent> progress = null)
         {
             _log.Info("Decompiling project");
 
@@ -161,7 +161,9 @@ namespace RopeSnake.Mother3
 
             Modules.Data.UpdateNameHints(Modules.Text);
             //Modules.Maps.UpdateNameHints(Modules.Text);
-
+            _log.Info("Decompiling enemies graphics");
+            outputO = output;
+            Extraction.Extract(baseRom.Data, output + "\\BattleSprites\\", progress);
             _log.Info("Finished decompiling project");
         }
 
@@ -173,11 +175,9 @@ namespace RopeSnake.Mother3
             var freeRanges = Modules.SelectMany(m => RomConfig.FreeRanges[m.Name])
                 .Concat(RomConfig.FreeRanges["Nullspace"]);
             var allocator = new RangeAllocator(freeRanges);
-
             var binaryManager = new BinaryFileManager(fileSystem);
             var baseRom = binaryManager.ReadFile<Block>(ProjectSettings.BaseRomFile.ToPath());
             var outputRomData = new Block(baseRom);
-
             BlockCollection cache;
             if (useCache)
             {
@@ -194,10 +194,9 @@ namespace RopeSnake.Mother3
             var compiler = Compiler.Create(outputRomData, allocator, Modules, cache, maxThreads);
             compiler.AllocationAlignment = 4;
             var compilationResult = compiler.Compile(progress);
-
+            Importing.Import(ref outputRomData, progress, outputO);
             _log.Debug("Filling free ranges with 0xFF");
             FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
-
             _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile}");
             binaryManager.WriteFile(ProjectSettings.OutputRomFile.ToPath(), outputRomData);
 
@@ -209,7 +208,6 @@ namespace RopeSnake.Mother3
                 var jsonManager = new JsonFileManager(fileSystem);
                 jsonManager.WriteJson(FileSystemStatePath, fileSystem.GetState(FileSystemPath.Root, CachePath));
             }
-
             LogCompilationResult(fileSystem, compilationResult, allocator.Ranges);
             _log.Info("Finished compiling");
         }

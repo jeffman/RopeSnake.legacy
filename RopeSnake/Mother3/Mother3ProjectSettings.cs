@@ -18,7 +18,7 @@ namespace RopeSnake.Mother3
         {
             "Data",
             "Text",
-            "Maps"
+            "Maps",
         };
 
         public string BaseRomFile

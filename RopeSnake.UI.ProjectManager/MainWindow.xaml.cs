@@ -197,15 +197,16 @@ namespace RopeSnake.UI.ProjectManager
             ProjectPath = FileSystemPath.Root.AppendFile(fileName);
         }
 
-        private async Task<bool> LoadProject()
+        private async Task<bool> LoadProject(string Ou)
         {
-            IsLoading = true;
-
+            char[] a=Ou.ToCharArray(0, Ou.LastIndexOf('\\'));
+            string Out = new string(a);
+            Out += "\\";
             try
             {
                 var fileSystem = FileSystem;
                 var projectPath = ProjectPath;
-                Project = await Task.Run(() => Mother3Project.Load(fileSystem, projectPath, _progress));
+                Project = await Task.Run(() => Mother3Project.Load(fileSystem, projectPath, _progress, Out));
                 return true;
             }
             catch (Exception ex)
@@ -239,7 +240,7 @@ namespace RopeSnake.UI.ProjectManager
             if (_openProjectDialog.ShowDialog() == true)
             {
                 PrepareFileSystem(_openProjectDialog.FileName);
-                bool result = await LoadProject();
+                bool result = await LoadProject(_openProjectDialog.FileName);
                 if (result)
                     SelectTab(compileTab);
             }

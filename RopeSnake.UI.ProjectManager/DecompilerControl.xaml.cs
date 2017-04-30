@@ -96,7 +96,7 @@ namespace RopeSnake.UI.ProjectManager
 
                 var project = await Task.Run(() => Mother3Project.CreateNew(baseRom, romConfig, outputFolder, progress));
                 var fileSystem = new PhysicalFileSystemWrapper(outputFolder);
-                await Task.Run(() => project.Decompile(fileSystem, progress));
+                await Task.Run(() => project.Decompile(outputFolder, fileSystem, progress));
 
                 var projectPath = Mother3Project.DefaultProjectFile;
                 await Task.Run(() => project.WriteToFiles(fileSystem, projectPath));

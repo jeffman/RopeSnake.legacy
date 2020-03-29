@@ -75,6 +75,11 @@ namespace RopeSnake.Mother3
             return References[key];
         }
 
+        public int GetSingleReference(string key)
+        {
+            return References[key].Single();
+        }
+
         public int GetOffset(string key, Block romData)
         {
             var references = GetReferences(key);

@@ -17,24 +17,9 @@ namespace Rendering
         {
             return bmp.LockBits(new Rectangle(0, 0, bmp.Width, bmp.Height), imageLockMode, bmp.PixelFormat);
         }
-        unsafe public static Bitmap SingleRender(GBA.OAM OAMEntry, GBA.PAL[] Palette, byte[] Image)
+        public static Bitmap SingleRender(GBA.OAM OAMEntry, GBA.PAL[] Palette, byte[] Image)
         {
-            Bitmap Neo = new Bitmap(OAMEntry.Width, OAMEntry.Height, PixelFormat.Format8bppIndexed);
-            GBA.PAL.CopyPalette(Neo, Palette);
-            BitmapData N = LockBits(Neo, ImageLockMode.WriteOnly);
-            byte* ptr = (byte*)N.Scan0;
-            for (int y = 0; y < OAMEntry.Height / 8; y++)
-                for (int u = 0; u < OAMEntry.Width / 8; u++)
-                    for (int i = 0; i < 8; i++)
-                        for (int j = 0; j < 4; j++)
-                        {
-                            if (((OAMEntry.Tile * 0x20) + j + (i * 4) + (u * 32) + (y * (OAMEntry.Width * 4))) < Image.Count())
-                            {
-                                ptr[((j * 2) + 1 + (u * 8) + (i * N.Stride) + ((y * N.Stride) * 8))] = (byte)((Image[((OAMEntry.Tile * 0x20) + j + (i * 4) + (u * 32) + (y * (OAMEntry.Width * 4)))] >> 4) & 0xF);
-                                ptr[((j * 2) + (u * 8) + (i * N.Stride) + ((y * N.Stride) * 8))] = (byte)((Image[(((OAMEntry.Tile * 0x20) + j + (i * 4) + (u * 32) + (y * (OAMEntry.Width * 4))))]) & 0xF);
-                            }
-                        }
-            Neo.UnlockBits(N);
+            Bitmap Neo = SingleRender(Palette, Image, OAMEntry.Width * 8, OAMEntry.Height * 8, OAMEntry.Tile);
             if (OAMEntry.Flips == 1)
             {
                 Neo.RotateFlip(RotateFlipType.RotateNoneFlipX);
@@ -49,45 +34,70 @@ namespace Rendering
             }
             return Neo;
         }
+        unsafe public static Bitmap SingleRender(GBA.PAL[] Palette, byte[] Image, int width, int height, int basis)
+        {
+            Bitmap Neo = new Bitmap(width, height, PixelFormat.Format8bppIndexed);
+            GBA.PAL.CopyPalette(Neo, Palette);
+            BitmapData N = LockBits(Neo, ImageLockMode.WriteOnly);
+            byte* ptr = (byte*)N.Scan0;
+            for (int y = 0; y < height / 8; y++)
+                for (int u = 0; u < width / 8; u++)
+                    for (int i = 0; i < 8; i++)
+                        for (int j = 0; j < 4; j++)
+                        {
+                            if (((basis * 0x20) + j + (i * 4) + (u * 32) + (y * (width * 4))) < Image.Count())
+                            {
+                                ptr[((j * 2) + 1 + (u * 8) + (i * N.Stride) + ((y * N.Stride) * 8))] = (byte)((Image[((basis * 0x20) + j + (i * 4) + (u * 32) + (y * (width * 4)))] >> 4) & 0xF);
+                                ptr[((j * 2) + (u * 8) + (i * N.Stride) + ((y * N.Stride) * 8))] = (byte)((Image[(((basis * 0x20) + j + (i * 4) + (u * 32) + (y * (width * 4))))]) & 0xF);
+                            }
+                        }
+            Neo.UnlockBits(N);
+            return Neo;
+        }
+        public static Bitmap SingleRender(GBA.PAL[] Palette, byte[] Image, int width, int height)
+        {
+            return SingleRender(Palette, Image, width * 8, height * 8, 0);
+        }
     }
-    class Compose
+class Compose
     {
         static char ConvertHexToChar(int a)
         {
-            char e = '0';
-            if (a == 0x0)
-                e = '0';
-            else if (a == 0x1)
-                e = '1';
-            else if (a == 0x2)
-                e = '2';
-            else if (a == 0x3)
-                e = '3';
-            else if (a == 0x4)
-                e = '4';
-            else if (a == 0x5)
-                e = '5';
-            else if (a == 0x6)
-                e = '6';
-            else if (a == 0x7)
-                e = '7';
-            else if (a == 0x8)
-                e = '8';
-            else if (a == 0x9)
-                e = '9';
-            else if (a == 0xA)
-                e = 'A';
-            else if (a == 0xB)
-                e = 'B';
-            else if (a == 0xC)
-                e = 'C';
-            else if (a == 0xD)
-                e = 'D';
-            else if (a == 0xE)
-                e = 'E';
-            else if (a == 0xF)
-                e = 'F';
-            return e;
+            switch (a)
+            {
+                case 1:
+                    return '1';
+                case 2:
+                    return '2';
+                case 3:
+                    return '3';
+                case 4:
+                    return '4';
+                case 5:
+                    return '5';
+                case 6:
+                    return '6';
+                case 7:
+                    return '7';
+                case 8:
+                    return '8';
+                case 9:
+                    return '9';
+                case 10:
+                    return 'A';
+                case 11:
+                    return 'B';
+                case 12:
+                    return 'C';
+                case 13:
+                    return 'D';
+                case 14:
+                    return 'E';
+                case 15:
+                    return 'F';
+                default:
+                    return '0';
+            }
         }
         public static Bitmap MergeTwo32Argb(Bitmap firstImage, Bitmap secondImage, int xsecond, int ysecond)
         {
@@ -193,6 +203,31 @@ namespace Rendering
                 Temporale = MergeTwo8bpp(Temporale, Tempo[i], X[i], Y[i]);
             return Temporale;
         }
+        public static Bitmap CreateRender(byte[] OAMEntry, byte[] Palette, byte[,] Image) //For debug purposes
+        {
+            byte[] arr = new byte[Image.Length];
+            for (int i = 0; i < Image.Length; i++)
+                arr[i] = Image[i >> 5, i & 0x1F];
+            return CreateRender(GBA.OAM.OAMGet(OAMEntry), GBA.PAL.PALGet(Palette), arr, 0);
+        }
+        public static Bitmap CreateRender(byte[] SOB, byte[] Palette, byte[,] Image, int Wanted) //For debug purposes
+        {
+            byte[] arr = new byte[Image.Length];
+            for (int i = 0; i < Image.Length; i++)
+                arr[i] = Image[i >> 5, i & 0x1F];
+            return CreateRender(GBA.OAM.OAMGet(SOB, 0), GBA.PAL.PALGet(Palette), arr, Wanted);
+        }
+        public static Bitmap CreateRender(byte[] Palette, byte[] Image, int width, int height) //For debug purposes
+        {
+            return SinglePiece.SingleRender(GBA.PAL.PALGet(Palette), Image, width, height);
+        }
+        public static Bitmap CreateRender(byte[] Palette, byte[,] Image, int width, int height) //For debug purposes
+        {
+            byte[] arr = new byte[Image.Length];
+            for (int i = 0; i < Image.Length; i++)
+                arr[i] = Image[i >> 5, i & 0x1F];
+            return SinglePiece.SingleRender(GBA.PAL.PALGet(Palette), arr, width, height);
+        }
         public static void Output(List<GBA.OAM> OAMEntry, GBA.PAL[] Palette, byte[] Image, int Num, string outputPath, IProgress<ProgressPercent> Progress)
         {
             string a = outputPath;
@@ -237,6 +272,82 @@ namespace GBA
     {
         public int Y, X, Width, Height, Flips, Tile;
         public int Num;
+        public int Address;
+        public void setSOBEntryTile(byte[] SOB)
+        {
+            SOB[Address + 4] = (byte)(Tile & 0xFF);
+            SOB[Address + 5] = (byte)(((Tile >> 8) & 3) | (SOB[Address + 5] & 0xFC));
+        }
+        public static int compareTiles(OAM one, OAM two)
+        {
+            return one.Tile.CompareTo(two.Tile);
+        }
+        public static void getSizesOAM(int Shape, int Size, out int XSize, out int YSize)
+        {
+            switch (Shape)
+            {
+                case 0:
+                    switch (Size)
+                    {
+                        case 0:
+                            XSize = 1;
+                            break;
+                        case 0x40:
+                            XSize = 2;
+                            break;
+                        case 0x80:
+                            XSize = 4;
+                            break;
+                        default:
+                            XSize = 8;
+                            break;
+                    }
+                    YSize = XSize;
+                    break;
+                case 0x40:
+                    switch (Size)
+                    {
+                        case 0:
+                            XSize = 2;
+                            YSize = 1;
+                            break;
+                        case 0x40:
+                            XSize = 4;
+                            YSize = 1;
+                            break;
+                        case 0x80:
+                            XSize = 4;
+                            YSize = 2;
+                            break;
+                        default:
+                            XSize = 8;
+                            YSize = 4;
+                            break;
+                    }
+                    break;
+                default:
+                    switch (Size)
+                    {
+                        case 0:
+                            XSize = 1;
+                            YSize = 2;
+                            break;
+                        case 0x40:
+                            XSize = 1;
+                            YSize = 4;
+                            break;
+                        case 0x80:
+                            XSize = 2;
+                            YSize = 4;
+                            break;
+                        default:
+                            XSize = 4;
+                            YSize = 8;
+                            break;
+                    }
+                    break;
+            }
+        }
         public static List<OAM> OAMGet(byte[] data, int address)
         {
             List<OAM> OAM = new List<OAM>();
@@ -245,99 +356,40 @@ namespace GBA
             {
                 int Internal = address + (data[address + 8 + (i * 2)] + (data[address + 9 + (i * 2)] << 8));
                 int num = data[Internal + 2] + (data[Internal + 3] << 8);
-                for (int j = 0; j < num; j++)
-                {
-                    OAM Tuk = new OAM();
-                    Tuk.Num = i;
-                    Tuk.Y = data[Internal + 4 + (j * 8)];
-                    if (Tuk.Y >= 0x80)
-                        Tuk.Y -= 0x80;
-                    else
-                        Tuk.Y += 0x80;
-                    Tuk.X = data[Internal + 6 + (j * 8)] + ((data[Internal + 7 + (j * 8)] & 0x1) << 8);
-                    if (Tuk.X >= 0x100)
-                        Tuk.X -= 0x100;
-                    else
-                        Tuk.X += 0x100;
-                    int Shape = (data[Internal + 5 + (j * 8)] >> 6) & 0x3;
-                    int Size = (data[Internal + 7 + (j * 8)] >> 6) & 0x3;
-                    if (Shape == 0)
-                    {
-                        if (Size == 0)
-                        {
-                            Tuk.Width = 8;
-                            Tuk.Height = Tuk.Width;
-                        }
-                        else if (Size == 1)
-                        {
-                            Tuk.Width = 16;
-                            Tuk.Height = Tuk.Width;
-                        }
-                        else if (Size == 2)
-                        {
-                            Tuk.Width = 32;
-                            Tuk.Height = Tuk.Width;
-                        }
-                        else if (Size == 3)
-                        {
-                            Tuk.Width = 64;
-                            Tuk.Height = Tuk.Width;
-                        }
-                    }
-                    else if (Shape == 1)
-                    {
-                        if (Size == 0)
-                        {
-                            Tuk.Width = 16;
-                            Tuk.Height = Tuk.Width / 2;
-                        }
-                        else if (Size == 1)
-                        {
-                            Tuk.Width = 32;
-                            Tuk.Height = Tuk.Width / 4;
-                        }
-                        else if (Size == 2)
-                        {
-                            Tuk.Width = 32;
-                            Tuk.Height = Tuk.Width / 2;
-                        }
-                        else if (Size == 3)
-                        {
-                            Tuk.Width = 64;
-                            Tuk.Height = Tuk.Width / 2;
-                        }
-                    }
-                    else if (Shape == 2)
-                    {
-                        if (Size == 0)
-                        {
-                            Tuk.Width = 8;
-                            Tuk.Height = Tuk.Width * 2;
-                        }
-                        else if (Size == 1)
-                        {
-                            Tuk.Width = 8;
-                            Tuk.Height = Tuk.Width * 4;
-                        }
-                        else if (Size == 2)
-                        {
-                            Tuk.Width = 16;
-                            Tuk.Height = Tuk.Width * 2;
-                        }
-                        else if (Size == 3)
-                        {
-                            Tuk.Width = 32;
-                            Tuk.Height = Tuk.Width * 2;
-                        }
-                    }
-                    else
-                        break;
-                    Tuk.Flips = (data[Internal + 7 + (j * 8)] >> 4) & 0x3;
-                    Tuk.Tile = (data[Internal + 8 + (j * 8)]) + (((data[Internal + 9 + (j * 8)]) & 0x3) << 8);
-                    OAM.Add(Tuk);
-                }
+                OAM.AddRange(OAMGet(data, Internal + 4, num, i));
             }
             return OAM;
+        }
+        public static List<OAM> OAMGet(byte[] data, int address, int num, int i)
+        {
+            List<OAM> OAM = new List<OAM>();
+            for (int j = 0; j < num; j++)
+            {
+                OAM Tuk = new OAM();
+                Tuk.Address = address + (j * 8);
+                Tuk.Num = i;
+                Tuk.Y = data[Tuk.Address];
+                if (Tuk.Y >= 0x80)
+                    Tuk.Y -= 0x80;
+                else
+                    Tuk.Y += 0x80;
+                Tuk.X = data[Tuk.Address + 2] + ((data[Tuk.Address + 3] & 0x1) << 8);
+                if (Tuk.X >= 0x100)
+                    Tuk.X -= 0x100;
+                else
+                    Tuk.X += 0x100;
+                int Shape = (data[Tuk.Address + 1]) & 0xC0;
+                int Size = (data[Tuk.Address + 3]) & 0xC0;
+                getSizesOAM(Shape, Size, out Tuk.Width, out Tuk.Height);
+                Tuk.Flips = (data[Tuk.Address + 3] >> 4) & 0x3;
+                Tuk.Tile = (data[Tuk.Address + 4]) + (((data[Tuk.Address + 5]) & 0x3) << 8);
+                OAM.Add(Tuk);
+            }
+            return OAM;
+        }
+        public static List<OAM> OAMGet(byte[] data)
+        {
+            return OAMGet(data, 0, data.Length/8, 0);
         }
     }
     public class PAL
@@ -370,6 +422,10 @@ namespace GBA
                 Transform[i].Palette = Color.FromArgb(Alpha, R, G, B);
             }
             return Transform;
+        }
+        public static GBA.PAL[] PALGet(byte[] data)
+        {
+            return PALGet(data, 0);
         }
     }
 }

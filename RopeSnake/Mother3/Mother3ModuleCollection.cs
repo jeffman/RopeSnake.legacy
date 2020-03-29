@@ -9,14 +9,17 @@ using RopeSnake.Core;
 using RopeSnake.Mother3.Data;
 using RopeSnake.Mother3.Text;
 using RopeSnake.Mother3.Maps;
+using RopeSnake.Mother3.Enemy_Graphics;
+using RopeSnake.Mother3.Title;
 
 namespace RopeSnake.Mother3
 {
     public sealed class Mother3ModuleCollection : IEnumerable<Mother3Module>
     {
-        public DataModule Data { get; private set; }
-        public TextModule Text { get; private set; }
-        public MapModule Maps { get; private set; }
+        //public DataModule Data { get; private set; }
+        //public TextModule Text { get; private set; }
+        //public MapModule Maps { get; private set; }
+        public TitleModule Title { get; private set; }
 
         #region Reflection wasteland
 

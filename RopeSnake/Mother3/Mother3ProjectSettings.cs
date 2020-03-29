@@ -16,9 +16,10 @@ namespace RopeSnake.Mother3
     {
         public static readonly string[] DefaultModules =
         {
-            "Data",
-            "Text",
-            "Maps",
+            //"Data",
+            //"Text",
+            //"Maps",
+            "Title"
         };
 
         public string BaseRomFile

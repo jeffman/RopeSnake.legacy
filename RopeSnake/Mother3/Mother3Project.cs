@@ -14,6 +14,8 @@ using File = System.IO.File;
 using Directory = System.IO.Directory;
 using Newtonsoft.Json;
 using RopeSnake.Mother3.Enemy_Graphics;
+using RopeSnake.Mother3.Title;
+using System.Drawing;
 
 namespace RopeSnake.Mother3
 {
@@ -159,14 +161,13 @@ namespace RopeSnake.Mother3
                 module.ReadFromRom(baseRom);
             }
 
-            Modules.Data.UpdateNameHints(Modules.Text);
+            //Modules.Data.UpdateNameHints(Modules.Text);
             //Modules.Maps.UpdateNameHints(Modules.Text);
             _log.Info("Decompiling enemies graphics");
             outputO = output;
             Extraction.Extract(baseRom.Data, output + "\\BattleSprites\\", progress);
             _log.Info("Finished decompiling project");
         }
-
         public void Compile(IFileSystemWrapper fileSystem, bool useCache, int maxThreads = 1,
             IProgress<ProgressPercent> progress = null)
         {
@@ -195,8 +196,8 @@ namespace RopeSnake.Mother3
             compiler.AllocationAlignment = 4;
             var compilationResult = compiler.Compile(progress);
             Importing.Import(ref outputRomData, progress, outputO);
-            _log.Debug("Filling free ranges with 0xFF");
-            FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
+            //_log.Debug("Filling free ranges with 0xFF");
+            //FillFreeRanges(outputRomData, allocator.Ranges, 0xFF);
             _log.Info($"Writing output ROM file to {ProjectSettings.OutputRomFile}");
             binaryManager.WriteFile(ProjectSettings.OutputRomFile.ToPath(), outputRomData);
 
